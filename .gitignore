@@ -1,0 +1,32 @@
+# Maven build output
+target/
+*.class
+
+# Persistent personal memory and workspace
+data/memory.json
+data/memory.json.tmp
+data/screenshots/
+workspace/
+
+# Environment files and credentials
+.env
+*.env
+*.key
+*.pem
+credentials.json
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# IDE / Editor configuration
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Windows system files
+Thumbs.db
+desktop.ini

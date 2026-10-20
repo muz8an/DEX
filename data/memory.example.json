@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Hello DEX"
+  },
+  {
+    "role": "assistant",
+    "content": "Hello! I am DEX, your personal Windows assistant. How can I assist you today?"
+  }
+]

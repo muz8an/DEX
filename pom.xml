@@ -24,6 +24,13 @@
             <version>2.20.1</version>
         </dependency>
 
+        <!-- Modern Desktop UI (JARVIS Dark Theme) -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.5.4</version>
+        </dependency>
+
         <!-- Automated testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

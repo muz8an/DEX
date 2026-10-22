@@ -261,21 +261,65 @@ public class TaskManager {
             return new TaskStep(stepNumber, "List Workspace Files", "list_files", "");
         }
 
-        // 6. Application launching (e.g., "open notepad", "can you open Notepad for me?", "launch chrome", "open vs code")
+        // 5b. Running processes listing
+        if (lower.equals("list processes")
+                || lower.equals("list running processes")
+                || lower.equals("show running processes")
+                || lower.equals("running apps")
+                || lower.equals("running processes")
+                || lower.equals("active processes")) {
+            return new TaskStep(stepNumber, "List Running Processes", "list_processes", "");
+        }
+
+        // 5c. Web Search intent
+        if (lower.startsWith("search ") || lower.startsWith("search for ")) {
+            String q = p.replaceAll("(?i)^(?:search for|search)\\s+", "").trim();
+            if (q.toLowerCase(Locale.ROOT).startsWith("youtube for ")) {
+                String ytQuery = q.substring(12).trim();
+                return new TaskStep(stepNumber, "Search YouTube: " + ytQuery, "open_url", "https://www.youtube.com/results?search_query=" + ytQuery);
+            } else if (q.toLowerCase(Locale.ROOT).startsWith("github for ")) {
+                String ghQuery = q.substring(11).trim();
+                return new TaskStep(stepNumber, "Search GitHub: " + ghQuery, "open_url", "https://github.com/search?q=" + ghQuery);
+            } else {
+                return new TaskStep(stepNumber, "Search Web: " + q, "browser_search", q);
+            }
+        }
+
+        // 6. Application & Web Destinations (e.g., "open notepad", "go to youtube", "open youtube in chrome", "open vs code")
         String cleanPhrase = p.replaceAll("[\\.\\?!,;]+$", "").trim();
-        boolean hasOpenVerb = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open|launch|start|run)\\b").matcher(cleanPhrase).find();
-        if (hasOpenVerb) {
-            String appQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open|launch|start|run)\\s+(?:my\\s+)?", "")
+        boolean hasActionVerb = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|go to|browse to|visit|watch)\\b").matcher(cleanPhrase).find();
+        if (hasActionVerb) {
+            String targetQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|go to|browse to|visit|watch)\\s+(?:my\\s+)?", "")
                     .replaceAll("(?i)\\s+(?:for me|please|now)$", "")
                     .trim();
-            WindowsController.ApplicationEntry app = WindowsController.findApplication(appQuery);
+
+            if (targetQuery.toLowerCase(Locale.ROOT).contains("youtube") || targetQuery.equalsIgnoreCase("yt") || targetQuery.contains("youtu.be")) {
+                return new TaskStep(stepNumber, "Open YouTube" + (targetQuery.toLowerCase(Locale.ROOT).contains("chrome") ? " in Chrome" : ""), "open_app", targetQuery);
+            }
+            if (targetQuery.toLowerCase(Locale.ROOT).contains("google") && !targetQuery.toLowerCase(Locale.ROOT).contains("chrome")) {
+                return new TaskStep(stepNumber, "Open Google in default browser", "open_app", targetQuery);
+            }
+            if (targetQuery.toLowerCase(Locale.ROOT).contains("github")) {
+                return new TaskStep(stepNumber, "Open GitHub in default browser", "open_app", targetQuery);
+            }
+
+            WindowsController.ApplicationEntry app = WindowsController.findApplication(targetQuery);
             if (app != null) {
                 return new TaskStep(stepNumber, "Launch Application: " + app.getCanonicalName(), "open_app", app.getCanonicalName());
             }
         }
 
-        // Direct app alias check (only for short 1-3 word queries like 'notepad', 'calc', 'youtube')
+        // Direct app alias check (only for short 1-3 word queries like 'notepad', 'calc', 'youtube', 'yt')
         if (lower.split("\\s+").length <= 3) {
+            if (lower.contains("youtube") || lower.equals("yt") || lower.contains("youtu.be")) {
+                return new TaskStep(stepNumber, "Open YouTube", "open_app", lower);
+            }
+            if (lower.equals("google") || lower.equals("google search") || lower.equals("google.com")) {
+                return new TaskStep(stepNumber, "Open Google", "open_app", lower);
+            }
+            if (lower.equals("github") || lower.equals("git hub") || lower.equals("github.com")) {
+                return new TaskStep(stepNumber, "Open GitHub", "open_app", lower);
+            }
             WindowsController.ApplicationEntry directApp = WindowsController.findApplication(lower);
             if (directApp != null) {
                 return new TaskStep(stepNumber, "Launch Application: " + directApp.getCanonicalName(), "open_app", directApp.getCanonicalName());
@@ -337,7 +381,11 @@ public class TaskManager {
                 String result = ToolManager.execute(step.getToolName(), step.getArgument());
                 step.setResult(result);
 
-                if (result != null && (result.startsWith("Error:") || result.startsWith("Couldn't open") || result.startsWith("Security Error:"))) {
+                if (result != null && (result.startsWith("Failed to")
+                        || result.startsWith("Error:")
+                        || result.startsWith("Couldn't open")
+                        || result.startsWith("Unsupported application")
+                        || result.startsWith("Security Error:"))) {
                     step.setStatus(StepStatus.FAILED);
                     previousStepSucceeded = false;
                     output.append(isMultiStep ? "• Step " + step.getStepNumber() + ": [FAILED] " : "")

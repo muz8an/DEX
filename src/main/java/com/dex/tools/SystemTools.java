@@ -1,9 +1,16 @@
 package com.dex.tools;
 
+import com.dex.WindowsController;
 import com.dex.config.DEXConfig;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +22,8 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -120,17 +129,11 @@ public class SystemTools {
             return "Error: URL contains illegal characters or potential injection tokens.";
         }
 
-        try {
-            URI uri = URI.create(url);
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(uri);
-                return "Opened URL in default browser: " + url;
-            } else {
-                new ProcessBuilder("cmd", "/c", "start", "", url).start();
-                return "Opened URL via Windows Shell: " + url;
-            }
-        } catch (Exception e) {
-            return "Failed to open URL: " + e.getMessage();
+        WindowsController.LaunchResult result = WindowsController.executeOpenDefaultBrowser(url);
+        if (result.isSuccess()) {
+            return "Opened URL in default browser: " + url + (result.getPid() != null ? " (PID: " + result.getPid() + ")" : "");
+        } else {
+            return "Failed to open URL: " + result.getError();
         }
     }
 
@@ -157,6 +160,61 @@ public class SystemTools {
             return "Speaking: \"" + safeText + "\"";
         } catch (Exception e) {
             return "Voice synthesis unavailable: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Lists running desktop processes safely using Java's ProcessHandle API.
+     */
+    public static String listRunningProcesses(String filter) {
+        String filterLower = filter != null ? filter.trim().toLowerCase(Locale.ROOT) : "";
+        StringBuilder sb = new StringBuilder("=== Active Windows Processes ===\n");
+        int count = 0;
+
+        List<ProcessHandle> processes = ProcessHandle.allProcesses()
+                .filter(p -> p.info().command().isPresent())
+                .sorted(Comparator.comparing(p -> p.info().command().orElse("")))
+                .toList();
+
+        for (ProcessHandle ph : processes) {
+            String cmd = ph.info().command().orElse("");
+            String shortName = cmd.contains(File.separator) ? cmd.substring(cmd.lastIndexOf(File.separator) + 1) : cmd;
+
+            if (filterLower.isEmpty() || shortName.toLowerCase(Locale.ROOT).contains(filterLower) || cmd.toLowerCase(Locale.ROOT).contains(filterLower)) {
+                sb.append("• [PID ").append(ph.pid()).append("] ").append(shortName);
+                ph.info().totalCpuDuration().ifPresent(d -> sb.append(" (CPU: ").append(d.toMillis()).append("ms)"));
+                sb.append("\n");
+                count++;
+                if (count >= 30) {
+                    sb.append("... and ").append(processes.size() - count).append(" more processes.\n");
+                    break;
+                }
+            }
+        }
+
+        if (count == 0) {
+            return "No matching processes found" + (filterLower.isEmpty() ? "." : " for filter: " + filter);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Captures screenshot as a Base64 string for Vision AI models.
+     */
+    public static String captureScreenshotBase64() {
+        try {
+            if (GraphicsEnvironment.isHeadless()) {
+                return null;
+            }
+            Robot robot = new Robot();
+            Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+            BufferedImage capture = robot.createScreenCapture(screenRect);
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            ImageIO.write(capture, "png", baos);
+            return java.util.Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (Exception e) {
+            System.err.println("[DEX Screen] Base64 screenshot capture failed: " + e.getMessage());
+            return null;
         }
     }
 }

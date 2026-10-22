@@ -14,8 +14,10 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
+import java.net.NetworkInterface;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,14 +62,26 @@ public class DEXWebServer {
 
         // REST API Endpoints
         server.createContext("/api/status", new StatusHandler());
+        server.createContext("/api/network-info", new NetworkInfoHandler());
         server.createContext("/api/tools", new ToolsHandler());
+        server.createContext("/api/tools/run", new ToolRunHandler());
         server.createContext("/api/tasks", new TasksHandler());
+        server.createContext("/api/tasks/cancel", new TaskCancelHandler());
         server.createContext("/api/chat", new ChatHandler(aiClient));
         server.createContext("/api/clear", new ClearChatHandler(aiClient));
         server.createContext("/api/screenshot", new ScreenshotHandler());
-        server.createContext("/api/screenshots", new ScreenshotFileHandler());
+        server.createContext("/api/screenshots/", new ScreenshotFileHandler());
+        server.createContext("/api/set-key", new SetKeyHandler());
+        server.createContext("/api/memory", new MemoryHandler(aiClient));
+        server.createContext("/api/providers", new ProvidersHandler());
+        server.createContext("/api/browser/navigate", new BrowserNavigateHandler());
+        server.createContext("/api/browser/search", new BrowserSearchHandler());
+        server.createContext("/api/voice/speak", new VoiceSpeakHandler());
+        server.createContext("/api/voice/stop", new VoiceStopHandler());
+        server.createContext("/api/screen/analyze", new ScreenAnalyzeHandler(aiClient));
 
         server.start();
+        System.out.println("[DEX] Web Dashboard started at http://" + host + ":" + port);
     }
 
     public synchronized void stop() {
@@ -95,13 +109,22 @@ public class DEXWebServer {
      * Remote connections require valid Bearer token matching DEXConfig.getRemoteAuthToken().
      */
     public static boolean isAuthorized(HttpExchange exchange) {
-        String remoteAddress = exchange.getRemoteAddress().getAddress().getHostAddress();
-        boolean isLocal = "127.0.0.1".equals(remoteAddress)
-                || "0:0:0:0:0:0:0:1".equals(remoteAddress)
-                || "::1".equals(remoteAddress);
-
-        if (isLocal) {
-            return true;
+        try {
+            InetSocketAddress remoteSock = exchange.getRemoteAddress();
+            if (remoteSock != null) {
+                InetAddress addr = remoteSock.getAddress();
+                if (addr != null && (addr.isLoopbackAddress()
+                        || "127.0.0.1".equals(addr.getHostAddress())
+                        || "::1".equals(addr.getHostAddress())
+                        || addr.getHostAddress().startsWith("127."))) {
+                    return true;
+                }
+                String hostStr = remoteSock.getHostString();
+                if ("127.0.0.1".equals(hostStr) || "localhost".equalsIgnoreCase(hostStr) || "::1".equals(hostStr)) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
         }
 
         // Check Authorization header: "Bearer <token>"
@@ -170,15 +193,54 @@ public class DEXWebServer {
             ObjectNode status = MAPPER.createObjectNode();
             status.put("assistant", "DEX");
             status.put("status", "ONLINE");
-            status.put("hasApiKey", DEXConfig.hasApiKey());
+            status.put("hasApiKey", DEXConfig.hasApiKey() || com.dex.ai.ProviderManager.getActiveProvider().isConfigured());
             status.put("isOfflineMode", DEXConfig.isOfflineMode());
-            status.put("model", DEXConfig.getModel());
-            status.put("baseUrl", DEXConfig.getBaseUrl());
+            status.put("activeProvider", com.dex.ai.ProviderManager.getActiveProviderType().getDisplayName());
+            status.put("model", com.dex.ai.ProviderManager.getActiveProvider().getModel());
+            status.put("baseUrl", com.dex.ai.ProviderManager.getActiveProvider().getBaseUrl());
             status.put("workspace", DEXConfig.getWorkspaceRoot().toString());
             status.put("toolsCount", ToolManager.getAllTools().size());
             status.put("remoteAuthEnabled", true);
+            status.put("remoteToken", DEXConfig.getRemoteAuthToken());
 
             sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(status));
+        }
+    }
+
+    private static class NetworkInfoHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
+            ObjectNode root = MAPPER.createObjectNode();
+            root.put("host", DEXConfig.getWebHost());
+            root.put("port", DEXConfig.getWebPort());
+            root.put("remoteToken", DEXConfig.getRemoteAuthToken());
+
+            ArrayNode list = root.putArray("interfaces");
+            try {
+                Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+                while (ifaces != null && ifaces.hasMoreElements()) {
+                    NetworkInterface iface = ifaces.nextElement();
+                    if (!iface.isUp() || iface.isLoopback()) continue;
+                    Enumeration<InetAddress> addrs = iface.getInetAddresses();
+                    while (addrs.hasMoreElements()) {
+                        InetAddress addr = addrs.nextElement();
+                        if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+                            ObjectNode node = list.addObject();
+                            node.put("name", iface.getDisplayName());
+                            node.put("ip", addr.getHostAddress());
+                            node.put("url", "http://" + addr.getHostAddress() + ":" + DEXConfig.getWebPort() + "/?token=" + DEXConfig.getRemoteAuthToken());
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+
+            sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(root));
         }
     }
 
@@ -200,6 +262,52 @@ public class DEXWebServer {
             }
 
             sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(array));
+        }
+    }
+
+    private static class ToolRunHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"error\": \"Use POST.\"}");
+                return;
+            }
+
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String toolName = json.path("name").asText("").trim();
+                String args = json.path("args").asText("").trim();
+
+                ToolManager.ToolDefinition tool = ToolManager.getTool(toolName);
+                if (tool == null) {
+                    sendJsonResponse(exchange, 404, "{\"error\": \"Tool not found.\"}");
+                    return;
+                }
+
+                if (tool.isSensitive()) {
+                    sendJsonResponse(exchange, 403, "{\"error\": \"Sensitive tool requires explicit confirmation.\"}");
+                    return;
+                }
+
+                String result = ToolManager.executeTool(toolName, args);
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("tool", toolName);
+                resp.put("result", result);
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"Execution error: " + e.getMessage() + "\"}");
+            }
         }
     }
 
@@ -245,13 +353,13 @@ public class DEXWebServer {
                 return;
             }
 
-            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                sendJsonResponse(exchange, 405, "{\"error\": \"Method not allowed. Use POST.\"}");
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized. Valid remote token required.\"}");
                 return;
             }
 
-            if (!isAuthorized(exchange)) {
-                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized. Provide Bearer token or ?token= parameter.\"}");
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"error\": \"Method not allowed. Use POST.\"}");
                 return;
             }
 
@@ -261,22 +369,21 @@ public class DEXWebServer {
                 String userMessage = json.path("message").asText("").trim();
 
                 if (userMessage.isEmpty()) {
-                    sendJsonResponse(exchange, 400, "{\"error\": \"Message field is required.\"}");
+                    sendJsonResponse(exchange, 400, "{\"error\": \"Message cannot be empty.\"}");
                     return;
                 }
 
                 String reply = aiClient.processMessage(userMessage);
 
-                ObjectNode resp = MAPPER.createObjectNode();
-                resp.put("reply", reply);
-                resp.put("timestamp", System.currentTimeMillis());
+                ObjectNode responseNode = MAPPER.createObjectNode();
+                responseNode.put("reply", reply);
+                responseNode.put("timestamp", System.currentTimeMillis());
 
-                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
-
-            } catch (Exception e) {
-                ObjectNode err = MAPPER.createObjectNode();
-                err.put("error", "Failed to process chat: " + e.getMessage());
-                sendJsonResponse(exchange, 500, MAPPER.writeValueAsString(err));
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(responseNode));
+            } catch (Throwable e) {
+                ObjectNode errNode = MAPPER.createObjectNode();
+                errNode.put("error", "Failed to process chat: " + e.getMessage());
+                sendJsonResponse(exchange, 500, MAPPER.writeValueAsString(errNode));
             }
         }
     }
@@ -290,15 +397,25 @@ public class DEXWebServer {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
             if (!isAuthorized(exchange)) {
                 sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
                 return;
             }
 
-            aiClient.getMemoryManager().clearChat();
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"error\": \"Use POST.\"}");
+                return;
+            }
+
+            aiClient.getMemoryManager().clearMemory();
             ObjectNode resp = MAPPER.createObjectNode();
-            resp.put("status", "cleared");
-            resp.put("message", "Chat session cleared. Persistent memory preserved.");
+            resp.put("status", "ok");
+            resp.put("message", "Conversation memory cleared.");
             sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
         }
     }
@@ -306,6 +423,11 @@ public class DEXWebServer {
     private static class ScreenshotHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
             if (!isAuthorized(exchange)) {
                 sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
                 return;
@@ -313,14 +435,15 @@ public class DEXWebServer {
 
             String result = SystemTools.takeScreenshot("");
             ObjectNode resp = MAPPER.createObjectNode();
-            resp.put("result", result);
+            resp.put("status", "ok");
+            resp.put("message", result);
 
             if (result.contains("Saved to: ")) {
                 int start = result.indexOf("Saved to: ") + 10;
                 int end = result.indexOf(" (", start);
                 if (end > start) {
                     String fullPath = result.substring(start, end).trim();
-                    File file = new File(fullPath);
+                    java.io.File file = new java.io.File(fullPath);
                     resp.put("filename", file.getName());
                     resp.put("url", "/api/screenshots/" + file.getName());
                 }
@@ -367,607 +490,343 @@ public class DEXWebServer {
         }
     }
 
+    private static class SetKeyHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"error\": \"Use POST.\"}");
+                return;
+            }
+
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String key = json.path("key").asText("").trim();
+
+                if (key.isEmpty()) {
+                    sendJsonResponse(exchange, 400, "{\"error\": \"API key cannot be empty.\"}");
+                    return;
+                }
+
+                DEXConfig.setRuntimeApiKey(key);
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("status", "ok");
+                resp.put("message", "API key set for this session. AI chat is now enabled.");
+                resp.put("hasApiKey", true);
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"Failed to set key: " + e.getMessage() + "\"}");
+            }
+        }
+    }
+
+    private static class MemoryHandler implements HttpHandler {
+        private final AIClient aiClient;
+
+        public MemoryHandler(AIClient aiClient) {
+            this.aiClient = aiClient;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+
+            ArrayNode array = MAPPER.createArrayNode();
+            for (com.dex.memory.MemoryManager.ChatMessage msg : aiClient.getMemoryManager().getAllMessages()) {
+                ObjectNode node = array.addObject();
+                node.put("role", msg.getRole());
+                node.put("content", msg.getContent());
+                node.put("timestamp", msg.getTimestamp());
+            }
+            sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(array));
+        }
+    }
+
     private static class DashboardHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            if (!"/".equals(exchange.getRequestURI().getPath())) {
+            String path = exchange.getRequestURI().getPath();
+            if (!"/".equals(path) && !"/index.html".equals(path)) {
                 sendJsonResponse(exchange, 404, "{\"error\": \"Not found.\"}");
                 return;
             }
 
-            byte[] htmlBytes = DASHBOARD_HTML.getBytes(StandardCharsets.UTF_8);
+            String html = loadDashboardHtml();
+            byte[] htmlBytes = html.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
             exchange.sendResponseHeaders(200, htmlBytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(htmlBytes);
             }
         }
+
+        private String loadDashboardHtml() {
+            // 1. Try class loader resource (packaged jar)
+            try (InputStream is = DEXWebServer.class.getResourceAsStream("/index.html")) {
+                if (is != null) {
+                    return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            } catch (Exception ignored) {
+            }
+
+            // 2. Try direct source path on filesystem
+            try {
+                Path p = Path.of("src", "main", "resources", "index.html");
+                if (Files.exists(p)) {
+                    return Files.readString(p, StandardCharsets.UTF_8);
+                }
+            } catch (Exception ignored) {
+            }
+
+            return "<!DOCTYPE html><html><head><title>DEX</title></head><body><h1>DEX Assistant</h1><p>Dashboard resource not found.</p></body></html>";
+        }
     }
 
-    // --- EMBEDDED MODERN GLASSMORPHISM DASHBOARD HTML ---
-    private static final String DASHBOARD_HTML = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEX — Personal AI Assistant for Windows</title>
-    <style>
-        :root {
-            --bg-base: #0a0e17;
-            --bg-card: rgba(18, 24, 38, 0.85);
-            --bg-card-hover: rgba(28, 36, 56, 0.95);
-            --accent-cyan: #00e5ff;
-            --accent-purple: #7c4dff;
-            --accent-green: #00e676;
-            --accent-orange: #ff9100;
-            --accent-red: #ff5252;
-            --text-main: #f0f4fc;
-            --text-muted: #8c9ba5;
-            --border-glow: rgba(0, 229, 255, 0.15);
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg-base);
-            background-image: radial-gradient(circle at 10% 20%, rgba(124, 77, 255, 0.1) 0%, transparent 40%),
-                              radial-gradient(circle at 90% 80%, rgba(0, 229, 255, 0.08) 0%, transparent 40%);
-            color: var(--text-main);
-            font-family: var(--font-stack);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Top Header */
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 24px;
-            background: rgba(10, 14, 23, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-subtle);
-            z-index: 10;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-logo {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 16px;
-            color: #000;
-            box-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
-        }
-
-        .brand-name {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            background: linear-gradient(90deg, #fff, var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .status-indicators {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            background: rgba(0, 230, 118, 0.1);
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--accent-green);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent-green);
-            box-shadow: 0 0 8px var(--accent-green);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.9); }
-        }
-
-        .model-pill {
-            font-size: 12px;
-            color: var(--text-muted);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 4px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border-subtle);
-        }
-
-        /* Layout */
-        .container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* Sidebar */
-        aside {
-            width: 320px;
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            border-right: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            padding: 16px;
-            gap: 20px;
-        }
-
-        .panel-section h3 {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .quick-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .action-chip {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 13px;
-            color: var(--text-main);
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .action-chip:hover {
-            background: rgba(0, 229, 255, 0.08);
-            border-color: var(--border-glow);
-            color: var(--accent-cyan);
-            transform: translateX(4px);
-        }
-
-        .tool-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            max-height: 220px;
-            overflow-y: auto;
-        }
-
-        .tool-item {
-            font-size: 12px;
-            padding: 6px 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 6px;
-            border-left: 2px solid var(--accent-purple);
-        }
-
-        .tool-item-name {
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .tool-item-desc {
-            color: var(--text-muted);
-            font-size: 11px;
-            margin-top: 2px;
-        }
-
-        .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            font-size: 12px;
-        }
-
-        .task-item {
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 6px;
-            border: 1px solid var(--border-subtle);
-        }
-
-        .task-badge {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(0, 230, 118, 0.2);
-            color: var(--accent-green);
-            margin-bottom: 4px;
-        }
-
-        /* Chat Area */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: transparent;
-            position: relative;
-        }
-
-        #chatHistory {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .message {
-            max-width: 80%;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.user {
-            align-self: flex-end;
-        }
-
-        .message.assistant {
-            align-self: flex-start;
-        }
-
-        .bubble {
-            padding: 12px 16px;
-            border-radius: 14px;
-            font-size: 14px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .user .bubble {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(124, 77, 255, 0.3));
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            color: #fff;
-            border-bottom-right-radius: 2px;
-        }
-
-        .assistant .bubble {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-main);
-            border-bottom-left-radius: 2px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: var(--text-muted);
-            padding: 0 4px;
-        }
-
-        .user .message-time {
-            align-self: flex-end;
-        }
-
-        /* Chat Input Bar */
-        .input-bar {
-            padding: 16px 24px;
-            background: rgba(10, 14, 23, 0.9);
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .input-bar input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 14px 16px;
-            color: #fff;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        .input-bar input:focus {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .btn {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            color: var(--text-main);
-            padding: 12px 18px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #000;
-            font-weight: 700;
-            border: none;
-            box-shadow: 0 0 14px rgba(0, 229, 255, 0.3);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
-            transform: translateY(-1px);
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="brand">
-            <div class="brand-logo">D</div>
-            <div class="brand-name">DEX AI ASSISTANT</div>
-        </div>
-        <div class="status-indicators">
-            <div class="status-pill" id="statusPill">
-                <div class="status-dot"></div>
-                <span id="statusText">SYSTEM ONLINE</span>
-            </div>
-            <div class="model-pill" id="modelPill">Model: auto</div>
-        </div>
-    </header>
-
-    <div class="container">
-        <!-- Sidebar -->
-        <aside>
-            <div class="panel-section">
-                <h3>Quick Actions</h3>
-                <div class="quick-actions">
-                    <button class="action-chip" onclick="sendQuick('Open Calculator')">🧮 Open Calculator</button>
-                    <button class="action-chip" onclick="sendQuick('What time is it?')">⏰ Current Time</button>
-                    <button class="action-chip" onclick="sendQuick('Show system info')">💻 System Specs</button>
-                    <button class="action-chip" onclick="sendQuick('Take a screenshot')">📸 Screenshot</button>
-                    <button class="action-chip" onclick="sendQuick('Open VS Code')">📝 Open VS Code</button>
-                    <button class="action-chip" onclick="sendQuick('List files')">📁 Workspace Files</button>
-                    <button class="action-chip" onclick="sendQuick('Open Notepad and tell me the current time')">⚡ Multi-Step Demo</button>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>Registered Capabilities (<span id="toolsCount">0</span>)</h3>
-                <div class="tool-list" id="toolList">Loading tools...</div>
-            </div>
-
-            <div class="panel-section">
-                <h3>Recent Tasks</h3>
-                <div class="task-list" id="taskList">No recent tasks.</div>
-            </div>
-        </aside>
-
-        <!-- Main Chat Area -->
-        <main>
-            <div id="chatHistory">
-                <div class="message assistant">
-                    <div class="bubble">Hello! I am DEX, your personal AI assistant running locally on Windows 11.
-I can launch applications, manage workspace files, capture screenshots, run builds, and assist you with programming and system tasks.
-
-How can I help you today?</div>
-                    <div class="message-time">Just now</div>
-                </div>
-            </div>
-
-            <div class="input-bar">
-                <input type="text" id="userInput" placeholder="Ask DEX or give a command (e.g., 'Open Calculator', 'What time is it?')..." autocomplete="off" />
-                <button class="btn" id="clearBtn" title="Clear chat session" onclick="clearChat()">Clear</button>
-                <button class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Send</button>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        const chatHistory = document.getElementById('chatHistory');
-        const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const statusText = document.getElementById('statusText');
-        const modelPill = document.getElementById('modelPill');
-        const toolList = document.getElementById('toolList');
-        const toolsCount = document.getElementById('toolsCount');
-        const taskList = document.getElementById('taskList');
-
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        async function fetchStatus() {
+    private static class TaskCancelHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
             try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
-                modelPill.innerText = 'Model: ' + data.model;
-                if (!data.hasApiKey) {
-                    statusText.innerText = 'LOCAL TOOLS ACTIVE';
-                } else {
-                    statusText.innerText = 'AI ONLINE';
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String taskId = json.path("taskId").asText("").trim();
+
+                boolean cancelled = false;
+                if (!taskId.isEmpty()) {
+                    cancelled = TaskManager.cancelTask(taskId);
+                } else if (!TaskManager.getHistory().isEmpty()) {
+                    TaskManager.TaskRecord last = TaskManager.getHistory().get(TaskManager.getHistory().size() - 1);
+                    cancelled = TaskManager.cancelTask(last.getTaskId());
                 }
-                toolsCount.innerText = data.toolsCount;
-            } catch (e) {
-                statusText.innerText = 'DISCONNECTED';
+
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("cancelled", cancelled);
+                resp.put("message", cancelled ? "Task cancelled successfully." : "Task not found or already completed.");
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
             }
         }
+    }
 
-        async function fetchTools() {
-            try {
-                const res = await fetch('/api/tools');
-                const tools = await res.json();
-                toolList.innerHTML = '';
-                tools.forEach(t => {
-                    const item = document.createElement('div');
-                    item.className = 'tool-item';
-                    item.innerHTML = `<div class="tool-item-name">${t.name}</div><div class="tool-item-desc">${t.description}</div>`;
-                    toolList.appendChild(item);
-                });
-            } catch (e) {
-                toolList.innerText = 'Could not load tools.';
+    private static class ProvidersHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
             }
-        }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
 
-        async function fetchTasks() {
-            try {
-                const res = await fetch('/api/tasks');
-                const tasks = await res.json();
-                if (tasks.length === 0) return;
-                taskList.innerHTML = '';
-                tasks.slice(-5).reverse().forEach(task => {
-                    const div = document.createElement('div');
-                    div.className = 'task-item';
-                    div.innerHTML = `<div class="task-badge">${task.taskId}</div><div>${task.query}</div>`;
-                    taskList.appendChild(div);
-                });
-            } catch (e) {}
-        }
-
-        function appendMessage(role, text) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message ' + role;
-
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            bubble.innerText = text;
-
-            const time = document.createElement('div');
-            time.className = 'message-time';
-            const now = new Date();
-            time.innerText = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            msgDiv.appendChild(bubble);
-            msgDiv.appendChild(time);
-            chatHistory.appendChild(msgDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            appendMessage('user', text);
-            userInput.value = '';
-            userInput.disabled = true;
-            sendBtn.innerHTML = '<span class="spinner"></span>';
-            sendBtn.disabled = true;
-
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
-                });
-                const data = await res.json();
-                if (data.reply) {
-                    appendMessage('assistant', data.reply);
-                } else if (data.error) {
-                    appendMessage('assistant', 'Error: ' + data.error);
+            if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+                ObjectNode root = MAPPER.createObjectNode();
+                root.put("activeProvider", com.dex.ai.ProviderManager.getActiveProviderType().name());
+                root.put("activeDisplayName", com.dex.ai.ProviderManager.getActiveProviderType().getDisplayName());
+                root.put("fallbackEnabled", com.dex.ai.ProviderManager.isFallbackEnabled());
+                if (com.dex.ai.ProviderManager.getFallbackProviderType() != null) {
+                    root.put("fallbackProvider", com.dex.ai.ProviderManager.getFallbackProviderType().name());
                 }
-            } catch (e) {
-                appendMessage('assistant', 'Network Error: Failed to communicate with DEX server.');
-            } finally {
-                userInput.disabled = false;
-                sendBtn.innerHTML = 'Send';
-                sendBtn.disabled = false;
-                userInput.focus();
-                fetchTasks();
+
+                ArrayNode array = root.putArray("providers");
+                for (com.dex.ai.AIProvider p : com.dex.ai.ProviderManager.getAllProviders()) {
+                    ObjectNode node = array.addObject();
+                    node.put("id", p.getType().name());
+                    node.put("displayName", p.getType().getDisplayName());
+                    node.put("baseUrl", p.getBaseUrl());
+                    node.put("model", p.getModel());
+                    node.put("configured", p.isConfigured());
+                    node.put("visionSupported", p.isVisionSupported());
+                    node.put("maskedKey", com.dex.security.SecretStorage.getMaskedSecret(p.getType().name().toLowerCase() + "_key"));
+                }
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(root));
+                return;
+            }
+
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                try {
+                    String body = readRequestBody(exchange);
+                    JsonNode json = MAPPER.readTree(body);
+                    String providerName = json.path("provider").asText("").trim();
+                    String baseUrl = json.path("baseUrl").asText("").trim();
+                    String model = json.path("model").asText("").trim();
+                    String apiKey = json.has("apiKey") ? json.path("apiKey").asText("").trim() : null;
+
+                    com.dex.ai.AIProviderType type = com.dex.ai.AIProviderType.fromString(providerName);
+                    com.dex.ai.ProviderManager.configureProvider(type, baseUrl.isEmpty() ? null : baseUrl, model.isEmpty() ? null : model, apiKey);
+                    com.dex.ai.ProviderManager.setActiveProviderType(type);
+
+                    ObjectNode resp = MAPPER.createObjectNode();
+                    resp.put("status", "ok");
+                    resp.put("activeProvider", type.getDisplayName());
+                    sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+                } catch (Exception e) {
+                    sendJsonResponse(exchange, 500, "{\"error\": \"Failed to configure provider: " + e.getMessage() + "\"}");
+                }
             }
         }
+    }
 
-        function sendQuick(text) {
-            userInput.value = text;
-            sendMessage();
-        }
-
-        async function clearChat() {
+    private static class BrowserNavigateHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
             try {
-                await fetch('/api/clear', { method: 'POST' });
-                chatHistory.innerHTML = '';
-                appendMessage('assistant', 'Current conversation cleared. Persistent memory file remains unchanged.');
-            } catch (e) {
-                alert('Failed to clear chat.');
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String url = json.path("url").asText("").trim();
+                String result = com.dex.browser.BrowserAutomation.navigate(url);
+
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("url", url);
+                resp.put("content", result);
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
             }
         }
+    }
 
-        fetchStatus();
-        fetchTools();
-        fetchTasks();
-        setInterval(fetchTasks, 5000);
-    </script>
-</body>
-</html>
-""";
+    private static class BrowserSearchHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String query = json.path("query").asText("").trim();
+                String platform = json.path("platform").asText("google").trim();
+                String result = com.dex.browser.BrowserAutomation.search(query, platform);
+
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("query", query);
+                resp.put("platform", platform);
+                resp.put("result", result);
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+    }
+
+    private static class VoiceSpeakHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String text = json.path("text").asText("").trim();
+                String result = com.dex.voice.VoiceController.speak(text);
+
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("result", result);
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+    }
+
+    private static class VoiceStopHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+            com.dex.voice.VoiceController.stopSpeaking();
+            ObjectNode resp = MAPPER.createObjectNode();
+            resp.put("status", "stopped");
+            sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+        }
+    }
+
+    private static class ScreenAnalyzeHandler implements HttpHandler {
+        private final AIClient aiClient;
+        public ScreenAnalyzeHandler(AIClient aiClient) { this.aiClient = aiClient; }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String prompt = json.path("prompt").asText("Analyze what is currently shown on the screen.").trim();
+                String base64Img = com.dex.tools.SystemTools.captureScreenshotBase64();
+
+                if (base64Img == null) {
+                    sendJsonResponse(exchange, 500, "{\"error\": \"Could not capture desktop screen.\"}");
+                    return;
+                }
+
+                String reply = aiClient.processMessage(prompt, base64Img, "image/png");
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("prompt", prompt);
+                resp.put("analysis", reply);
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+    }
 }

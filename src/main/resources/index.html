@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DEX AI ASSISTANT</title>
+    <meta name="description" content="DEX: Your personal AI assistant running locally on Windows. Chat, voice, app control, and remote access.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-elevated: #111726;
+            --bg-surface: #182238;
+            --bg-surface-hover: #1f2c48;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-medium: rgba(255, 255, 255, 0.16);
+            --border-focus: #38bdf8;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-cyan: #38bdf8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --user-bubble: linear-gradient(135deg, #0284c7, #2563eb);
+            --ai-bubble: #151d30;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+            --sidebar-width: 250px;
+            --header-height: 58px;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f8fafc;
+            --bg-elevated: #ffffff;
+            --bg-surface: #f1f5f9;
+            --bg-surface-hover: #e2e8f0;
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --border-medium: rgba(0, 0, 0, 0.16);
+            --border-focus: #0284c7;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --user-bubble: linear-gradient(135deg, #0284c7, #2563eb);
+            --ai-bubble: #ffffff;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* ── HEADER ── */
+        header {
+            height: var(--header-height);
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+        }
+        .menu-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .logo-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            font-weight: 600;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            transition: all 0.2s;
+        }
+        .status-pill.offline {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-amber);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .status-pill.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 6px currentColor;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .icon-btn:hover { background: var(--bg-surface); color: var(--text-primary); border-color: var(--border-medium); }
+
+        /* ── WORKSPACE CONTAINER ── */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-elevated);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 90;
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+            margin-right: calc(-1 * var(--sidebar-width));
+        }
+
+        .sidebar-top {
+            padding: 14px 12px 6px;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s;
+        }
+        .new-chat-btn:hover {
+            background: rgba(56, 189, 248, 0.18);
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .sidebar-nav {
+            padding: 10px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .nav-item:hover { background: var(--bg-surface); color: var(--text-primary); }
+        .nav-item.active {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            z-index: 85;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* ── MAIN CONTENT & PAGES ── */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-base);
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+        .page.active { display: flex; }
+
+        .page-scrollable {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .page-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ── CHAT VIEW ── */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .messages-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .welcome-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: auto;
+            padding: 40px 20px;
+            text-align: center;
+            max-width: 580px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .welcome-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 18px;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.35);
+        }
+        .welcome-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .welcome-subtitle { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
+        .prompt-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .prompt-chip {
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .prompt-chip:hover {
+            background: var(--bg-surface-hover);
+            color: var(--accent-cyan);
+            border-color: var(--border-focus);
+            transform: translateY(-1px);
+        }
+
+        /* Message Bubbles */
+        .msg-row {
+            display: flex;
+            flex-direction: column;
+            max-width: 82%;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .msg-row.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+        .msg-row.assistant {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .msg-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .msg-row.user .msg-meta { color: rgba(56, 189, 248, 0.7); }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.6;
+            word-break: break-word;
+            position: relative;
+        }
+        .msg-row.user .msg-bubble {
+            background: var(--user-bubble);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
+        }
+        .msg-row.assistant .msg-bubble {
+            background: var(--ai-bubble);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Markdown styling inside assistant bubble */
+        .msg-bubble p { margin-bottom: 8px; }
+        .msg-bubble p:last-child { margin-bottom: 0; }
+        .msg-bubble ul, .msg-bubble ol { margin: 6px 0 8px 20px; }
+        .msg-bubble li { margin-bottom: 4px; }
+        .msg-bubble h1, .msg-bubble h2, .msg-bubble h3 { margin: 12px 0 6px; font-size: 15px; font-weight: 700; }
+        .msg-bubble strong { font-weight: 700; }
+        .msg-bubble em { font-style: italic; }
+        .msg-bubble a { color: var(--accent-cyan); text-decoration: none; }
+        .msg-bubble a:hover { text-decoration: underline; }
+
+        .inline-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #fde047;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .code-block {
+            background: #080c14;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            margin: 10px 0;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .code-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .copy-code-btn {
+            background: none;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .copy-code-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
+        .code-block-pre {
+            padding: 12px;
+            overflow-x: auto;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: #e2e8f0;
+        }
+
+        /* Screenshot preview */
+        .screenshot-thumbnail {
+            margin-top: 10px;
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: block;
+        }
+        .screenshot-thumbnail:hover {
+            transform: scale(1.01);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+
+        /* Typing indicator */
+        .typing-bubble {
+            display: none;
+            align-self: flex-start;
+            padding: 12px 18px;
+            background: var(--ai-bubble);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            align-items: center;
+            gap: 6px;
+        }
+        .typing-bubble.active { display: flex; }
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* Voice Live Status Bar */
+        .voice-live-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-top: 1px solid rgba(16, 185, 129, 0.25);
+            font-size: 12.5px;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .voice-live-bar.active { display: flex; }
+        .voice-state-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            overflow: hidden;
+        }
+        .voice-soundwave {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .soundwave-bar {
+            width: 3px;
+            height: 14px;
+            background: var(--accent-green);
+            border-radius: 2px;
+            animation: wave 1s infinite ease-in-out;
+        }
+        .soundwave-bar:nth-child(2) { animation-delay: 0.2s; height: 18px; }
+        .soundwave-bar:nth-child(3) { animation-delay: 0.4s; height: 12px; }
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.4); }
+            50% { transform: scaleY(1); }
+        }
+        .voice-live-text {
+            color: var(--text-secondary);
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .voice-stop-btn {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 4px 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .voice-stop-btn:hover { background: rgba(239, 68, 68, 0.25); }
+
+        /* ── COMPOSER ── */
+        .composer-bar {
+            padding: 12px 18px;
+            background: var(--bg-elevated);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            position: relative;
+        }
+
+        .input-wrap {
+            flex: 1;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 2px 12px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input-wrap:focus-within {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+        }
+
+        .chat-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 10px 0;
+            resize: none;
+            max-height: 120px;
+            min-height: 22px;
+        }
+        .chat-input::placeholder { color: var(--text-muted); }
+
+        .composer-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .composer-btn:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+
+        .composer-btn.mic-btn.listening {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            border-color: rgba(239, 68, 68, 0.4);
+            animation: pulse-mic 1.2s infinite;
+        }
+        @keyframes pulse-mic {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+
+        .composer-btn.voice-mode-btn.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .send-btn {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+        }
+        .send-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── CARDS & COMMON UI ── */
+        .card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── TOOLS VIEW ── */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        .tool-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+        .tool-card:hover { border-color: var(--border-medium); }
+        .tool-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .tool-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+        .badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .badge.safe { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge.sensitive { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+        .tool-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+        .tool-params { font-size: 11px; color: var(--text-muted); font-style: italic; }
+        .tool-run-btn {
+            align-self: flex-start;
+            margin-top: 6px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tool-run-btn:hover { background: var(--bg-surface-hover); color: var(--accent-cyan); border-color: var(--border-focus); }
+
+        /* ── TASKS VIEW ── */
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .task-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+        .task-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .task-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .task-query {
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .task-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+            padding-left: 10px;
+            border-left: 2px solid var(--border-subtle);
+        }
+        .task-step {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .step-pill {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+        .step-pill.SUCCESS { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .step-pill.FAILED { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .step-pill.RUNNING { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); }
+
+        /* ── REMOTE VIEW ── */
+        .remote-step-row {
+            display: flex;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .remote-step-row:last-child { border-bottom: none; }
+        .step-bubble {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--accent-cyan);
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .step-body { flex: 1; }
+        .step-heading { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
+        .step-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+        .code-snippet {
+            display: inline-block;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            color: var(--accent-cyan);
+            margin: 2px 0;
+        }
+
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 12px;
+            text-align: center;
+        }
+        .qr-box {
+            padding: 14px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .url-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-surface);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            width: 100%;
+            max-width: 480px;
+        }
+        .url-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent-cyan);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── SETTINGS VIEW ── */
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            gap: 16px;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info { display: flex; flex-direction: column; gap: 2px; }
+        .setting-title { font-size: 13.5px; font-weight: 600; }
+        .setting-sub { font-size: 12px; color: var(--text-muted); }
+        .setting-control { display: flex; align-items: center; gap: 8px; }
+        .text-input {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 7px 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .text-input:focus { border-color: var(--border-focus); }
+        .btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn:hover { background: var(--bg-surface-hover); border-color: var(--border-medium); }
+        .btn.primary { background: var(--accent-blue); color: #fff; border: none; }
+        .btn.primary:hover { background: #1d4ed8; }
+        .btn.danger { background: rgba(239,68,68,0.15); color: var(--accent-red); border-color: rgba(239,68,68,0.3); }
+        .btn.danger:hover { background: rgba(239,68,68,0.25); }
+
+        /* ── AUTH MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: 14px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+        .modal-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .modal-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.5; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            padding: 9px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+        }
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── RESPONSIVE STYLES ── */
+        @media (max-width: 640px) {
+            :root {
+                --sidebar-width: 270px;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+            }
+            .msg-row { max-width: 92%; }
+            .composer-bar { padding: 10px 12px; }
+            .logo-text span { display: none; }
+            .page-scrollable { padding: 16px; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── HEADER ── -->
+    <header>
+        <div class="header-brand">
+            <button class="menu-btn" id="menuToggle" onclick="toggleSidebar()" title="Toggle Menu">☰</button>
+            <div class="logo-wrap">
+                <div class="logo-icon">D</div>
+                <div class="logo-text">
+                    DEX <span>ASSISTANT</span>
+                    <span class="logo-badge">AI</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-status">
+            <div class="status-pill" id="backendStatus">
+                <div class="status-dot"></div>
+                <span id="statusText">ONLINE</span>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
+                <button class="icon-btn" onclick="showPage('settings')" title="Settings">⚙️</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── WORKSPACE ── -->
+    <div class="workspace">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <button class="new-chat-btn" onclick="newChat()">
+                    <span>＋</span> New Chat
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" id="nav-chat" onclick="showPage('chat')">
+                    <span class="nav-icon">💬</span> Chat
+                </button>
+                <button class="nav-item" id="nav-voice" onclick="showPage('voice')">
+                    <span class="nav-icon">🎙️</span> Voice Mode
+                </button>
+                <button class="nav-item" id="nav-tools" onclick="showPage('tools')">
+                    <span class="nav-icon">🛠️</span> Tools Explorer
+                </button>
+                <button class="nav-item" id="nav-tasks" onclick="showPage('tasks')">
+                    <span class="nav-icon">📋</span> Task History
+                </button>
+                <button class="nav-item" id="nav-remote" onclick="showPage('remote')">
+                    <span class="nav-icon">📱</span> Phone Remote Control
+                </button>
+                <button class="nav-item" id="nav-settings" onclick="showPage('settings')">
+                    <span class="nav-icon">⚙️</span> Settings
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                DEX Personal Assistant v1.0.0
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- ── 1. CHAT PAGE ── -->
+            <div class="page active" id="page-chat">
+                <div class="chat-container">
+                    <div class="messages-list" id="messagesList">
+                        <div class="welcome-hero" id="welcomeHero">
+                            <div class="welcome-avatar">⚡</div>
+                            <h2 class="welcome-title">Hi, I am DEX</h2>
+                            <p class="welcome-subtitle">Your personal AI assistant for Windows. I can control applications, execute system tasks, answer questions, and respond to your voice.</p>
+                            <div class="prompt-chips">
+                                <button class="prompt-chip" onclick="quickSend('Open YouTube')">🎬 Open YouTube</button>
+                                <button class="prompt-chip" onclick="quickSend('Take a screenshot')">📸 Take screenshot</button>
+                                <button class="prompt-chip" onclick="quickSend('What time is it?')">⏰ What time is it?</button>
+                                <button class="prompt-chip" onclick="quickSend('Open Calculator')">🧮 Open Calculator</button>
+                                <button class="prompt-chip" onclick="quickSend('Open Notepad')">📝 Open Notepad</button>
+                                <button class="prompt-chip" onclick="quickSend('Show system information')">💻 System Info</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Typing indicator -->
+                    <div class="typing-bubble" id="typingBubble">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+
+                    <!-- Live Voice Bar -->
+                    <div class="voice-live-bar" id="voiceLiveBar">
+                        <div class="voice-state-wrap">
+                            <div class="voice-soundwave">
+                                <div class="soundwave-bar"></div>
+                                <div class="soundwave-bar"></div>
+                                <div class="soundwave-bar"></div>
+                            </div>
+                            <span class="voice-live-text" id="voiceLiveText">Listening… speak now</span>
+                        </div>
+                        <button class="voice-stop-btn" onclick="stopAllVoice()">Stop</button>
+                    </div>
+
+                    <!-- Message Composer -->
+                    <div class="composer-bar">
+                        <button class="composer-btn mic-btn" id="micBtn" onclick="toggleSpeechInput()" title="Voice input (Click to speak)">
+                            🎙️
+                        </button>
+                        <button class="composer-btn voice-mode-btn" id="voiceModeBtn" onclick="toggleVoiceConversationMode()" title="Continuous Voice Mode">
+                            🗣️
+                        </button>
+                        <div class="input-wrap">
+                            <textarea class="chat-input" id="chatInput" placeholder="Type a message or command (e.g. 'open youtube')..." rows="1" onkeydown="handleInputKey(event)"></textarea>
+                        </div>
+                        <button class="composer-btn send-btn" id="sendBtn" onclick="submitMessage()" title="Send Message">
+                            ➤
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 2. VOICE MODE PAGE ── -->
+            <div class="page" id="page-voice">
+                <div class="page-scrollable">
+                    <div class="page-header">
+                        <div>
+                            <div class="page-title">🎙️ Conversational Voice Mode</div>
+                            <div class="page-desc">Continuous hands-free voice dialogue with speech recognition and voice synthesis.</div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="text-align: center; padding: 32px 20px;">
+                        <div style="font-size: 56px; margin-bottom: 12px;" id="voiceOrb">🗣️</div>
+                        <h3 style="font-size: 18px; margin-bottom: 6px;" id="voiceOrbTitle">Voice Mode is Inactive</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); max-width: 440px; margin: 0 auto 20px;" id="voiceOrbDesc">
+                            Activate voice mode for a natural conversational loop: speak freely, DEX listens, processes your request, and speaks the answer aloud.
+                        </p>
+                        <button class="btn primary" id="voiceOrbBtn" onclick="toggleVoiceConversationMode()" style="padding: 10px 24px; font-size: 14px;">
+                            Start Continuous Voice Mode
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">🔊 Speech Synthesis Settings</div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Spoken Responses</div>
+                                <div class="setting-sub">Speak assistant replies aloud in normal chat</div>
+                            </div>
+                            <input type="checkbox" id="autoSpeakCheck" onchange="updateAutoSpeakSetting(this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Voice</div>
+                                <div class="setting-sub">Select synthesizer voice</div>
+                            </div>
+                            <select id="voiceSelect" class="text-input" style="max-width: 200px;" onchange="saveVoicePreference()"></select>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Speech Rate</div>
+                                <div class="setting-sub">Adjust reading speed</div>
+                            </div>
+                            <input type="range" id="speechRateSlider" min="0.7" max="1.5" step="0.1" value="1.0" style="width: 140px;" onchange="saveVoicePreference()">
+                        </div>
+                        <div style="margin-top: 12px; text-align: right;">
+                            <button class="btn" onclick="testVoiceSpeech()">Test Voice Sample</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">ℹ️ Browser Speech Requirements</div>
+                        <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
+                            • Web Speech recognition requires <strong>Google Chrome</strong> or Microsoft Edge.<br>
+                            • Microphone permissions must be granted when prompted.<br>
+                            • When accessing remotely over LAN from a phone, modern browsers require a secure context (HTTPS) or <strong>Tailscale</strong> / localhost port forwarding for microphone access.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 3. TOOLS PAGE ── -->
+            <div class="page" id="page-tools">
+                <div class="page-scrollable">
+                    <div class="page-header">
+                        <div>
+                            <div class="page-title">🛠️ Tool System Explorer</div>
+                            <div class="page-desc">All registered tools callable by DEX and Windows intent dispatchers.</div>
+                        </div>
+                        <button class="btn" onclick="fetchTools()">Refresh</button>
+                    </div>
+                    <div class="tools-grid" id="toolsGrid">
+                        <!-- Tool cards dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 4. TASKS PAGE ── -->
+            <div class="page" id="page-tasks">
+                <div class="page-scrollable">
+                    <div class="page-header">
+                        <div>
+                            <div class="page-title">📋 Task Execution History</div>
+                            <div class="page-desc">Recent system tasks, tool executions, and step-by-step progress.</div>
+                        </div>
+                        <button class="btn" onclick="fetchTasks()">Refresh</button>
+                    </div>
+                    <div class="tasks-list" id="tasksList">
+                        <!-- Tasks dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 5. REMOTE ACCESS PAGE ── -->
+            <div class="page" id="page-remote">
+                <div class="page-scrollable">
+                    <div class="page-header">
+                        <div>
+                            <div class="page-title">📱 Android Phone Remote Control</div>
+                            <div class="page-desc">Securely control DEX from your phone using Tailscale private networking or local Wi-Fi.</div>
+                        </div>
+                    </div>
+
+                    <div class="card qr-section">
+                        <h3 style="font-size: 16px; font-weight: 700;">Scan with Phone Camera to Pair</h3>
+                        <p style="font-size: 12.5px; color: var(--text-secondary);">Ensure your phone is on the same Wi-Fi or connected to your Tailscale network.</p>
+                        <div class="qr-box" id="qrBox">
+                            <!-- QR code injected here -->
+                        </div>
+                        <div class="url-box">
+                            <span class="url-text" id="remoteUrlDisplay">Loading network address…</span>
+                            <button class="btn" onclick="copyRemoteUrl()">Copy</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">🔑 Remote Security Token</div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Bearer Authentication Token</div>
+                                <div class="setting-sub">Cryptographically generated token required for all non-localhost requests.</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="password" class="text-input" id="tokenDisplayInput" readonly style="font-family: 'JetBrains Mono', monospace; width: 180px;">
+                                <button class="btn" onclick="toggleTokenVisibility()" id="tokenVisBtn">Show</button>
+                                <button class="btn" onclick="copyToken()">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">📖 Step-by-Step Android Setup (Tailscale)</div>
+                        <div class="remote-step-row">
+                            <div class="step-bubble">1</div>
+                            <div class="step-body">
+                                <div class="step-heading">Install Tailscale on Laptop and Android Phone</div>
+                                <div class="step-text">Download Tailscale from <code class="code-snippet">tailscale.com</code> on Windows and from Google Play on your Android phone. Sign in with the same account on both devices.</div>
+                            </div>
+                        </div>
+                        <div class="remote-step-row">
+                            <div class="step-bubble">2</div>
+                            <div class="step-body">
+                                <div class="step-heading">Bind DEX to Network Interfaces</div>
+                                <div class="step-text">To allow incoming connections from your phone's Tailscale IP, start DEX with:
+                                <div style="margin-top: 4px;"><code class="code-snippet">$env:DEX_HOST="0.0.0.0"; java -jar target\dex-ai-assistant-1.0.0-jar-with-dependencies.jar --server-only</code></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="remote-step-row">
+                            <div class="step-bubble">3</div>
+                            <div class="step-body">
+                                <div class="step-heading">Open the Paired Dashboard on your Phone</div>
+                                <div class="step-text">Scan the QR code above or open <code class="code-snippet">http://&lt;LAPTOP-IP&gt;:31416/?token=&lt;YOUR-TOKEN&gt;</code> in Chrome on your phone. You can run all tools, open YouTube, request screenshots, and chat with DEX!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 6. SETTINGS PAGE ── -->
+            <div class="page" id="page-settings">
+                <div class="page-scrollable">
+                    <div class="page-header">
+                        <div>
+                            <div class="page-title">⚙️ System Configuration</div>
+                            <div class="page-desc">Manage AI connectivity, runtime keys, persistent memory, and appearance.</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">🤖 FreeLLMAPI Connection</div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">AI Status</div>
+                                <div class="setting-sub" id="cfgAiStatus">Checking…</div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">API Endpoint</div>
+                                <div class="setting-sub" id="cfgBaseUrl">http://127.0.0.1:31415/v1</div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">AI Model</div>
+                                <div class="setting-sub" id="cfgModel">auto</div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Update API Key for this Session</div>
+                                <div class="setting-sub">Set runtime key if DEX_API_KEY environment variable is not configured</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="password" id="newApiKeyInput" class="text-input" placeholder="Paste FreeLLMAPI key…" style="width: 180px;">
+                                <button class="btn primary" onclick="submitApiKey()">Save Key</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">💾 Persistent Memory & History</div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Memory Storage</div>
+                                <div class="setting-sub">Stored in data/memory.json on Windows disk</div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Clear Conversation Memory</div>
+                                <div class="setting-sub">Wipe previous conversational turns and restart fresh</div>
+                            </div>
+                            <button class="btn danger" onclick="clearChatHistory()">Clear Memory</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ── AUTH MODAL (FOR REMOTE USERS) ── -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+            <div class="modal-icon">🔒</div>
+            <div class="modal-title">Authentication Required</div>
+            <div class="modal-desc">You are connecting remotely to DEX. Please enter your Remote Access Token to proceed.</div>
+            <input type="password" id="remoteAuthTokenInput" class="text-input" placeholder="Enter remote auth token…" style="width: 100%; margin-bottom: 14px;">
+            <button class="btn primary" style="width: 100%;" onclick="saveAuthTokenAndRetry()">Unlock DEX</button>
+        </div>
+    </div>
+
+    <!-- ── TOAST NOTIFICATION ── -->
+    <div class="toast" id="toastBox">Notification message</div>
+
+    <!-- ── SCRIPTS ── -->
+    <script>
+        // ── STATE ──
+        let authToken = localStorage.getItem('dex_remote_token') || '';
+        let isProcessing = false;
+        let isMicListening = false;
+        let isVoiceModeActive = false;
+        let isSpeaking = false;
+        let speechRecognition = null;
+        let speechSynth = window.speechSynthesis || null;
+        let availableVoices = [];
+        let autoSpeakReplies = localStorage.getItem('dex_auto_speak') === 'true';
+        let serverRemoteToken = '';
+        let detectedRemoteUrl = '';
+
+        // Check URL for token param on load (e.g. from QR scan)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('token')) {
+            authToken = urlParams.get('token');
+            localStorage.setItem('dex_remote_token', authToken);
+        }
+
+        // ── INITIALIZATION ──
+        window.addEventListener('DOMContentLoaded', () => {
+            initSpeechSynthesis();
+            initSpeechRecognition();
+            loadStatus();
+            initTheme();
+            fetchNetworkInfo();
+            // Auto refresh status every 15s
+            setInterval(loadStatus, 15000);
+        });
+
+        // ── AUTHENTICATED FETCH WRAPPER ──
+        async function apiFetch(url, options = {}) {
+            options.headers = options.headers || {};
+            if (authToken) {
+                options.headers['Authorization'] = 'Bearer ' + authToken;
+            }
+            try {
+                const res = await fetch(url, options);
+                if (res.status === 401) {
+                    showAuthModal();
+                    throw new Error('Authentication required');
+                }
+                return res;
+            } catch (err) {
+                throw err;
+            }
+        }
+
+        function showAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function saveAuthTokenAndRetry() {
+            const token = document.getElementById('remoteAuthTokenInput').value.trim();
+            if (token) {
+                authToken = token;
+                localStorage.setItem('dex_remote_token', token);
+                document.getElementById('authModal').classList.remove('active');
+                showToast('Token saved. Retrying…');
+                loadStatus();
+            }
+        }
+
+        // ── NAVIGATION ──
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const targetPage = document.getElementById('page-' + pageId);
+            const targetNav = document.getElementById('nav-' + pageId);
+            if (targetPage) targetPage.classList.add('active');
+            if (targetNav) targetNav.classList.add('active');
+
+            if (pageId === 'tools') fetchTools();
+            if (pageId === 'tasks') fetchTasks();
+            if (pageId === 'remote') fetchNetworkInfo();
+            if (pageId === 'settings') loadStatus();
+
+            closeSidebar();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('collapsed');
+            overlay.classList.toggle('active', !sidebar.classList.contains('collapsed') && window.innerWidth <= 640);
+        }
+
+        function closeSidebar() {
+            if (window.innerWidth <= 640) {
+                document.getElementById('sidebar').classList.add('collapsed');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dex_theme', next);
+            document.getElementById('themeBtn').textContent = next === 'dark' ? '🌙' : '☀️';
+        }
+
+        function initTheme() {
+            const saved = localStorage.getItem('dex_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastBox');
+            toast.textContent = msg;
+            toast.classList.add('visible');
+            setTimeout(() => toast.classList.remove('visible'), 2800);
+        }
+
+        // ── STATUS CHECK ──
+        async function loadStatus() {
+            try {
+                const res = await apiFetch('/api/status');
+                const data = await res.json();
+
+                const pill = document.getElementById('backendStatus');
+                const txt = document.getElementById('statusText');
+
+                if (data.status === 'ONLINE') {
+                    if (data.hasApiKey) {
+                        pill.className = 'status-pill';
+                        txt.textContent = 'AI ONLINE';
+                    } else {
+                        pill.className = 'status-pill offline';
+                        txt.textContent = 'LOCAL ONLY';
+                    }
+                } else {
+                    pill.className = 'status-pill error';
+                    txt.textContent = 'OFFLINE';
+                }
+
+                // Update settings view
+                document.getElementById('cfgAiStatus').textContent = data.hasApiKey ? 'Connected (Online AI Active)' : 'No API Key (Local Windows Tools Active)';
+                document.getElementById('cfgBaseUrl').textContent = data.baseUrl || 'http://127.0.0.1:31415/v1';
+                document.getElementById('cfgModel').textContent = data.model || 'auto';
+
+                if (data.remoteToken) {
+                    serverRemoteToken = data.remoteToken;
+                    document.getElementById('tokenDisplayInput').value = serverRemoteToken;
+                }
+            } catch (err) {
+                const pill = document.getElementById('backendStatus');
+                pill.className = 'status-pill error';
+                document.getElementById('statusText').textContent = 'OFFLINE';
+            }
+        }
+
+        // ── CHAT SYSTEM ──
+        function newChat() {
+            showPage('chat');
+            const list = document.getElementById('messagesList');
+            list.innerHTML = `
+                <div class="welcome-hero" id="welcomeHero">
+                    <div class="welcome-avatar">⚡</div>
+                    <h2 class="welcome-title">Hi, I am DEX</h2>
+                    <p class="welcome-subtitle">Your personal AI assistant for Windows. I can control applications, execute system tasks, answer questions, and respond to your voice.</p>
+                    <div class="prompt-chips">
+                        <button class="prompt-chip" onclick="quickSend('Open YouTube')">🎬 Open YouTube</button>
+                        <button class="prompt-chip" onclick="quickSend('Take a screenshot')">📸 Take screenshot</button>
+                        <button class="prompt-chip" onclick="quickSend('What time is it?')">⏰ What time is it?</button>
+                        <button class="prompt-chip" onclick="quickSend('Open Calculator')">🧮 Open Calculator</button>
+                        <button class="prompt-chip" onclick="quickSend('Open Notepad')">📝 Open Notepad</button>
+                        <button class="prompt-chip" onclick="quickSend('Show system information')">💻 System Info</button>
+                    </div>
+                </div>
+            `;
+            showToast('New conversation ready');
+        }
+
+        function quickSend(text) {
+            document.getElementById('chatInput').value = text;
+            submitMessage();
+        }
+
+        function handleInputKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitMessage();
+            }
+        }
+
+        async function submitMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || isProcessing) return;
+
+            // Remove welcome screen
+            const hero = document.getElementById('welcomeHero');
+            if (hero) hero.remove();
+
+            // Append user message
+            appendMessage('user', text);
+            input.value = '';
+            setProcessing(true);
+
+            try {
+                const res = await apiFetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                const reply = data.reply || 'No response received.';
+                appendMessage('assistant', reply);
+
+                // Handle speech synthesis if enabled or in voice mode
+                if (isVoiceModeActive || autoSpeakReplies) {
+                    speakText(reply, () => {
+                        // When speech finishes and voice mode is active, resume listening!
+                        if (isVoiceModeActive) {
+                            startSpeechRecognition();
+                        }
+                    });
+                }
+            } catch (err) {
+                appendMessage('assistant', '⚠️ Error contacting DEX backend: ' + err.message);
+            } finally {
+                setProcessing(false);
+            }
+        }
+
+        function appendMessage(role, text) {
+            const list = document.getElementById('messagesList');
+            const row = document.createElement('div');
+            row.className = 'msg-row ' + role;
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const meta = document.createElement('div');
+            meta.className = 'msg-meta';
+            meta.textContent = (role === 'user' ? 'You' : 'DEX') + ' • ' + timeStr;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble';
+
+            if (role === 'assistant') {
+                bubble.innerHTML = formatMarkdown(text);
+                // Check for screenshot pattern
+                const screenshotMatch = text.match(/screenshots[\/\\]([a-zA-Z0-9_-]+\.png)/);
+                if (screenshotMatch) {
+                    const filename = screenshotMatch[1];
+                    const img = document.createElement('img');
+                    img.src = '/api/screenshots/' + filename;
+                    img.className = 'screenshot-thumbnail';
+                    img.alt = 'Screenshot';
+                    img.onclick = () => window.open(img.src, '_blank');
+                    bubble.appendChild(img);
+                }
+            } else {
+                bubble.textContent = text;
+            }
+
+            row.appendChild(meta);
+            row.appendChild(bubble);
+            list.appendChild(row);
+            list.scrollTop = list.scrollHeight;
+        }
+
+        function setProcessing(state) {
+            isProcessing = state;
+            document.getElementById('sendBtn').disabled = state;
+            document.getElementById('typingBubble').classList.toggle('active', state);
+            if (state) {
+                const list = document.getElementById('messagesList');
+                list.scrollTop = list.scrollHeight;
+            }
+        }
+
+        // ── MARKDOWN FORMATTER (SAFE & ROBUST) ──
+        function formatMarkdown(src) {
+            if (!src) return '';
+            // Escape HTML
+            let s = src.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            // Code blocks
+            const codeBlocks = [];
+            s = s.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+                const id = 'cb_' + Math.random().toString(36).substring(2, 9);
+                codeBlocks.push({ id, lang: lang || 'text', code: code.trim() });
+                return '___CODE_BLOCK_' + (codeBlocks.length - 1) + '___';
+            });
+
+            // Inline code
+            s = s.replace(/`([^`]+)`/g, '<span class="inline-code">$1</span>');
+
+            // Bold & Italic
+            s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+            // Headers
+            s = s.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            s = s.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            s = s.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            // Lists
+            s = s.replace(/^\s*[-*•]\s+(.*$)/gim, '<li>$1</li>');
+
+            // Line breaks
+            s = s.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>');
+
+            // Restore Code Blocks
+            codeBlocks.forEach((item, idx) => {
+                const placeholder = '___CODE_BLOCK_' + idx + '___';
+                const html = `
+                    <div class="code-block">
+                        <div class="code-block-header">
+                            <span>${item.lang}</span>
+                            <button class="copy-code-btn" onclick="copyCode('${item.id}', this)">Copy</button>
+                        </div>
+                        <pre class="code-block-pre" id="${item.id}">${item.code}</pre>
+                    </div>
+                `;
+                s = s.replace(placeholder, html);
+            });
+
+            return '<p>' + s + '</p>';
+        }
+
+        function copyCode(id, btn) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            navigator.clipboard.writeText(el.innerText).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        }
+
+        // ── VOICE INTERFACE (SPEECH RECOGNITION & SYNTHESIS) ──
+        function initSpeechRecognition() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) {
+                document.getElementById('micBtn').title = 'Speech Recognition requires Chrome or Edge';
+                return;
+            }
+
+            speechRecognition = new SpeechRec();
+            speechRecognition.continuous = false;
+            speechRecognition.interimResults = true;
+            speechRecognition.lang = 'en-US';
+
+            speechRecognition.onstart = () => {
+                isMicListening = true;
+                document.getElementById('micBtn').classList.add('listening');
+                document.getElementById('voiceLiveBar').classList.add('active');
+                document.getElementById('voiceLiveText').textContent = 'Listening… speak now';
+            };
+
+            speechRecognition.onresult = (event) => {
+                let interim = '';
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const trans = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) final += trans;
+                    else interim += trans;
+                }
+                const currentText = final || interim;
+                document.getElementById('voiceLiveText').textContent = currentText || 'Listening…';
+                if (!isVoiceModeActive) {
+                    document.getElementById('chatInput').value = currentText;
+                }
+
+                if (final) {
+                    if (isVoiceModeActive) {
+                        // In continuous voice mode, submit immediately
+                        appendMessage('user', final);
+                        stopSpeechRecognition();
+                        processVoiceModeTurn(final);
+                    }
+                }
+            };
+
+            speechRecognition.onerror = (e) => {
+                document.getElementById('voiceLiveText').textContent = 'Recognition error: ' + (e.error || 'Failed');
+                stopSpeechRecognition();
+            };
+
+            speechRecognition.onend = () => {
+                isMicListening = false;
+                document.getElementById('micBtn').classList.remove('listening');
+                if (!isVoiceModeActive && !isSpeaking) {
+                    document.getElementById('voiceLiveBar').classList.remove('active');
+                }
+            };
+        }
+
+        function toggleSpeechInput() {
+            if (isMicListening) {
+                stopSpeechRecognition();
+            } else {
+                startSpeechRecognition();
+            }
+        }
+
+        function startSpeechRecognition() {
+            if (!speechRecognition) {
+                showToast('Speech Recognition not supported in this browser. Please use Chrome.');
+                return;
+            }
+            try {
+                speechRecognition.start();
+            } catch (e) {
+                // Already started
+            }
+        }
+
+        function stopSpeechRecognition() {
+            if (speechRecognition) {
+                try { speechRecognition.stop(); } catch (e) {}
+            }
+            isMicListening = false;
+            document.getElementById('micBtn').classList.remove('listening');
+        }
+
+        function toggleVoiceConversationMode() {
+            isVoiceModeActive = !isVoiceModeActive;
+            const btn = document.getElementById('voiceModeBtn');
+            const orbBtn = document.getElementById('voiceOrbBtn');
+            const orbTitle = document.getElementById('voiceOrbTitle');
+            const orbDesc = document.getElementById('voiceOrbDesc');
+
+            btn.classList.toggle('active', isVoiceModeActive);
+
+            if (isVoiceModeActive) {
+                showToast('Continuous Voice Mode activated');
+                orbBtn.textContent = 'Stop Voice Mode';
+                orbBtn.className = 'btn danger';
+                orbTitle.textContent = 'Voice Mode Active 🟢';
+                orbDesc.textContent = 'Listening and speaking. Speak directly into your microphone.';
+                document.getElementById('voiceLiveBar').classList.add('active');
+                startSpeechRecognition();
+            } else {
+                showToast('Voice Mode stopped');
+                orbBtn.textContent = 'Start Continuous Voice Mode';
+                orbBtn.className = 'btn primary';
+                orbTitle.textContent = 'Voice Mode Inactive';
+                orbDesc.textContent = 'Activate voice mode for a natural conversational loop.';
+                stopAllVoice();
+            }
+        }
+
+        async function processVoiceModeTurn(text) {
+            setProcessing(true);
+            document.getElementById('voiceLiveText').textContent = 'DEX is thinking…';
+            try {
+                const res = await apiFetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await res.json();
+                const reply = data.reply || 'Task complete.';
+                appendMessage('assistant', reply);
+                speakText(reply, () => {
+                    if (isVoiceModeActive) {
+                        startSpeechRecognition();
+                    }
+                });
+            } catch (err) {
+                appendMessage('assistant', '⚠️ Voice turn error: ' + err.message);
+                if (isVoiceModeActive) {
+                    setTimeout(startSpeechRecognition, 2000);
+                }
+            } finally {
+                setProcessing(false);
+            }
+        }
+
+        function stopAllVoice() {
+            stopSpeechRecognition();
+            if (speechSynth) speechSynth.cancel();
+            isSpeaking = false;
+            isVoiceModeActive = false;
+            document.getElementById('voiceModeBtn').classList.remove('active');
+            document.getElementById('voiceLiveBar').classList.remove('active');
+            const orbBtn = document.getElementById('voiceOrbBtn');
+            if (orbBtn) {
+                orbBtn.textContent = 'Start Continuous Voice Mode';
+                orbBtn.className = 'btn primary';
+                document.getElementById('voiceOrbTitle').textContent = 'Voice Mode Inactive';
+            }
+        }
+
+        // ── SPEECH SYNTHESIS (VOICE OUTPUT) ──
+        function initSpeechSynthesis() {
+            if (!speechSynth) return;
+            function populateVoices() {
+                availableVoices = speechSynth.getVoices();
+                const select = document.getElementById('voiceSelect');
+                if (!select) return;
+                select.innerHTML = '';
+                availableVoices.forEach((v, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = v.name + ' (' + v.lang + ')';
+                    if (v.lang.startsWith('en')) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            }
+            populateVoices();
+            if (speechSynth.onvoiceschanged !== undefined) {
+                speechSynth.onvoiceschanged = populateVoices;
+            }
+            document.getElementById('autoSpeakCheck').checked = autoSpeakReplies;
+        }
+
+        function speakText(rawText, onComplete) {
+            if (!speechSynth) {
+                if (onComplete) onComplete();
+                return;
+            }
+            speechSynth.cancel();
+
+            // Strip Markdown formatting and code blocks for clear speech
+            let clean = rawText
+                .replace(/```[\s\S]*?```/g, 'Code block omitted.')
+                .replace(/`([^`]+)`/g, '$1')
+                .replace(/[*#_~]/g, '')
+                .replace(/https?:\/\/\S+/g, 'link')
+                .trim();
+
+            if (!clean) {
+                if (onComplete) onComplete();
+                return;
+            }
+
+            const utter = new SpeechSynthesisUtterance(clean);
+            const select = document.getElementById('voiceSelect');
+            const voiceIdx = select ? parseInt(select.value) : -1;
+            if (voiceIdx >= 0 && availableVoices[voiceIdx]) {
+                utter.voice = availableVoices[voiceIdx];
+            }
+            const rateSlider = document.getElementById('speechRateSlider');
+            if (rateSlider) utter.rate = parseFloat(rateSlider.value) || 1.0;
+
+            isSpeaking = true;
+            document.getElementById('voiceLiveBar').classList.add('active');
+            document.getElementById('voiceLiveText').textContent = 'DEX is speaking…';
+
+            utter.onend = () => {
+                isSpeaking = false;
+                if (!isVoiceModeActive) {
+                    document.getElementById('voiceLiveBar').classList.remove('active');
+                }
+                if (onComplete) onComplete();
+            };
+
+            utter.onerror = () => {
+                isSpeaking = false;
+                if (onComplete) onComplete();
+            };
+
+            speechSynth.speak(utter);
+        }
+
+        function testVoiceSpeech() {
+            speakText('Hello! I am DEX, your personal assistant running locally on Windows.');
+        }
+
+        function updateAutoSpeakSetting(val) {
+            autoSpeakReplies = val;
+            localStorage.setItem('dex_auto_speak', val);
+            showToast('Auto-speak ' + (val ? 'enabled' : 'disabled'));
+        }
+
+        function saveVoicePreference() {
+            showToast('Voice settings updated');
+        }
+
+        // ── TOOLS EXPLORER ──
+        async function fetchTools() {
+            const grid = document.getElementById('toolsGrid');
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Loading tools…</div>';
+            try {
+                const res = await apiFetch('/api/tools');
+                const tools = await res.json();
+                grid.innerHTML = '';
+                tools.forEach(t => {
+                    const card = document.createElement('div');
+                    card.className = 'tool-card';
+                    card.innerHTML = `
+                        <div class="tool-card-head">
+                            <span class="tool-name">${t.name}</span>
+                            <span class="badge ${t.sensitive ? 'sensitive' : 'safe'}">${t.sensitive ? 'Sensitive' : 'Safe'}</span>
+                        </div>
+                        <div class="tool-desc">${t.description}</div>
+                        <div class="tool-params">Parameters: ${t.parameters || 'none'}</div>
+                        ${!t.sensitive ? `<button class="tool-run-btn" onclick="runToolTest('${t.name}')">▶ Test Run</button>` : ''}
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; color: var(--accent-red);">Failed to load tools: ' + err.message + '</div>';
+            }
+        }
+
+        async function runToolTest(toolName) {
+            showToast('Running ' + toolName + '…');
+            try {
+                const res = await apiFetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: toolName })
+                });
+                const data = await res.json();
+                showPage('chat');
+                appendMessage('user', 'Run tool: ' + toolName);
+                appendMessage('assistant', data.reply || 'Execution complete.');
+            } catch (err) {
+                showToast('Execution error: ' + err.message);
+            }
+        }
+
+        // ── TASKS HISTORY ──
+        async function fetchTasks() {
+            const list = document.getElementById('tasksList');
+            list.innerHTML = '<div style="text-align: center; color: var(--text-muted);">Loading tasks…</div>';
+            try {
+                const res = await apiFetch('/api/tasks');
+                const tasks = await res.json();
+                list.innerHTML = '';
+                if (tasks.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No recent tasks recorded yet. Try giving DEX commands like "open youtube" or "take screenshot".</div>';
+                    return;
+                }
+                tasks.forEach(task => {
+                    const card = document.createElement('div');
+                    card.className = 'task-card';
+                    const time = new Date(task.timestamp).toLocaleTimeString();
+                    let stepsHtml = '';
+                    if (task.steps && task.steps.length) {
+                        task.steps.forEach(s => {
+                            stepsHtml += `
+                                <div class="task-step">
+                                    <span class="step-pill ${s.status}">${s.status}</span>
+                                    <span>${s.description}</span>
+                                    ${s.result ? `<span style="color: var(--text-muted);">— ${s.result}</span>` : ''}
+                                </div>
+                            `;
+                        });
+                    }
+                    card.innerHTML = `
+                        <div class="task-head">
+                            <span class="task-id">ID: ${task.taskId}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">${time}</span>
+                        </div>
+                        <div class="task-query">${task.query}</div>
+                        <div class="task-steps">${stepsHtml}</div>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (err) {
+                list.innerHTML = '<div style="color: var(--accent-red);">Failed to load tasks: ' + err.message + '</div>';
+            }
+        }
+
+        // ── NETWORK INFO & QR CODE GENERATION ──
+        async function fetchNetworkInfo() {
+            try {
+                const res = await apiFetch('/api/network-info');
+                const data = await res.json();
+                if (data.remoteToken) {
+                    serverRemoteToken = data.remoteToken;
+                    document.getElementById('tokenDisplayInput').value = serverRemoteToken;
+                }
+
+                let phoneUrl = window.location.origin + '/?token=' + serverRemoteToken;
+                if (data.interfaces && data.interfaces.length > 0) {
+                    phoneUrl = data.interfaces[0].url;
+                }
+
+                detectedRemoteUrl = phoneUrl;
+                document.getElementById('remoteUrlDisplay').textContent = phoneUrl;
+                renderQRCode(phoneUrl);
+            } catch (err) {
+                const fallbackUrl = window.location.origin + '/?token=' + (serverRemoteToken || authToken);
+                detectedRemoteUrl = fallbackUrl;
+                document.getElementById('remoteUrlDisplay').textContent = fallbackUrl;
+                renderQRCode(fallbackUrl);
+            }
+        }
+
+        // Lightweight pure JS SVG QR generator
+        function renderQRCode(text) {
+            const qrBox = document.getElementById('qrBox');
+            qrBox.innerHTML = `
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}" 
+                     alt="Pairing QR Code" 
+                     width="180" height="180" 
+                     style="border-radius: 8px; display: block;" 
+                     onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'padding: 30px; font-size: 12px; color: #000;\\'>Open on phone:<br><b>${text}</b></div>'"/>
+            `;
+        }
+
+        function copyRemoteUrl() {
+            navigator.clipboard.writeText(detectedRemoteUrl).then(() => showToast('Remote pairing URL copied!'));
+        }
+
+        function copyToken() {
+            navigator.clipboard.writeText(serverRemoteToken || authToken).then(() => showToast('Security token copied!'));
+        }
+
+        function toggleTokenVisibility() {
+            const inp = document.getElementById('tokenDisplayInput');
+            const btn = document.getElementById('tokenVisBtn');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                btn.textContent = 'Hide';
+            } else {
+                inp.type = 'password';
+                btn.textContent = 'Show';
+            }
+        }
+
+        // ── SETTINGS ──
+        async function submitApiKey() {
+            const input = document.getElementById('newApiKeyInput');
+            const key = input.value.trim();
+            if (!key) {
+                showToast('API key cannot be empty');
+                return;
+            }
+            try {
+                const res = await apiFetch('/api/set-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key })
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    showToast('API key saved! AI Chat enabled.');
+                    input.value = '';
+                    loadStatus();
+                } else {
+                    showToast('Failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                showToast('Error setting key: ' + err.message);
+            }
+        }
+
+        async function clearChatHistory() {
+            if (!confirm('Clear all conversation memory from DEX?')) return;
+            try {
+                const res = await apiFetch('/api/clear', { method: 'POST' });
+                showToast('Memory flushed to disk.');
+                newChat();
+            } catch (err) {
+                showToast('Clear failed: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

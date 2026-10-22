@@ -98,6 +98,24 @@ public class ToolManager {
                 false,
                 SystemTools::speak);
 
+        register("list_processes",
+                "Lists active running Windows processes with Process IDs.",
+                "Optional filter keyword",
+                false,
+                SystemTools::listRunningProcesses);
+
+        register("browser_navigate",
+                "Navigates to a webpage and extracts accessible text content.",
+                "The URL to navigate to (e.g. 'https://en.wikipedia.org')",
+                false,
+                com.dex.browser.BrowserAutomation::navigate);
+
+        register("browser_search",
+                "Searches Google, YouTube, or GitHub and opens the results in your browser.",
+                "Search query (e.g. 'Java 21 virtual threads')",
+                false,
+                arg -> com.dex.browser.BrowserAutomation.search(arg, "google"));
+
         // File operations
         register("list_files",
                 "Lists files and directories in the approved workspace folder or a subfolder.",
@@ -189,6 +207,13 @@ public class ToolManager {
         } catch (Exception e) {
             return "Tool '" + toolName + "' execution failed: " + e.getMessage();
         }
+    }
+
+    /**
+     * Alias for execute(toolName, argument).
+     */
+    public static String executeTool(String toolName, String argument) {
+        return execute(toolName, argument);
     }
 
     /**

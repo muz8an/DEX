@@ -12,10 +12,13 @@ import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -92,6 +95,7 @@ public class MemoryManager {
         this.memoryFile = memoryFile;
         this.conversationHistory = new ArrayList<>();
         loadMemory();
+        loadFacts();
     }
 
     /**
@@ -192,6 +196,13 @@ public class MemoryManager {
     }
 
     /**
+     * Alias for clearChat().
+     */
+    public synchronized void clearMemory() {
+        clearChat();
+    }
+
+    /**
      * Explicit memory reset that wipes both in-memory and disk records.
      * Must only be invoked after explicit user confirmation.
      */
@@ -253,5 +264,79 @@ public class MemoryManager {
         }
 
         return result;
+    }
+
+    // --- LONG-TERM USER FACTS & PREFERENCES ---
+    private final Map<String, String> userFacts = new LinkedHashMap<>();
+    private final Path factsFile = Paths.get("data", "facts.json");
+
+    public synchronized void addFact(String key, String value) {
+        if (key != null && !key.isBlank() && value != null) {
+            userFacts.put(key.trim(), value.trim());
+            saveFacts();
+        }
+    }
+
+    public synchronized String getFact(String key) {
+        if (key == null) return null;
+        return userFacts.get(key.trim());
+    }
+
+    public synchronized Map<String, String> getAllFacts() {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(userFacts));
+    }
+
+    public synchronized void removeFact(String key) {
+        if (key != null) {
+            userFacts.remove(key.trim());
+            saveFacts();
+        }
+    }
+
+    public synchronized void clearFacts() {
+        userFacts.clear();
+        saveFacts();
+    }
+
+    public synchronized String getFactsPromptSummary() {
+        if (userFacts.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder("\nUser Preferences & Facts:\n");
+        for (Map.Entry<String, String> e : userFacts.entrySet()) {
+            sb.append("• ").append(e.getKey()).append(": ").append(e.getValue()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private synchronized void loadFacts() {
+        userFacts.clear();
+        try {
+            if (Files.exists(factsFile)) {
+                JsonNode root = MAPPER.readTree(factsFile.toFile());
+                if (root.isObject()) {
+                    root.fields().forEachRemaining(entry -> {
+                        userFacts.put(entry.getKey(), entry.getValue().asText(""));
+                    });
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DEX Warning: Failed to parse facts.json: " + e.getMessage());
+        }
+    }
+
+    private synchronized void saveFacts() {
+        try {
+            if (factsFile.getParent() != null && !Files.exists(factsFile.getParent())) {
+                Files.createDirectories(factsFile.getParent());
+            }
+            ObjectNode root = MAPPER.createObjectNode();
+            for (Map.Entry<String, String> e : userFacts.entrySet()) {
+                root.put(e.getKey(), e.getValue());
+            }
+            Path tmp = factsFile.resolveSibling("facts.tmp");
+            MAPPER.writerWithDefaultPrettyPrinter().writeValue(tmp.toFile(), root);
+            Files.move(tmp, factsFile, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            System.err.println("DEX Error: Failed to save facts.json: " + e.getMessage());
+        }
     }
 }

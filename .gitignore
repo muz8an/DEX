@@ -5,6 +5,7 @@ target/
 # Persistent personal memory and workspace
 data/memory.json
 data/memory.json.tmp
+data/providers.json
 data/screenshots/
 workspace/
 
@@ -13,6 +14,11 @@ workspace/
 *.env
 *.key
 *.pem
+*.enc
+data/.dex_salt
+data/secrets.enc
+data/facts.json
+data/facts.json.tmp
 credentials.json
 
 # Logs and temporary files

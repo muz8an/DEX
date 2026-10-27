@@ -79,6 +79,10 @@ public class DEXWebServer {
         server.createContext("/api/voice/speak", new VoiceSpeakHandler());
         server.createContext("/api/voice/stop", new VoiceStopHandler());
         server.createContext("/api/screen/analyze", new ScreenAnalyzeHandler(aiClient));
+        server.createContext("/api/pair", new PairHandler());
+        server.createContext("/api/pair/pin", new PairPinHandler());
+        server.createContext("/api/devices", new DevicesHandler());
+        server.createContext("/api/devices/revoke", new DeviceRevokeHandler());
 
         server.start();
         System.out.println("[DEX] Web Dashboard started at http://" + host + ":" + port);
@@ -131,7 +135,7 @@ public class DEXWebServer {
         String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7).trim();
-            if (DEXConfig.validateRemoteToken(token)) {
+            if (DEXConfig.validateRemoteToken(token) || com.dex.security.DeviceManager.isValidDeviceToken(token)) {
                 return true;
             }
         }
@@ -142,7 +146,7 @@ public class DEXWebServer {
             for (String param : query.split("&")) {
                 String[] pair = param.split("=", 2);
                 if (pair.length == 2 && "token".equalsIgnoreCase(pair[0])) {
-                    if (DEXConfig.validateRemoteToken(pair[1])) {
+                    if (DEXConfig.validateRemoteToken(pair[1]) || com.dex.security.DeviceManager.isValidDeviceToken(pair[1])) {
                         return true;
                     }
                 }
@@ -190,6 +194,7 @@ public class DEXWebServer {
                 return;
             }
 
+            boolean authorized = isAuthorized(exchange);
             ObjectNode status = MAPPER.createObjectNode();
             status.put("assistant", "DEX");
             status.put("status", "ONLINE");
@@ -201,7 +206,11 @@ public class DEXWebServer {
             status.put("workspace", DEXConfig.getWorkspaceRoot().toString());
             status.put("toolsCount", ToolManager.getAllTools().size());
             status.put("remoteAuthEnabled", true);
-            status.put("remoteToken", DEXConfig.getRemoteAuthToken());
+            status.put("pairedDevicesCount", com.dex.security.DeviceManager.getPairedDevices().size());
+            status.put("authorized", authorized);
+            if (authorized) {
+                status.put("remoteToken", DEXConfig.getRemoteAuthToken());
+            }
 
             sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(status));
         }
@@ -215,10 +224,13 @@ public class DEXWebServer {
                 return;
             }
 
+            boolean authorized = isAuthorized(exchange);
             ObjectNode root = MAPPER.createObjectNode();
             root.put("host", DEXConfig.getWebHost());
             root.put("port", DEXConfig.getWebPort());
-            root.put("remoteToken", DEXConfig.getRemoteAuthToken());
+            if (authorized) {
+                root.put("remoteToken", DEXConfig.getRemoteAuthToken());
+            }
 
             ArrayNode list = root.putArray("interfaces");
             try {
@@ -233,7 +245,9 @@ public class DEXWebServer {
                             ObjectNode node = list.addObject();
                             node.put("name", iface.getDisplayName());
                             node.put("ip", addr.getHostAddress());
-                            node.put("url", "http://" + addr.getHostAddress() + ":" + DEXConfig.getWebPort() + "/?token=" + DEXConfig.getRemoteAuthToken());
+                            String url = "http://" + addr.getHostAddress() + ":" + DEXConfig.getWebPort()
+                                    + (authorized ? "/?token=" + DEXConfig.getRemoteAuthToken() : "/");
+                            node.put("url", url);
                         }
                     }
                 }
@@ -826,6 +840,124 @@ public class DEXWebServer {
                 sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
             } catch (Exception e) {
                 sendJsonResponse(exchange, 500, "{\"error\": \"" + e.getMessage() + "\"}");
+            }
+        }
+    }
+
+    private static class PairHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"error\": \"Use POST to pair device.\"}");
+                return;
+            }
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String deviceName = json.path("deviceName").asText("Android Companion").trim();
+                String pin = json.path("pin").asText("").trim();
+
+                com.dex.security.DeviceManager.PairedDevice dev = com.dex.security.DeviceManager.pairDevice(deviceName, pin);
+                if (dev == null) {
+                    sendJsonResponse(exchange, 401, "{\"error\": \"Invalid or expired pairing PIN. Please check the PIN on DEX PC.\"}");
+                    return;
+                }
+
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("status", "ok");
+                resp.put("deviceId", dev.getDeviceId());
+                resp.put("deviceName", dev.getDeviceName());
+                resp.put("token", dev.getToken());
+                resp.put("pairedAt", dev.getPairedAt());
+                resp.put("message", "Device paired successfully.");
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"Pairing error: " + e.getMessage() + "\"}");
+            }
+        }
+    }
+
+    private static class PairPinHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized to request pairing PIN.\"}");
+                return;
+            }
+
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                com.dex.security.DeviceManager.generatePairingPin();
+            }
+
+            ObjectNode resp = MAPPER.createObjectNode();
+            resp.put("pin", com.dex.security.DeviceManager.getActivePin());
+            resp.put("remainingSeconds", com.dex.security.DeviceManager.getPinRemainingSeconds());
+            sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+        }
+    }
+
+    private static class DevicesHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+
+            ArrayNode array = MAPPER.createArrayNode();
+            for (com.dex.security.DeviceManager.PairedDevice d : com.dex.security.DeviceManager.getPairedDevices()) {
+                ObjectNode node = array.addObject();
+                node.put("deviceId", d.getDeviceId());
+                node.put("deviceName", d.getDeviceName());
+                node.put("pairedAt", d.getPairedAt());
+                node.put("lastUsedAt", d.getLastUsedAt());
+                String t = d.getToken();
+                node.put("maskedToken", t.length() > 12 ? t.substring(0, 8) + "..." : "****");
+            }
+            sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(array));
+        }
+    }
+
+    private static class DeviceRevokeHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 405, "{\"error\": \"Use POST.\"}");
+                return;
+            }
+
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String deviceId = json.path("deviceId").asText("").trim();
+                boolean revoked = com.dex.security.DeviceManager.revokeDevice(deviceId);
+
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("revoked", revoked);
+                resp.put("message", revoked ? "Device revoked successfully." : "Device not found.");
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"Revoke error: " + e.getMessage() + "\"}");
             }
         }
     }

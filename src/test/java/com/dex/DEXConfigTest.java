@@ -22,12 +22,13 @@ public class DEXConfigTest {
         assertEquals("http://127.0.0.1:31415/v1", DEXConfig.getBaseUrl());
         assertEquals("http://127.0.0.1:31415/v1/chat/completions", DEXConfig.getChatEndpoint());
         assertEquals("auto", DEXConfig.getModel());
-        assertEquals("127.0.0.1", DEXConfig.getWebHost());
+        assertEquals("0.0.0.0", DEXConfig.getWebHost());
         assertEquals(31416, DEXConfig.getWebPort());
         assertNotNull(DEXConfig.getWorkspaceRoot());
         assertNotNull(DEXConfig.getMemoryFilePath());
         assertNotNull(DEXConfig.getScreenshotsDirectory());
         assertNotNull(DEXConfig.getRemoteAuthToken());
+        assertFalse(DEXConfig.getDetectedHostIps().isEmpty());
     }
 
     @Test

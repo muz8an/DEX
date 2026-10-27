@@ -106,7 +106,7 @@ public class DEXConfig {
         return DEFAULT_WEB_PORT;
     }
 
-    private static final String DEFAULT_HOST = "127.0.0.1";
+    private static final String DEFAULT_HOST = "0.0.0.0";
 
     public static String getWebHost() {
         String envHost = System.getenv("DEX_HOST");
@@ -114,6 +114,63 @@ public class DEXConfig {
             return envHost.trim();
         }
         return DEFAULT_HOST;
+    }
+
+    /**
+     * Discovers all non-loopback active IPv4 addresses (Tailscale, Wi-Fi LAN, Ethernet).
+     */
+    public static java.util.List<String> getDetectedHostIps() {
+        java.util.List<String> ips = new java.util.ArrayList<>();
+        try {
+            java.util.Enumeration<java.net.NetworkInterface> ifaces = java.net.NetworkInterface.getNetworkInterfaces();
+            while (ifaces != null && ifaces.hasMoreElements()) {
+                java.net.NetworkInterface iface = ifaces.nextElement();
+                if (!iface.isUp() || iface.isLoopback()) continue;
+                java.util.Enumeration<java.net.InetAddress> addrs = iface.getInetAddresses();
+                while (addrs.hasMoreElements()) {
+                    java.net.InetAddress addr = addrs.nextElement();
+                    if (addr instanceof java.net.Inet4Address && !addr.isLoopbackAddress()) {
+                        String ip = addr.getHostAddress();
+                        String name = iface.getDisplayName().toLowerCase();
+                        if (name.contains("tailscale") || ip.startsWith("100.")) {
+                            ips.add(0, ip + " (Tailscale)"); // Prioritize Tailscale at the top
+                        } else if (name.contains("wi-fi") || name.contains("wireless") || ip.startsWith("192.168.")) {
+                            ips.add(ip + " (Wi-Fi LAN)");
+                        } else {
+                            ips.add(ip + " (" + iface.getDisplayName() + ")");
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        if (ips.isEmpty()) {
+            ips.add("127.0.0.1 (Localhost)");
+        }
+        return ips;
+    }
+
+    public static String getTailscaleIp() {
+        for (String item : getDetectedHostIps()) {
+            if (item.contains("Tailscale")) {
+                return item.replaceAll("\\s*\\(Tailscale\\)", "").trim();
+            }
+        }
+        return null;
+    }
+
+    public static String getLanIp() {
+        for (String item : getDetectedHostIps()) {
+            if (item.contains("Wi-Fi") || item.contains("LAN")) {
+                return item.replaceAll("\\s*\\(.*\\)", "").trim();
+            }
+        }
+        for (String item : getDetectedHostIps()) {
+            if (!item.contains("Tailscale") && !item.contains("Localhost")) {
+                return item.replaceAll("\\s*\\(.*\\)", "").trim();
+            }
+        }
+        return "127.0.0.1";
     }
 
     public static String getRemoteAuthToken() {

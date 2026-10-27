@@ -17,6 +17,11 @@ public class AIClientTest {
     @AfterEach
     public void setup() {
         DEXConfig.resetRuntimeOverrides();
+        com.dex.ai.ProviderManager.setActiveProviderType(com.dex.ai.AIProviderType.OPENAI);
+        com.dex.ai.AIProvider p = com.dex.ai.ProviderManager.getActiveProvider();
+        if (p != null) p.setApiKey(null);
+        com.dex.ai.AIProvider groq = com.dex.ai.ProviderManager.getProvider(com.dex.ai.AIProviderType.GROQ);
+        if (groq != null) groq.setApiKey(null);
     }
 
     @Test

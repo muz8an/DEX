@@ -1,11 +1,17 @@
 package com.dex;
 
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -112,6 +118,8 @@ public class WindowsController {
     }
 
     private static final Map<String, ApplicationEntry> APPS = new LinkedHashMap<>();
+    private static final Map<String, ApplicationEntry> DYNAMIC_APPS = new ConcurrentHashMap<>();
+    private static volatile boolean systemAppsScanned = false;
 
     public static class ApplicationEntry {
         private final String canonicalName;
@@ -158,6 +166,8 @@ public class WindowsController {
 
     static {
         registerDefaultApps();
+        registerCommonProtocols();
+        scanSystemAppsAsync();
     }
 
     private static void registerDefaultApps() {
@@ -311,12 +321,216 @@ public class WindowsController {
         }
     }
 
+    private static void registerCommonProtocols() {
+        registerDynamicProtocol("whatsapp", "whatsapp:", "WhatsApp Messenger", "wa", "whats app", "whatsapp desktop");
+        registerDynamicProtocol("spotify", "spotify:", "Spotify Music Player", "spotify music", "spot");
+        registerDynamicProtocol("steam", "steam:", "Steam Gaming Platform", "steam client", "valve steam");
+        registerDynamicProtocol("discord", "discord:", "Discord Chat", "discord app");
+        registerDynamicProtocol("telegram", "tg:", "Telegram Desktop", "tg", "telegram messenger");
+    }
+
+    private static void registerDynamicProtocol(String canonical, String protocolUri, String desc, String... aliases) {
+        List<String> aliasList = new ArrayList<>(Arrays.asList(aliases));
+        if (!aliasList.contains(canonical)) {
+            aliasList.add(canonical);
+        }
+        ApplicationEntry entry = new ApplicationEntry(
+                canonical,
+                new String[]{"cmd.exe", "/c", "start", "", protocolUri},
+                () -> Arrays.asList("cmd.exe", "/c", "start", "", protocolUri),
+                desc,
+                aliasList.toArray(new String[0])
+        );
+        DYNAMIC_APPS.put(canonical, entry);
+        for (String a : aliasList) {
+            DYNAMIC_APPS.put(a.toLowerCase(Locale.ROOT), entry);
+        }
+    }
+
+    public static void scanSystemAppsAsync() {
+        Thread t = new Thread(() -> {
+            try {
+                scanSystemApps();
+            } catch (Exception ignored) {
+            }
+        }, "DEX-SystemApp-Scanner");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    public static synchronized void scanSystemApps() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+                    "Get-StartApps | Select-Object -Property Name, AppID | ConvertTo-Csv -NoTypeInformation"
+            );
+            pb.redirectErrorStream(true);
+            Process proc = pb.start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                boolean isHeader = true;
+                while ((line = reader.readLine()) != null) {
+                    if (isHeader) {
+                        isHeader = false;
+                        continue;
+                    }
+                    parseAndRegisterAppCsvLine(line);
+                }
+            }
+            proc.waitFor(15, TimeUnit.SECONDS);
+            systemAppsScanned = true;
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static void parseAndRegisterAppCsvLine(String line) {
+        if (line == null || line.isBlank()) return;
+        String[] parts = line.split("\",\"");
+        if (parts.length < 2) return;
+        String name = parts[0].replaceAll("^\"|\"$", "").trim();
+        String appId = parts[1].replaceAll("^\"|\"$", "").trim();
+        if (name.isBlank() || appId.isBlank()) return;
+
+        String canonical = name.toLowerCase(Locale.ROOT);
+        List<String> aliases = new ArrayList<>();
+        aliases.add(canonical);
+
+        String cleanName = canonical.replaceAll("[\\(\\)\\[\\]\\{\\}\\-\\._]", " ").replaceAll("\\s+", " ").trim();
+        if (!cleanName.equals(canonical)) {
+            aliases.add(cleanName);
+        }
+
+        // Specific smart aliases for famous apps & games
+        if (canonical.contains("whatsapp")) {
+            aliases.add("whatsapp");
+            aliases.add("wa");
+            aliases.add("whats app");
+            aliases.add("whatsapp desktop");
+        } else if (canonical.contains("spotify")) {
+            aliases.add("spotify");
+            aliases.add("spot");
+        } else if (canonical.contains("steam") && !canonical.contains("tools") && !canonical.contains("support")) {
+            aliases.add("steam");
+            aliases.add("steam client");
+        } else if (canonical.contains("grand theft auto")) {
+            aliases.add("gta");
+            aliases.add("gta 5");
+            aliases.add("gta v");
+            aliases.add("gtav");
+            aliases.add("gta five");
+        } else if (canonical.contains("red dead redemption")) {
+            aliases.add("rdr");
+            aliases.add("rdr 2");
+            aliases.add("rdr2");
+            aliases.add("red dead 2");
+        } else if (canonical.contains("forza")) {
+            aliases.add("forza");
+            aliases.add("forza horizon");
+            aliases.add("forza 6");
+        } else if (canonical.contains("pubg")) {
+            aliases.add("pubg");
+            aliases.add("battlegrounds");
+        } else if (canonical.contains("dead as disco")) {
+            aliases.add("dead as disco");
+            aliases.add("disco");
+        } else if (canonical.contains("detroit")) {
+            aliases.add("detroit");
+            aliases.add("detroit become human");
+        } else if (canonical.contains("ea sports") || canonical.contains("fc 26")) {
+            aliases.add("ea sports");
+            aliases.add("fc 26");
+            aliases.add("fifa");
+        } else if (canonical.contains("discord")) {
+            aliases.add("discord");
+        } else if (canonical.contains("telegram")) {
+            aliases.add("telegram");
+            aliases.add("tg");
+        } else if (canonical.contains("valorant")) {
+            aliases.add("valorant");
+        } else if (canonical.contains("notion")) {
+            aliases.add("notion");
+        } else if (canonical.contains("capcut")) {
+            aliases.add("capcut");
+        }
+
+        String desc = appId.startsWith("steam://") ? "Steam Game: " + name : "Windows Application: " + name;
+
+        ApplicationEntry entry = new ApplicationEntry(
+                canonical,
+                new String[]{"cmd.exe", "/c", "start", "", appId},
+                () -> buildLaunchCommand(appId),
+                desc,
+                aliases.toArray(new String[0])
+        );
+
+        DYNAMIC_APPS.put(canonical, entry);
+        for (String alias : aliases) {
+            DYNAMIC_APPS.put(alias.toLowerCase(Locale.ROOT), entry);
+        }
+    }
+
+    public static List<String> buildLaunchCommand(String appId) {
+        if (appId == null || appId.isBlank()) {
+            throw new IllegalArgumentException("AppID cannot be blank.");
+        }
+        String trimmed = appId.trim();
+        if (trimmed.startsWith("steam://") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return Arrays.asList("cmd.exe", "/c", "start", "", trimmed);
+        }
+        if (trimmed.contains("!") || trimmed.startsWith("windows.") || trimmed.startsWith("Microsoft.")) {
+            return Arrays.asList("cmd.exe", "/c", "start", "", "shell:AppsFolder\\" + trimmed);
+        }
+        if (trimmed.endsWith(".exe") || trimmed.contains("\\")) {
+            return Arrays.asList("cmd.exe", "/c", "start", "", trimmed);
+        }
+        return Arrays.asList("cmd.exe", "/c", "start", "", "shell:AppsFolder\\" + trimmed);
+    }
+
     /**
      * Executes an application launch and returns the display-friendly status string.
      */
     public static String openApp(String appName) {
         LaunchResult result = executeAppLaunch(appName);
         return result.toDisplayString();
+    }
+
+    /**
+     * Plays a requested song, music track, or video on YouTube or Spotify.
+     */
+    public static LaunchResult executePlayMusic(String songOrQuery, String preferredPlatform) {
+        if (songOrQuery == null || songOrQuery.isBlank()) {
+            return LaunchResult.failure("play_music", "unknown", "Please specify a song or artist to play.");
+        }
+
+        String raw = songOrQuery.trim();
+        String clean = raw
+                .replaceAll("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|play|listen to|search for|search)\\s+", "")
+                .replaceAll("(?i)\\s+(?:on youtube|in youtube|on spotify|in spotify|for me|please|now)$", "")
+                .replaceAll("[\\.\\?!,;]+$", "")
+                .trim();
+
+        if (clean.isBlank()) {
+            clean = raw;
+        }
+
+        boolean useSpotify = (preferredPlatform != null && preferredPlatform.equalsIgnoreCase("spotify"))
+                || raw.toLowerCase(Locale.ROOT).contains("spotify");
+
+        if (useSpotify) {
+            String encoded = URLEncoder.encode(clean, StandardCharsets.UTF_8);
+            String url = "https://open.spotify.com/search/" + encoded;
+            List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
+            return startProcess("play_music", "Spotify: " + clean, cmd, "Playing on Spotify: " + clean);
+        } else {
+            String encoded = URLEncoder.encode(clean, StandardCharsets.UTF_8);
+            String url = "https://www.youtube.com/results?search_query=" + encoded;
+            List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
+            return startProcess("play_music", "YouTube: " + clean, cmd, "Opened YouTube search results for '" + clean + "' in default browser. Playing requested song.");
+        }
+    }
+
+    public static String playMusic(String query) {
+        return executePlayMusic(query, null).toDisplayString();
     }
 
     /**
@@ -340,8 +554,17 @@ public class WindowsController {
 
         // Special destination routing
         if (normalized.contains("youtube") || normalized.contains("youtu.be") || normalized.equals("yt")) {
+            if (normalized.contains("play ") || normalized.contains("search ") || normalized.contains("find ")) {
+                return executePlayMusic(normalized, "youtube");
+            }
             boolean preferChrome = normalized.contains("chrome");
             return executeOpenYouTube(preferChrome);
+        }
+
+        if (normalized.contains("spotify")) {
+            if (normalized.contains("play ") || normalized.contains("search ")) {
+                return executePlayMusic(normalized, "spotify");
+            }
         }
 
         if (normalized.contains("google") && !normalized.contains("chrome")) {
@@ -365,8 +588,8 @@ public class WindowsController {
         if (target == null) {
             logDiagnostic("open_app", appName, "none", null, "UNSUPPORTED");
             return LaunchResult.failure("open_app", appName, "Unsupported application: " + appName + ". "
-                    + "Available options: Chrome, YouTube, Google, GitHub, Notepad, Calculator, VS Code, "
-                    + "File Explorer, Downloads, Documents, Desktop.");
+                    + "Available options: WhatsApp, Steam, Chrome, Spotify, YouTube, Games, VS Code, "
+                    + "File Explorer, Downloads, Documents, Desktop, and any installed Windows application.");
         }
 
         try {
@@ -689,12 +912,18 @@ public class WindowsController {
         if (APPS.containsKey(q)) {
             return APPS.get(q);
         }
+        if (DYNAMIC_APPS.containsKey(q)) {
+            return DYNAMIC_APPS.get(q);
+        }
 
         // 2. Strip "my " prefix (e.g. "my downloads" -> "downloads")
         if (q.startsWith("my ")) {
             String stripped = q.substring(3).trim();
             if (APPS.containsKey(stripped)) {
                 return APPS.get(stripped);
+            }
+            if (DYNAMIC_APPS.containsKey(stripped)) {
+                return DYNAMIC_APPS.get(stripped);
             }
         }
 
@@ -705,13 +934,39 @@ public class WindowsController {
                 return entry.getValue();
             }
         }
+        for (Map.Entry<String, ApplicationEntry> entry : DYNAMIC_APPS.entrySet()) {
+            String key = entry.getKey();
+            if (Pattern.compile("\\b" + Pattern.quote(key) + "\\b").matcher(q).find()) {
+                return entry.getValue();
+            }
+        }
 
-        // 4. Fuzzy Levenshtein distance check (only for single-word queries with length >= 4, e.g. typos like "calculater")
+        // 4. Substring / contains match for dynamic games & apps (e.g. "gta", "disco", "red dead")
+        if (q.length() >= 3) {
+            for (Map.Entry<String, ApplicationEntry> entry : DYNAMIC_APPS.entrySet()) {
+                String key = entry.getKey();
+                if (key.contains(q) || q.contains(key)) {
+                    return entry.getValue();
+                }
+            }
+        }
+
+        // 5. Fuzzy Levenshtein distance check (only for single-word queries with length >= 4, e.g. typos like "calculater")
         if (!q.contains(" ") && q.length() >= 4) {
             ApplicationEntry bestMatch = null;
             int bestDistance = 3; // Max allowable distance
 
             for (Map.Entry<String, ApplicationEntry> entry : APPS.entrySet()) {
+                String key = entry.getKey();
+                if (!key.contains(" ") && Math.abs(q.length() - key.length()) <= 2) {
+                    int dist = computeLevenshteinDistance(q, key);
+                    if (dist < bestDistance) {
+                        bestDistance = dist;
+                        bestMatch = entry.getValue();
+                    }
+                }
+            }
+            for (Map.Entry<String, ApplicationEntry> entry : DYNAMIC_APPS.entrySet()) {
                 String key = entry.getKey();
                 if (!key.contains(" ") && Math.abs(q.length() - key.length()) <= 2) {
                     int dist = computeLevenshteinDistance(q, key);
@@ -732,6 +987,9 @@ public class WindowsController {
     public static List<String> listSupportedApps() {
         Set<String> unique = new LinkedHashSet<>();
         for (ApplicationEntry entry : APPS.values()) {
+            unique.add(entry.getCanonicalName() + " (" + entry.getDescription() + ")");
+        }
+        for (ApplicationEntry entry : DYNAMIC_APPS.values()) {
             unique.add(entry.getCanonicalName() + " (" + entry.getDescription() + ")");
         }
         return new ArrayList<>(unique);

@@ -78,7 +78,7 @@ public class Main {
 
     private static void printStartupBanner(int loadedMessages) {
         String webStatus = (webServer != null && webServer.isRunning())
-                ? "http://" + DEXConfig.getWebHost() + ":" + DEXConfig.getWebPort()
+                ? "http://127.0.0.1:" + DEXConfig.getWebPort()
                 : "OFFLINE";
 
         System.out.println();
@@ -92,6 +92,9 @@ public class Main {
         System.out.println(" Memory File   : data/memory.json (" + loadedMessages + " previous messages loaded)");
         System.out.println(" Workspace     : " + DEXConfig.getWorkspaceRoot());
         System.out.println(" Web Dashboard : " + webStatus);
+        for (String detectedIp : DEXConfig.getDetectedHostIps()) {
+            System.out.println("   \u2192 Connect from Phone: http://" + detectedIp.replaceAll("\\s*\\(.*\\)", "") + ":" + DEXConfig.getWebPort() + " " + (detectedIp.contains("(") ? detectedIp.substring(detectedIp.indexOf("(")) : ""));
+        }
         System.out.println(" Active Tools  : " + ToolManager.listTools());
         System.out.println("=======================================================================");
         System.out.println("Desktop application launching. Web dashboard available simultaneously.");

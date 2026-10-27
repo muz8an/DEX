@@ -234,4 +234,37 @@ public class WindowsControllerTest {
         assertNotNull(ps);
         assertEquals("powershell.exe", ps.getCommand()[4]);
     }
+
+    @Test
+    public void testDynamicAppsAndProtocols() {
+        assertNotNull(WindowsController.findApplication("whatsapp"));
+        assertNotNull(WindowsController.findApplication("wa"));
+        assertNotNull(WindowsController.findApplication("steam"));
+        assertNotNull(WindowsController.findApplication("spotify"));
+
+        WindowsController.LaunchResult waRes = WindowsController.executeAppLaunch("whatsapp");
+        assertTrue(waRes.isSuccess());
+
+        WindowsController.LaunchResult steamRes = WindowsController.executeAppLaunch("steam");
+        assertTrue(steamRes.isSuccess());
+    }
+
+    @Test
+    public void testPlayMusicExecution() {
+        WindowsController.LaunchResult ytMusic = WindowsController.executePlayMusic("arz kiya hai", "youtube");
+        assertTrue(ytMusic.isSuccess());
+        assertTrue(ytMusic.getDetails().contains("arz+kiya+hai") || ytMusic.getDetails().contains("arz kiya hai"));
+
+        WindowsController.LaunchResult spotMusic = WindowsController.executePlayMusic("believer", "spotify");
+        assertTrue(spotMusic.isSuccess());
+    }
+
+    @Test
+    public void testBuildLaunchCommand() {
+        List<String> steamCmd = WindowsController.buildLaunchCommand("steam://rungameid/3404260");
+        assertEquals("steam://rungameid/3404260", steamCmd.get(4));
+
+        List<String> storeCmd = WindowsController.buildLaunchCommand("5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App");
+        assertEquals("shell:AppsFolder\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App", storeCmd.get(4));
+    }
 }

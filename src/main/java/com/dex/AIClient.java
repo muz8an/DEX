@@ -52,14 +52,15 @@ public class AIClient {
                 + "Capabilities & Available Tools:\n"
                 + ToolManager.getToolsDescription() + "\n"
                 + "Rules for Tool Execution:\n"
-                + "1. When the user requests an action (opening applications, browser actions, workspace files, screenshots, diagnostics, commands), "
-                + "invoke the appropriate tool using this exact JSON block:\n"
+                + "1. When the user requests an action, ALWAYS invoke the appropriate tool using this exact JSON block:\n"
                 + "```json\n"
                 + "{\"tool\": \"<tool_name>\", \"argument\": \"<argument_value>\"}\n"
                 + "```\n"
-                + "2. Never claim an action succeeded unless you have received the verified execution result.\n"
-                + "3. Never run destructive shell commands without user confirmation.\n"
-                + "4. Never reveal API keys or secret credentials."
+                + "2. Application & Game Launching: To open ANY application or game (e.g. WhatsApp, Steam, Spotify, Dead as Disco, GTA V, VS Code, Discord, etc.), invoke the `open_app` tool.\n"
+                + "3. Music & Video Playback: To play a song, track, or music (e.g. 'play arz kiya hai', 'play believer on spotify', 'open youtube and play ...'), invoke the `play_music` tool with the song query.\n"
+                + "4. Never claim an action succeeded unless you have executed the tool and received the verified execution result.\n"
+                + "5. Never run destructive shell commands without user confirmation.\n"
+                + "6. Never reveal API keys or secret credentials."
                 + memoryManager.getFactsPromptSummary();
     }
 

@@ -1,11 +1,24 @@
-# Maven build output
+# Packaging and build outputs
 target/
+dist/
 *.class
 
-# Persistent personal memory and workspace
+# Android build outputs & local properties
+mobile/.gradle/
+mobile/build/
+mobile/*/build/
+mobile/local.properties
+*.apk.tmp
+
+# Keystores & signing secrets
+*.jks
+*.keystore
+
+# Persistent personal memory, paired devices, and workspace
 data/memory.json
 data/memory.json.tmp
 data/providers.json
+data/paired_devices.json
 data/screenshots/
 workspace/
 
@@ -36,3 +49,9 @@ credentials.json
 # Windows system files
 Thumbs.db
 desktop.ini
+
+# Explicitly ensure distributable release assets are tracked
+!assets/*.exe
+!assets/*.apk
+!assets/*.txt
+

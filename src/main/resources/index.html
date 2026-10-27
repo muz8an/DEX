@@ -9,7 +9,32 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
+        :root, [data-theme="light"] {
+            --bg-base: #FAF4EE;
+            --bg-elevated: #FFFDFB;
+            --bg-surface: #F7EFE8;
+            --bg-surface-hover: #F2E5D8;
+            --border-subtle: #EFE4DA;
+            --border-medium: #E8D9CC;
+            --border-focus: #671A29;
+            --text-primary: #2D2120;
+            --text-secondary: #8E756D;
+            --text-muted: #B8A39C;
+            --accent-cyan: #671A29;
+            --accent-blue: #561422;
+            --accent-purple: #832034;
+            --accent-green: #34A853;
+            --accent-amber: #E68A00;
+            --accent-red: #D93025;
+            --user-bubble: #F8E7DF;
+            --ai-bubble: #FFFFFF;
+            --shadow-sm: 0 2px 8px rgba(103, 26, 41, 0.04);
+            --shadow-md: 0 8px 24px rgba(103, 26, 41, 0.08);
+            --sidebar-width: 250px;
+            --header-height: 58px;
+        }
+
+        [data-theme="dark"] {
             --bg-base: #090d16;
             --bg-elevated: #111726;
             --bg-surface: #182238;
@@ -30,25 +55,6 @@
             --ai-bubble: #151d30;
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
             --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
-            --sidebar-width: 250px;
-            --header-height: 58px;
-        }
-
-        [data-theme="light"] {
-            --bg-base: #f8fafc;
-            --bg-elevated: #ffffff;
-            --bg-surface: #f1f5f9;
-            --bg-surface-hover: #e2e8f0;
-            --border-subtle: rgba(0, 0, 0, 0.08);
-            --border-medium: rgba(0, 0, 0, 0.16);
-            --border-focus: #0284c7;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --user-bubble: linear-gradient(135deg, #0284c7, #2563eb);
-            --ai-bubble: #ffffff;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-            --shadow-md: 0 8px 24px rgba(0,0,0,0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }

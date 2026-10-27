@@ -62,10 +62,17 @@ public class ToolManager {
     private static void registerDefaultTools() {
         // Windows application launcher
         register("open_app",
-                "Opens an approved Windows application or standard folder (Chrome, YouTube, Notepad, Calculator, VS Code, File Explorer, Downloads, Documents, Desktop).",
-                "Name of the application or folder (e.g. 'notepad', 'calculator', 'downloads')",
+                "Opens any Windows application, Steam game, or standard folder (WhatsApp, Steam, Spotify, Games, Chrome, Notepad, Calculator, VS Code, File Explorer, Downloads, etc.).",
+                "Name of the application or game (e.g. 'whatsapp', 'steam', 'dead as disco', 'gta', 'spotify')",
                 false,
                 WindowsController::openApp);
+
+        // Music and song playback
+        register("play_music",
+                "Searches and plays a requested song, music track, or video on YouTube or Spotify (e.g. 'arz kiya hai', 'lofi hip hop', 'starboy on spotify').",
+                "Song or artist query (e.g. 'arz kiya hai', 'believer')",
+                false,
+                WindowsController::playMusic);
 
         // System diagnostics and time
         register("get_current_time",

@@ -9,6 +9,7 @@ public class ToolManagerTest {
     @Test
     public void testRegisteredToolsExist() {
         assertTrue(ToolManager.hasTool("open_app"));
+        assertTrue(ToolManager.hasTool("play_music"));
         assertTrue(ToolManager.hasTool("get_current_time"));
         assertTrue(ToolManager.hasTool("get_system_info"));
         assertTrue(ToolManager.hasTool("take_screenshot"));

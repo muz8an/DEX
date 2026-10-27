@@ -104,4 +104,63 @@ public class DEXWebServerTest {
         assertTrue(resp.body().contains("DEX AI ASSISTANT"));
         assertTrue(resp.body().contains("<!DOCTYPE html>"));
     }
+
+    @Test
+    public void testDevicePairingWorkflow() throws Exception {
+        com.dex.security.DeviceManager.clearAllDevices();
+        String pin = com.dex.security.DeviceManager.generatePairingPin();
+
+        // 1. Pair device with valid PIN
+        String pairPayload = "{\"deviceName\": \"Test Mobile Device\", \"pin\": \"" + pin + "\"}";
+        HttpRequest pairReq = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/pair"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(pairPayload))
+                .build();
+
+        HttpResponse<String> pairResp = client.send(pairReq, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, pairResp.statusCode());
+
+        JsonNode pairJson = MAPPER.readTree(pairResp.body());
+        assertEquals("ok", pairJson.get("status").asText());
+        assertTrue(pairJson.has("token"));
+        String deviceToken = pairJson.get("token").asText();
+        String deviceId = pairJson.get("deviceId").asText();
+        assertTrue(deviceToken.startsWith("dex_dev_"));
+
+        // 2. Pair device with invalid PIN should fail 401
+        String badPayload = "{\"deviceName\": \"Bad Phone\", \"pin\": \"999999\"}";
+        HttpRequest badReq = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/pair"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(badPayload))
+                .build();
+
+        HttpResponse<String> badResp = client.send(badReq, HttpResponse.BodyHandlers.ofString());
+        assertEquals(401, badResp.statusCode());
+
+        // 3. List devices
+        HttpRequest listReq = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/devices"))
+                .GET()
+                .build();
+
+        HttpResponse<String> listResp = client.send(listReq, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, listResp.statusCode());
+        JsonNode listJson = MAPPER.readTree(listResp.body());
+        assertTrue(listJson.isArray());
+        assertEquals(1, listJson.size());
+
+        // 4. Revoke device
+        String revokePayload = "{\"deviceId\": \"" + deviceId + "\"}";
+        HttpRequest revokeReq = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/devices/revoke"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(revokePayload))
+                .build();
+
+        HttpResponse<String> revokeResp = client.send(revokeReq, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, revokeResp.statusCode());
+        assertFalse(com.dex.security.DeviceManager.isValidDeviceToken(deviceToken));
+    }
 }

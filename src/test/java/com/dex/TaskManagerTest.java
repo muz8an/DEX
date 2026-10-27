@@ -215,4 +215,33 @@ public class TaskManagerTest {
         assertTrue(TaskManager.cancelTask(lastId));
         assertTrue(history.get(history.size() - 1).isCancelled());
     }
+
+    @Test
+    public void testMusicPlaybackParsing() {
+        TaskManager.TaskStep step1 = TaskManager.parseSingleStep(1, "open youtube and play arz kiya hai");
+        assertNotNull(step1);
+        assertEquals("play_music", step1.getToolName());
+        assertEquals("arz kiya hai", step1.getArgument());
+
+        TaskManager.TaskStep step2 = TaskManager.parseSingleStep(1, "play arz kiya hai");
+        assertNotNull(step2);
+        assertEquals("play_music", step2.getToolName());
+        assertEquals("arz kiya hai", step2.getArgument());
+
+        TaskManager.TaskStep step3 = TaskManager.parseSingleStep(1, "play starboy on spotify");
+        assertNotNull(step3);
+        assertEquals("play_music", step3.getToolName());
+        assertTrue(step3.getArgument().contains("starboy"));
+    }
+
+    @Test
+    public void testDynamicAppParsing() {
+        TaskManager.TaskStep wa = TaskManager.parseSingleStep(1, "open whatsapp");
+        assertNotNull(wa);
+        assertEquals("open_app", wa.getToolName());
+
+        TaskManager.TaskStep steam = TaskManager.parseSingleStep(1, "open steam");
+        assertNotNull(steam);
+        assertEquals("open_app", steam.getToolName());
+    }
 }

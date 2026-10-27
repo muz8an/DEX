@@ -285,15 +285,40 @@ public class TaskManager {
             }
         }
 
-        // 6. Application & Web Destinations (e.g., "open notepad", "go to youtube", "open youtube in chrome", "open vs code")
+        // 5d. Music & Song Playback Intent (e.g. "play arz kiya hai", "open youtube and play arz kiya hai", "play believer on spotify", "listen to lofi")
         String cleanPhrase = p.replaceAll("[\\.\\?!,;]+$", "").trim();
-        boolean hasActionVerb = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|go to|browse to|visit|watch)\\b").matcher(cleanPhrase).find();
+        boolean isMusicIntent = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|listen to|play)\\b").matcher(cleanPhrase).find();
+        if (isMusicIntent) {
+            String musicQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|listen to|play)\\s+", "")
+                    .replaceAll("(?i)\\s+(?:for me|please|now)$", "")
+                    .trim();
+
+            if (!musicQuery.isBlank()) {
+                // Check if target is actually an installed game (e.g. "play dead as disco", "play gta", "play rdr2", "play forza", "play pubg")
+                WindowsController.ApplicationEntry maybeGame = WindowsController.findApplication(musicQuery);
+                if (maybeGame != null && (maybeGame.getDescription().toLowerCase().contains("game")
+                        || maybeGame.getDescription().toLowerCase().contains("steam")
+                        || maybeGame.getCanonicalName().contains("game")
+                        || isLikelyGame(maybeGame.getCanonicalName()))) {
+                    return new TaskStep(stepNumber, "Launch Game: " + maybeGame.getCanonicalName(), "open_app", maybeGame.getCanonicalName());
+                }
+
+                return new TaskStep(stepNumber, "Play Music: " + musicQuery, "play_music", musicQuery);
+            }
+        }
+
+        // 6. Application & Web Destinations (e.g., "open whatsapp", "open notepad", "go to youtube", "play dead as disco", "open vs code")
+        boolean hasActionVerb = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|play game|go to|browse to|visit|watch)\\b").matcher(cleanPhrase).find();
         if (hasActionVerb) {
-            String targetQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|go to|browse to|visit|watch)\\s+(?:my\\s+)?", "")
+            String targetQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|play game|go to|browse to|visit|watch)\\s+(?:my\\s+)?", "")
                     .replaceAll("(?i)\\s+(?:for me|please|now)$", "")
                     .trim();
 
             if (targetQuery.toLowerCase(Locale.ROOT).contains("youtube") || targetQuery.equalsIgnoreCase("yt") || targetQuery.contains("youtu.be")) {
+                if (targetQuery.toLowerCase(Locale.ROOT).contains("play ") || targetQuery.toLowerCase(Locale.ROOT).contains("search ")) {
+                    String song = targetQuery.replaceAll("(?i).*?\\b(?:play|search(?: for)?)\\s+", "").trim();
+                    return new TaskStep(stepNumber, "Play on YouTube: " + song, "play_music", song);
+                }
                 return new TaskStep(stepNumber, "Open YouTube" + (targetQuery.toLowerCase(Locale.ROOT).contains("chrome") ? " in Chrome" : ""), "open_app", targetQuery);
             }
             if (targetQuery.toLowerCase(Locale.ROOT).contains("google") && !targetQuery.toLowerCase(Locale.ROOT).contains("chrome")) {
@@ -306,10 +331,12 @@ public class TaskManager {
             WindowsController.ApplicationEntry app = WindowsController.findApplication(targetQuery);
             if (app != null) {
                 return new TaskStep(stepNumber, "Launch Application: " + app.getCanonicalName(), "open_app", app.getCanonicalName());
+            } else {
+                return new TaskStep(stepNumber, "Launch Application: " + targetQuery, "open_app", targetQuery);
             }
         }
 
-        // Direct app alias check (only for short 1-3 word queries like 'notepad', 'calc', 'youtube', 'yt')
+        // Direct app alias check (only for short 1-3 word queries like 'notepad', 'calc', 'whatsapp', 'steam', 'youtube')
         if (lower.split("\\s+").length <= 3) {
             if (lower.contains("youtube") || lower.equals("yt") || lower.contains("youtu.be")) {
                 return new TaskStep(stepNumber, "Open YouTube", "open_app", lower);
@@ -440,5 +467,15 @@ public class TaskManager {
             }
         }
         return false;
+    }
+
+    private static boolean isLikelyGame(String name) {
+        if (name == null) return false;
+        String lower = name.toLowerCase(Locale.ROOT);
+        return lower.contains("steam") || lower.contains("disco") || lower.contains("gta")
+                || lower.contains("red dead") || lower.contains("forza") || lower.contains("pubg")
+                || lower.contains("detroit") || lower.contains("valorant") || lower.contains("game")
+                || lower.contains("motorfest") || lower.contains("ea sports") || lower.contains("fifa")
+                || lower.contains("solitaire");
     }
 }

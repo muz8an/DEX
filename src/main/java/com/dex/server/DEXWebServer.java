@@ -201,7 +201,7 @@ public class DEXWebServer {
             status.put("assistant", "X");
             String resolvedUser = com.dex.profile.UserProfileManager.hasCustomName()
                     ? com.dex.profile.UserProfileManager.getUserName()
-                    : com.dex.profile.UserProfileManager.formatDisplayName(System.getProperty("user.name", "Muhammed Muzain"));
+                    : com.dex.profile.UserProfileManager.formatDisplayName(System.getProperty("user.name", "User"));
             status.put("userName", resolvedUser);
             status.put("setupCompleted", com.dex.profile.UserProfileManager.isSetupCompleted());
             status.put("status", "ONLINE");
@@ -560,6 +560,11 @@ public class DEXWebServer {
         public void handle(HttpExchange exchange) throws IOException {
             if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
                 sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized. Valid remote token required.\"}");
                 return;
             }
 

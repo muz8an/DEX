@@ -10,26 +10,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root, [data-theme="light"] {
-            --bg-base: #F7F6F3;
-            --bg-elevated: #FFFFFF;
-            --bg-surface: #EFEEEC;
-            --bg-surface-hover: #E9E9E8;
-            --border-subtle: #E9E9E8;
-            --border-medium: #E3E2DF;
-            --border-focus: #37352F;
-            --text-primary: #37352F;
-            --text-secondary: #787774;
-            --text-muted: #ACABA8;
-            --accent-cyan: #37352F;
-            --accent-blue: #2383E2;
-            --accent-purple: #37352F;
+            --bg-base: #FAF4EE;
+            --bg-elevated: #FFFDFB;
+            --bg-surface: #F7EFE8;
+            --bg-surface-hover: #F4EBE3;
+            --border-subtle: #EFE4DA;
+            --border-medium: #E8D9CC;
+            --border-focus: #671A29;
+            --text-primary: #2D2120;
+            --text-secondary: #8E756D;
+            --text-muted: #B8A39C;
+            --accent-cyan: #671A29;
+            --accent-blue: #671A29;
+            --accent-purple: #561422;
             --accent-green: #34A853;
             --accent-amber: #E68A00;
             --accent-red: #D93025;
-            --user-bubble: #F1F0EF;
-            --ai-bubble: #FFFFFF;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --user-bubble: #F8E7DF;
+            --ai-bubble: #FFFDFB;
+            --shadow-sm: 0 1px 3px rgba(103, 26, 41, 0.04);
+            --shadow-md: 0 4px 12px rgba(103, 26, 41, 0.06);
             --sidebar-width: 250px;
             --header-height: 58px;
         }
@@ -1457,9 +1457,9 @@
     <div class="modal-overlay" id="welcomeModal">
         <div class="modal-card">
             <div class="modal-icon">👋</div>
-            <div class="modal-title">Welcome to DEX</div>
-            <div class="modal-desc">Meet <strong>X</strong>, your personal AI assistant. What name should X call you?</div>
-            <input type="text" id="welcomeUserNameInput" class="text-input" placeholder="Enter your name (e.g. Muhammed Muzain)" style="width: 100%; margin-bottom: 14px;">
+            <div class="modal-title">What is your name?</div>
+            <div class="modal-desc">Enter your name to personalize your assistant, or click Skip.</div>
+            <input type="text" id="welcomeUserNameInput" class="text-input" placeholder="Your name" style="width: 100%; margin-bottom: 14px;">
             <div style="display: flex; gap: 8px;">
                 <button class="btn primary" style="flex: 1;" onclick="submitWelcomeName()">Get Started</button>
                 <button class="btn" onclick="skipWelcomeName()">Skip</button>

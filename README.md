@@ -6,8 +6,8 @@
 
 [![Build Windows](https://img.shields.io/badge/Windows%20Build-Passing-brightgreen?logo=windows)](assets/DEX-Setup.exe)
 [![Build Android](https://img.shields.io/badge/Android%20Build-Passing-brightgreen?logo=android)](assets/DEX-Mobile.apk)
-[![Desktop Tests](https://img.shields.io/badge/Desktop%20Unit%20Tests-98%20Passed-blue)](file:///c:/Users/MUHAMMED%20MUZAIN/Desktop/DEX/src/test/java/com/dex)
-[![Android Tests](https://img.shields.io/badge/Android%20Tests-44%20Tasks%20Passed-blue)](file:///c:/Users/MUHAMMED%20MUZAIN/Desktop/DEX/mobile)
+[![Desktop Tests](https://img.shields.io/badge/Desktop%20Unit%20Tests-113%20Passed-blue)](#-verified-test-suite--artifact-verification)
+[![Android Tests](https://img.shields.io/badge/Android%20Tests-44%20Tasks%20Passed-blue)](#-verified-test-suite--artifact-verification)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B-orange)]()
 
@@ -238,7 +238,7 @@ powershell -ExecutionPolicy Bypass -File scripts\build_android.ps1
 
 ### 4. Running Unit Tests Directly
 ```powershell
-# Desktop Suite (98 unit tests)
+# Desktop Suite (113 unit tests)
 mvn test
 
 # Android Suite (Unit tests)
@@ -253,13 +253,13 @@ cd mobile
 All features, providers, security mechanisms, and build scripts are confirmed by actual unit test runs and package validations:
 
 ### Desktop Unit Test Suite (`mvn test`)
-- **Total Tests:** **98 tests passed (0 failures, 0 errors, 0 skipped)**
+- **Total Tests:** **113 tests passed (0 failures, 0 errors, 0 skipped)**
 - **Test Coverage Breakdown:**
   - `AIClientTest` (9 tests): Multi-provider routing, tool loop interception, image generation rejection, identity X verification, memory injection.
-  - `WindowsControllerTest` (17 tests): Application resolution, VS Code file target launching, notepad launching, safe URL navigation with `&` escaping, music query playback.
+  - `WindowsControllerTest` (21 tests): Application resolution, VS Code file target launching, notepad launching, safe URL navigation with `&` escaping, music query playback.
   - `TaskManagerTest` (12 tests): Multi-step workflow parsing, task cancellation, process execution.
-  - `DEXWebServerTest` (7 tests): `/api/status`, `/api/chat`, `/api/providers`, `/api/profile`, `/api/pair`, token verification.
-  - `UserProfileManagerTest` (5 tests): First-launch status, user name updates, display formatting, profile reset.
+  - `DEXWebServerTest` (8 tests): `/api/status`, `/api/chat`, `/api/providers`, `/api/profile`, `/api/pair`, token verification.
+  - `UserProfileManagerTest` (6 tests): First-launch status, user name updates, display formatting, profile reset, isolation.
   - `MemoryManagerTest` (7 tests): Long-term memory serialization, fact persistence, conversational history.
   - `ToolManagerTest` (8 tests): Tool registration, argument parsing, tool catalog generation.
   - `CommandRunnerTest` (5 tests): Safe command execution, process timeout, stream draining.
@@ -268,6 +268,9 @@ All features, providers, security mechanisms, and build scripts are confirmed by
   - `SecretStorageTest` (3 tests): AES-256-GCM key derivation, encrypted persistence, key masking.
   - `BrowserAutomationTest` (2 tests): Headless navigation, query parsing.
   - `DEXConfigTest` (5 tests): Network interface detection, environment variable precedence.
+  - `ProviderManagerTest` (6 tests): Provider registration, dynamic fallback, environment override, API request formation.
+  - `OpenAICompatibleProviderTest` (5 tests): OpenAI-compatible payload serialization, vision payloads, headers, endpoint formatting.
+  - `ProgramGeneratorTest` (4 tests): Multi-language program generation (Python, C, Java, HTML), VS Code integration.
 
 ### Android Test Suite (`gradlew test`)
 - **Tasks Executed:** **44 tasks completed successfully with 0 errors**.
@@ -277,10 +280,10 @@ All features, providers, security mechanisms, and build scripts are confirmed by
 
 | Artifact | Location | Size | SHA256 Checksum |
 | :--- | :--- | :--- | :--- |
-| **DEX Installer** | [`assets/DEX-Setup.exe`](assets/DEX-Setup.exe) | 52.63 MB | `DB550AAD40ACCBB720C1D66749F8F38705D6D5062DDF21DC1EB810B4451303E9` |
-| **Standalone Launcher** | [`assets/DEX.exe`](assets/DEX.exe) | 0.16 MB | `1EB308DDC0891B348EC4D9BCBBB4DF8E4E767728D451F142AA4E7C6ABCAF25BE` |
-| **Android Companion** | [`assets/DEX-Mobile.apk`](assets/DEX-Mobile.apk) | 6.21 MB | `3DA871F96F71ED0A04415EDE51417F925C4E5181E7878AC26F4298C37903ACA4` |
-| **Checksum Manifest** | [`assets/checksums.txt`](assets/checksums.txt) | 446 bytes | Validated SHA256 integrity manifest |
+| **DEX Installer** | [`assets/DEX-Setup.exe`](assets/DEX-Setup.exe) | 52.64 MB | `3815A1EA5C67A560FA6554C1E3FD9785D1613592683E66AF3C6CF9EED5D24D58` |
+| **Standalone Launcher** | [`assets/DEX.exe`](assets/DEX.exe) | 0.16 MB | `49736E02532D67B76AF5821A3F143E482BD71D48D7FB206B6D95B0971E6C7583` |
+| **Android Companion** | [`assets/DEX-Mobile.apk`](assets/DEX-Mobile.apk) | 6.18 MB | `63176B38CB1B800CBB342194E1ACCB2448389739C08D23AE695128CA48EFB014` |
+| **Checksum Manifest** | [`assets/checksums.txt`](assets/checksums.txt) | 443 bytes | Validated SHA256 integrity manifest |
 
 ---
 

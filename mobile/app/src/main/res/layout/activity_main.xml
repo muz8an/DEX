@@ -1343,7 +1343,7 @@
                             android:layout_height="46dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_pill_search"
-                            android:hint="Your Name (e.g. Muhammed Muzain)"
+                            android:hint="Your Name"
                             android:paddingHorizontal="14dp"
                             android:textColor="@color/text_primary"
                             android:textColorHint="@color/text_muted"

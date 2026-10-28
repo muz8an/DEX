@@ -61,6 +61,13 @@ public enum AIProviderType {
                 return t;
             }
         }
+        if (normalized.contains("FREELLM") || normalized.contains("FREE_LLM")) return FREELLMAPI;
+        if (normalized.contains("GEMINI")) return GEMINI;
+        if (normalized.contains("OPENAI") || normalized.contains("GPT")) return OPENAI;
+        if (normalized.contains("CLAUDE") || normalized.contains("ANTHROPIC")) return CLAUDE;
+        if (normalized.contains("GROQ")) return GROQ;
+        if (normalized.contains("OPENROUTER")) return OPENROUTER;
+        if (normalized.contains("OLLAMA")) return OLLAMA;
         return CUSTOM;
     }
 }

@@ -16,8 +16,8 @@ if (-not (Test-Path $sourceImage)) {
     $sourceImage = Join-Path $targetResourceDir "assistant_orb.jpg"
 }
 if (-not (Test-Path $sourceImage)) {
-    $legacyPath = "C:\Users\MUHAMMED MUZAIN\.gemini\antigravity-ide\brain\ef1fdbe9-dd09-4232-b1e1-1e834a7801b5\dex_app_icon_1792769185168.jpg"
-    if (Test-Path $legacyPath) { $sourceImage = $legacyPath }
+    $fallbackPath = Join-Path $workspaceRoot "assets\icons\dex.png"
+    if (Test-Path $fallbackPath) { $sourceImage = $fallbackPath }
 }
 
 if (-not (Test-Path $sourceImage)) {

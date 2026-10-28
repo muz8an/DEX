@@ -55,7 +55,7 @@ public class UserProfileManager {
     }
 
     public static String formatDisplayName(String raw) {
-        if (raw == null || raw.isBlank()) return "Muhammed Muzain";
+        if (raw == null || raw.isBlank()) return "";
         String[] parts = raw.trim().split("[._\\s]+");
         StringBuilder sb = new StringBuilder();
         for (String p : parts) {

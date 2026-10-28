@@ -39,22 +39,22 @@ import java.util.List;
  */
 public class DEXDesktopApp extends JFrame {
 
-    // ==================== COLOR SYSTEM (Notion-inspired) ====================
-    public static final Color BG_APP              = new Color(0xF7, 0xF6, 0xF3); // Notion warm off-white canvas
-    public static final Color BG_CARD             = new Color(0xFF, 0xFF, 0xFF); // Pure white surfaces
-    public static final Color BG_CARD_ALT         = new Color(0xEF, 0xEE, 0xEC); // Notion hover / secondary surface
-    public static final Color BG_ELEVATED         = new Color(0xE9, 0xE9, 0xE8); // Elevated elements
-    public static final Color PRIMARY_MAROON      = new Color(0x37, 0x35, 0x2F); // Notion near-black accent
-    public static final Color PRIMARY_MAROON_DARK = new Color(0x1A, 0x19, 0x16); // Deeper dark
-    public static final Color PRIMARY_MAROON_LIGHT= new Color(0xEF, 0xEE, 0xEC); // Light hover tint
-    public static final Color TEXT_TITLE_MAROON   = new Color(0x37, 0x35, 0x2F); // Primary heading color
-    public static final Color TEXT_PRIMARY        = new Color(0x37, 0x35, 0x2F); // Notion default text
-    public static final Color TEXT_SECONDARY      = new Color(0x78, 0x77, 0x74); // Notion gray secondary text
-    public static final Color TEXT_MUTED          = new Color(0xAC, 0xAB, 0xA8); // Notion placeholder / muted
-    public static final Color BORDER_SUBTLE       = new Color(0xE9, 0xE9, 0xE8); // Notion subtle borders
-    public static final Color BORDER_PILL         = new Color(0xE3, 0xE2, 0xDF); // Slightly stronger border
-    public static final Color CHAT_USER_BUBBLE    = new Color(0xF1, 0xF0, 0xEF); // User message: warm neutral
-    public static final Color CHAT_BOT_BUBBLE     = new Color(0xFF, 0xFF, 0xFF); // Bot: white card
+    // ==================== COLOR SYSTEM (Warm Cream & Burgundy Reference Palette) ====================
+    public static final Color BG_APP              = new Color(0xFA, 0xF4, 0xEE); // Warm cream canvas (#FAF4EE)
+    public static final Color BG_CARD             = new Color(0xFF, 0xFD, 0xFB); // Pure warm white surfaces (#FFFDFB)
+    public static final Color BG_CARD_ALT         = new Color(0xF7, 0xEF, 0xE8); // Soft warm hover / secondary surface
+    public static final Color BG_ELEVATED         = new Color(0xF4, 0xEB, 0xE3); // Elevated elements
+    public static final Color PRIMARY_MAROON      = new Color(0x67, 0x1A, 0x29); // Burgundy accent (#671A29)
+    public static final Color PRIMARY_MAROON_DARK = new Color(0x4F, 0x12, 0x1E); // Deeper burgundy
+    public static final Color PRIMARY_MAROON_LIGHT= new Color(0xF5, 0xE8, 0xEB); // Light burgundy tint
+    public static final Color TEXT_TITLE_MAROON   = new Color(0x56, 0x14, 0x22); // Burgundy heading color (#561422)
+    public static final Color TEXT_PRIMARY        = new Color(0x2D, 0x21, 0x20); // Warm dark text
+    public static final Color TEXT_SECONDARY      = new Color(0x8E, 0x75, 0x6D); // Warm secondary text
+    public static final Color TEXT_MUTED          = new Color(0xB8, 0xA3, 0x9C); // Warm placeholder / muted
+    public static final Color BORDER_SUBTLE       = new Color(0xEF, 0xE4, 0xDA); // Warm subtle borders (#EFE4DA)
+    public static final Color BORDER_PILL         = new Color(0xE8, 0xD9, 0xCC); // Slightly stronger border
+    public static final Color CHAT_USER_BUBBLE    = new Color(0xF8, 0xE7, 0xDF); // User message: warm peach/cream
+    public static final Color CHAT_BOT_BUBBLE     = new Color(0xFF, 0xFD, 0xFB); // Bot: warm white card
     public static final Color SUCCESS             = new Color(0x34, 0xA8, 0x53);
     public static final Color ERROR               = new Color(0xD9, 0x30, 0x25);
 
@@ -261,7 +261,7 @@ public class DEXDesktopApp extends JFrame {
             homeGreetingPrefixLabel.setText(hasName ? "Good to see you," : "Welcome");
         }
         if (homeGreetingNameLabel != null) {
-            homeGreetingNameLabel.setText(hasName ? name : "DEX — Your AI Assistant");
+            homeGreetingNameLabel.setText(hasName ? name : "X — Personal AI Assistant");
         }
         if (homeGreetingSubLabel != null) {
             homeGreetingSubLabel.setText("How can I help you today?");
@@ -277,19 +277,19 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 16, 16));
                 g2.dispose();
             }
         };
         card.setOpaque(false);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(BG_CARD);
-        card.setBorder(new EmptyBorder(36, 48, 36, 48));
-        card.setPreferredSize(new Dimension(520, 480));
-        card.setMaximumSize(new Dimension(560, 520));
+        card.setBorder(new EmptyBorder(40, 48, 40, 48));
+        card.setPreferredSize(new Dimension(520, 430));
+        card.setMaximumSize(new Dimension(560, 460));
 
         JComponent orbComp = new JComponent() {
             @Override protected void paintComponent(Graphics g) {
@@ -314,26 +314,16 @@ public class DEXDesktopApp extends JFrame {
         orbComp.setMaximumSize(new Dimension(100, 90));
         orbComp.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel appTitle = new JLabel("WELCOME TO DEX");
-        appTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        appTitle.setForeground(TEXT_SECONDARY);
-        appTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         JLabel questionLbl = new JLabel("What is your name?");
         questionLbl.setFont(new Font("Segoe UI", Font.BOLD, 26));
         questionLbl.setForeground(TEXT_TITLE_MAROON);
         questionLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel subNote = new JLabel("<html><center>Enter your name to personalize your assistant,<br>or click Continue to skip.</center></html>");
-        subNote.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        subNote.setForeground(TEXT_SECONDARY);
-        subNote.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         JTextField nameField = new JTextField();
         nameField.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         nameField.setForeground(TEXT_PRIMARY);
         nameField.setCaretColor(PRIMARY_MAROON);
-        nameField.putClientProperty("JTextField.placeholderText", "Your name (optional)");
+        nameField.putClientProperty("JTextField.placeholderText", "Your name");
         nameField.setMaximumSize(new Dimension(380, 42));
         nameField.setPreferredSize(new Dimension(380, 42));
         nameField.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -363,7 +353,7 @@ public class DEXDesktopApp extends JFrame {
         continueBtn.addActionListener(e -> proceedAction.run());
         nameField.addActionListener(e -> proceedAction.run());
 
-        JButton skipBtn = new JButton("Skip for now");
+        JButton skipBtn = new JButton("Skip");
         skipBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         skipBtn.setForeground(TEXT_MUTED);
         skipBtn.setBorderPainted(false);
@@ -379,17 +369,13 @@ public class DEXDesktopApp extends JFrame {
         });
 
         card.add(orbComp);
-        card.add(Box.createVerticalStrut(10));
-        card.add(appTitle);
-        card.add(Box.createVerticalStrut(8));
+        card.add(Box.createVerticalStrut(14));
         card.add(questionLbl);
-        card.add(Box.createVerticalStrut(8));
-        card.add(subNote);
-        card.add(Box.createVerticalStrut(24));
+        card.add(Box.createVerticalStrut(28));
         card.add(nameField);
-        card.add(Box.createVerticalStrut(16));
+        card.add(Box.createVerticalStrut(18));
         card.add(continueBtn);
-        card.add(Box.createVerticalStrut(8));
+        card.add(Box.createVerticalStrut(10));
         card.add(skipBtn);
 
         page.add(card);
@@ -408,18 +394,17 @@ public class DEXDesktopApp extends JFrame {
             rightPanel.setVisible(page == 0 || page == 1);
         }
 
-        // Update sidebar nav items (Notion-style: active = subtle bg, bold font)
+        // Update sidebar nav items (Reference style: active = PRIMARY_MAROON capsule, white text & icon)
         for (int i = 0; i < navButtons.length; i++) {
             if (navButtons[i] != null) {
                 boolean active = (i == page);
-                // Notion active state: light warm gray background, not harsh color
-                navButtons[i].setBackground(active ? BG_ELEVATED : BG_APP);
+                navButtons[i].setBackground(active ? PRIMARY_MAROON : BG_APP);
                 Component[] comps = navButtons[i].getComponents();
                 for (Component c : comps) {
                     if (c instanceof JLabel) {
                         JLabel lbl = (JLabel) c;
                         if ("navLabel".equals(lbl.getName())) {
-                            lbl.setForeground(active ? TEXT_PRIMARY : TEXT_SECONDARY);
+                            lbl.setForeground(active ? Color.WHITE : TEXT_PRIMARY);
                             lbl.setFont(active ? FONT_BOLD : FONT_BODY);
                         }
                     }
@@ -568,23 +553,21 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
-                // Notion uses 6px corner radius for nav items
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
                 g2.dispose();
             }
         };
         pill.setOpaque(false);
         pill.setBackground(BG_APP);
-        pill.setBorder(new EmptyBorder(6, 10, 6, 10));
+        pill.setBorder(new EmptyBorder(7, 12, 7, 12));
         pill.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        pill.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        pill.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
 
         JComponent iconComp = new JComponent() {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Notion: active and inactive nav icons share the same dark color
-                Color iconColor = (currentPage == pageIdx) ? TEXT_PRIMARY : TEXT_SECONDARY;
+                Color iconColor = (currentPage == pageIdx) ? Color.WHITE : TEXT_SECONDARY;
                 DrawIcons.drawNavIcon(g2, iconType, 0, 0, 16, 16, iconColor);
                 g2.dispose();
             }
@@ -594,7 +577,7 @@ public class DEXDesktopApp extends JFrame {
         JLabel titleLbl = new JLabel(title);
         titleLbl.setName("navLabel");
         titleLbl.setFont(FONT_BODY);
-        titleLbl.setForeground(TEXT_SECONDARY);
+        titleLbl.setForeground(TEXT_PRIMARY);
 
         pill.add(iconComp, BorderLayout.WEST);
         pill.add(titleLbl, BorderLayout.CENTER);
@@ -603,7 +586,7 @@ public class DEXDesktopApp extends JFrame {
             @Override public void mouseClicked(MouseEvent e) { navigateTo(pageIdx); }
             @Override public void mouseEntered(MouseEvent e) {
                 if (currentPage != pageIdx) {
-                    pill.setBackground(BG_CARD_ALT);
+                    pill.setBackground(PRIMARY_MAROON_LIGHT);
                     pill.repaint();
                 }
             }
@@ -632,11 +615,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                // Notion uses subtle 8px radius for search bar
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 24, 24));
                 g2.dispose();
             }
         };
@@ -748,7 +730,7 @@ public class DEXDesktopApp extends JFrame {
         homeGreetingPrefixLabel.setForeground(TEXT_SECONDARY);
         homeGreetingPrefixLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        homeGreetingNameLabel = new JLabel(UserProfileManager.hasCustomName() ? UserProfileManager.getUserName() : "DEX — Your AI Assistant");
+        homeGreetingNameLabel = new JLabel(UserProfileManager.hasCustomName() ? UserProfileManager.getUserName() : "X — Personal AI Assistant");
         homeGreetingNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
         homeGreetingNameLabel.setForeground(TEXT_PRIMARY);
         homeGreetingNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -795,11 +777,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                // Notion style: 8px border radius, clean white, 1px border
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
                 g2.setColor(BORDER_PILL);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 24, 24));
                 g2.dispose();
             }
         };
@@ -892,11 +873,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
-                // Notion card: 8px radius, minimal shadow
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 16, 16));
                 g2.dispose();
             }
         };
@@ -1042,11 +1022,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                // Notion card: 8px radius
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 16, 16));
                 g2.dispose();
             }
         };
@@ -1340,10 +1319,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 24, 24));
                 g2.dispose();
             }
         };
@@ -2536,10 +2515,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 16, 16));
                 g2.dispose();
             }
         };
@@ -2854,10 +2833,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 16, 16));
                 g2.dispose();
             }
         };

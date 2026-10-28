@@ -510,11 +510,10 @@ public class MainActivity extends AppCompatActivity {
         boolean firstTimeDone = prefs.getBoolean("first_launch_done", false);
         if (!firstTimeDone) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Welcome to DEX");
-            builder.setMessage("What should X call you?");
+            builder.setTitle("What is your name?");
 
             final EditText input = new EditText(this);
-            input.setHint("Enter your name (e.g. Muhammed Muzain)");
+            input.setHint("Your name");
             input.setText(prefs.getString(KEY_USER_NAME, ""));
             input.setSingleLine(true);
             int pad = dpToPx(20);

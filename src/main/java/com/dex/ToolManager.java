@@ -148,6 +148,28 @@ public class ToolManager {
                 true,
                 FileTools::writeFileFromString);
 
+        register("save_and_open_code",
+                "Saves code to an explicitly named workspace file and immediately opens it inside Visual Studio Code in a new window (format: 'filepath:::code_content').",
+                "File path and code content",
+                true,
+                arg -> {
+                    String saveResult = FileTools.writeFileFromString(arg);
+                    String path = (arg != null && arg.contains(":::")) ? arg.split(":::", 2)[0].trim() : ((arg != null && arg.contains("\n")) ? arg.substring(0, arg.indexOf("\n")).trim() : arg);
+                    WindowsController.LaunchResult launch = WindowsController.executeOpenVsCode(path, true);
+                    return saveResult + "\n" + launch.toDisplayString();
+                });
+
+        register("write_program",
+                "Generates code for a requested programming task, saves it to the workspace, and immediately opens it inside Visual Studio Code in a new window (e.g. 'write a program to add two numbers', 'calculator in python').",
+                "Description of the program to write",
+                false,
+                arg -> {
+                    com.dex.tools.ProgramGenerator.GeneratedProgram gen = com.dex.tools.ProgramGenerator.generate(arg);
+                    FileTools.saveCode(gen.getFilename(), gen.getCode());
+                    WindowsController.LaunchResult launch = WindowsController.executeOpenVsCode(gen.getFilename(), true);
+                    return "Created " + gen.getTitle() + " in '" + gen.getFilename() + "'. " + launch.toDisplayString();
+                });
+
         register("search_files",
                 "Searches for filenames matching a pattern inside the approved workspace.",
                 "Filename pattern to search",
@@ -166,6 +188,24 @@ public class ToolManager {
                 "Command string to execute (e.g. 'mvn test', 'git status')",
                 true,
                 CommandRunner::runCommand);
+
+        register("run_shell_command",
+                "Executes a command or shell task safely.",
+                "Command string to execute",
+                true,
+                CommandRunner::runCommand);
+
+        register("create_file",
+                "Creates or writes a file in the workspace (format: 'filepath:::content').",
+                "File path and content",
+                true,
+                FileTools::writeFileFromString);
+
+        register("save_file",
+                "Saves code or text directly to a file (format: 'filepath:::content').",
+                "File path and content",
+                true,
+                FileTools::writeFileFromString);
 
         // Tool discovery
         register("list_tools",

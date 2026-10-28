@@ -12,7 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.dex.config.DEXConfig;
 
 /**
  * Manages Windows application launches and desktop navigation with fuzzy matching,
@@ -498,34 +500,48 @@ public class WindowsController {
      * Plays a requested song, music track, or video on YouTube or Spotify.
      */
     public static LaunchResult executePlayMusic(String songOrQuery, String preferredPlatform) {
-        if (songOrQuery == null || songOrQuery.isBlank()) {
-            return LaunchResult.failure("play_music", "unknown", "Please specify a song or artist to play.");
-        }
-
-        String raw = songOrQuery.trim();
+        String raw = (songOrQuery != null) ? songOrQuery.trim() : "";
         String clean = raw
-                .replaceAll("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|play|listen to|search for|search)\\s+", "")
+                .replaceAll("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|play|listen to|search for|search)\\s*", "")
                 .replaceAll("(?i)\\s+(?:on youtube|in youtube|on spotify|in spotify|for me|please|now)$", "")
                 .replaceAll("[\\.\\?!,;]+$", "")
                 .trim();
 
-        if (clean.isBlank()) {
-            clean = raw;
-        }
+        boolean isGenericMusic = clean.isBlank()
+                || clean.equalsIgnoreCase("any music")
+                || clean.equalsIgnoreCase("music")
+                || clean.equalsIgnoreCase("some music")
+                || clean.equalsIgnoreCase("a song")
+                || clean.equalsIgnoreCase("songs")
+                || clean.equalsIgnoreCase("song")
+                || clean.equalsIgnoreCase("tracks");
 
         boolean useSpotify = (preferredPlatform != null && preferredPlatform.equalsIgnoreCase("spotify"))
                 || raw.toLowerCase(Locale.ROOT).contains("spotify");
 
         if (useSpotify) {
-            String encoded = URLEncoder.encode(clean, StandardCharsets.UTF_8);
-            String url = "https://open.spotify.com/search/" + encoded;
-            List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
-            return startProcess("play_music", "Spotify: " + clean, cmd, "Playing on Spotify: " + clean);
+            if (isGenericMusic) {
+                String url = "https://open.spotify.com";
+                List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
+                return startProcess("play_music", "Spotify Music", cmd, "Opened Spotify music player in default browser.");
+            } else {
+                String encoded = URLEncoder.encode(clean, StandardCharsets.UTF_8);
+                String url = "https://open.spotify.com/search/" + encoded;
+                List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
+                return startProcess("play_music", "Spotify: " + clean, cmd, "Playing '" + clean + "' on Spotify in default browser.");
+            }
         } else {
-            String encoded = URLEncoder.encode(clean, StandardCharsets.UTF_8);
-            String url = "https://www.youtube.com/results?search_query=" + encoded;
-            List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
-            return startProcess("play_music", "YouTube: " + clean, cmd, "Opened YouTube search results for '" + clean + "' in default browser. Playing requested song.");
+            if (isGenericMusic) {
+                // Autoplays live music stream
+                String url = "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+                List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
+                return startProcess("play_music", "YouTube Music Stream", cmd, "Playing music stream on YouTube for you in your browser.");
+            } else {
+                String encoded = URLEncoder.encode(clean, StandardCharsets.UTF_8);
+                String url = "https://www.youtube.com/results?search_query=" + encoded;
+                List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url);
+                return startProcess("play_music", "YouTube: " + clean, cmd, "Playing '" + clean + "' on YouTube for you in your browser.");
+            }
         }
     }
 
@@ -579,8 +595,58 @@ public class WindowsController {
             return executeOpenChrome(null);
         }
 
+        // New window requests for VS Code or generic
+        if (normalized.equals("new window") || normalized.equals("a new window")
+                || normalized.equals("open a new window") || normalized.equals("open new window")
+                || normalized.equals("vs code in a new window") || normalized.equals("vscode in a new window")
+                || normalized.equals("open vs code in a new window") || normalized.equals("open vs code in new window")
+                || normalized.equals("open vscode in a new window") || normalized.equals("open vscode in new window")) {
+            return executeOpenVsCode(null, true);
+        }
+
+        // Open specific file in VS Code (e.g. "test.py in vs code", "test.py in vscode", "workspace/test.py with vs code")
+        Pattern fileInVsCodePattern = Pattern.compile("(?i)^(?:open\\s+)?([a-zA-Z0-9_\\-\\.\\/\\\\]+\\.[a-zA-Z0-9]+)\\s+(?:in|with)\\s+(?:vscode|vs\\s*code|visual\\s*studio\\s*code|code)(?:\\s+in\\s+(?:a\\s+)?new\\s+window)?$");
+        Matcher fileInVsCodeMatcher = fileInVsCodePattern.matcher(normalized);
+        if (fileInVsCodeMatcher.matches()) {
+            String filePath = fileInVsCodeMatcher.group(1).trim();
+            boolean newWin = normalized.contains("new window");
+            return executeOpenVsCode(filePath, newWin);
+        }
+
+        // Open VS Code with path and optional new window flag
+        if (normalized.matches("^(?:vscode|vs\\s*code|code)\\s+(?:in\\s+(?:a\\s+)?new\\s+window\\s+)?(?:with\\s+)?(.+)$")) {
+            String target = normalized.replaceFirst("^(?:vscode|vs\\s*code|code)\\s+", "").trim();
+            boolean newWin = target.contains("new window") || target.contains("-n");
+            String cleanedTarget = target.replaceAll("(?i)\\s*in\\s+(?:a\\s+)?new\\s+window\\s*", " ")
+                    .replaceAll("(?i)\\s*with\\s+", " ")
+                    .replaceAll("\\s*-n\\s*", " ")
+                    .trim();
+            return executeOpenVsCode(cleanedTarget.isEmpty() ? null : cleanedTarget, newWin);
+        }
+
         if (normalized.equals("vscode") || normalized.equals("vs code") || normalized.equals("visual studio code") || normalized.equals("code") || normalized.equals("vsc")) {
-            return executeOpenVsCode();
+            return executeOpenVsCode(null, false);
+        }
+
+        // Open file in Notepad (e.g. "notepad test.txt", "test.txt in notepad")
+        if (normalized.matches("^notepad\\s+(.+)$") || normalized.matches("^(?:open\\s+)?([a-zA-Z0-9_\\-\\.\\/\\\\]+\\.[a-zA-Z0-9]+)\\s+(?:in|with)\\s+notepad$")) {
+            String path = normalized.replaceFirst("^notepad\\s+", "")
+                    .replaceFirst("^(?:open\\s+)?", "")
+                    .replaceFirst("\\s+(?:in|with)\\s+notepad$", "")
+                    .trim();
+            String resolvedPath = path;
+            File f = new File(path);
+            if (!f.isAbsolute() && DEXConfig.getWorkspaceRoot() != null) {
+                resolvedPath = DEXConfig.getWorkspaceRoot().resolve(path).toAbsolutePath().toString();
+            }
+            List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", "notepad.exe", resolvedPath);
+            return startProcess("open_app", "Notepad: " + path, cmd, "Opened Notepad with: " + path);
+        }
+
+        // Direct code file request (e.g. "test.py", "open test.py")
+        if (normalized.matches("^(?:open\\s+)?([a-zA-Z0-9_\\-\\.\\/\\\\]+\\.(?:py|c|cpp|java|js|ts|html|css|json|txt|md))$")) {
+            String fileName = normalized.replaceFirst("^open\\s+", "").trim();
+            return executeOpenVsCode(fileName, false);
         }
 
         ApplicationEntry target = findApplication(normalized);
@@ -697,24 +763,91 @@ public class WindowsController {
      * Opens Visual Studio Code, resolving Code.exe or code.cmd.
      */
     public static String openVsCode() {
-        return executeOpenVsCode().toDisplayString();
+        return executeOpenVsCode(null).toDisplayString();
     }
 
     public static LaunchResult executeOpenVsCode() {
+        return executeOpenVsCode(null, false);
+    }
+
+    public static LaunchResult executeOpenVsCode(String targetPath) {
+        return executeOpenVsCode(targetPath, false);
+    }
+
+    public static LaunchResult executeOpenVsCode(String targetPath, boolean newWindow) {
         String vsCodePath = findVsCodeExecutable();
         if (vsCodePath == null) {
             logDiagnosticError("open_app", "Visual Studio Code", "Code.exe", null, new FileNotFoundException("VS Code not found"));
             return LaunchResult.failure("open_app", "Visual Studio Code", "Visual Studio Code (Code.exe or code.cmd) was not found in standard installation paths or PATH.");
         }
 
-        List<String> cmd;
-        if (vsCodePath.toLowerCase(Locale.ROOT).endsWith(".cmd")) {
-            cmd = Arrays.asList("cmd.exe", "/c", "start", "", vsCodePath);
-        } else {
-            cmd = Collections.singletonList(vsCodePath);
+        boolean requestedNewWindow = newWindow;
+        String cleanPath = null;
+
+        if (targetPath != null && !targetPath.isBlank()) {
+            String trimmed = targetPath.trim();
+            if (trimmed.contains("-n") || trimmed.contains("--new-window")) {
+                requestedNewWindow = true;
+                trimmed = trimmed.replaceAll("\\s*(?:-n|--new-window)\\s*", " ").trim();
+            }
+            if (!trimmed.isBlank()) {
+                cleanPath = trimmed;
+            }
         }
 
-        return startProcess("open_app", "Visual Studio Code", cmd, "Launcher path: " + vsCodePath);
+        // Resolve cleanPath against workspace if not absolute
+        String resolvedTarget = null;
+        if (cleanPath != null) {
+            File directFile = new File(cleanPath);
+            if (directFile.isAbsolute() && directFile.exists()) {
+                resolvedTarget = directFile.getAbsolutePath();
+            } else {
+                java.nio.file.Path wsRoot = com.dex.config.DEXConfig.getWorkspaceRoot();
+                if (wsRoot != null) {
+                    java.nio.file.Path candidate = wsRoot.resolve(cleanPath).normalize();
+                    resolvedTarget = candidate.toAbsolutePath().toString();
+                } else {
+                    resolvedTarget = directFile.getAbsolutePath();
+                }
+            }
+        }
+
+        List<String> cmd = new ArrayList<>();
+        if (vsCodePath.toLowerCase(Locale.ROOT).endsWith(".cmd")) {
+            cmd.add("cmd.exe");
+            cmd.add("/c");
+            cmd.add("start");
+            cmd.add("");
+            cmd.add(vsCodePath);
+            if (requestedNewWindow) {
+                cmd.add("-n");
+            }
+            if (resolvedTarget != null) {
+                cmd.add(resolvedTarget);
+            }
+        } else {
+            cmd.add(vsCodePath);
+            if (requestedNewWindow) {
+                cmd.add("-n");
+            }
+            if (resolvedTarget != null) {
+                cmd.add(resolvedTarget);
+            }
+        }
+
+        StringBuilder targetDesc = new StringBuilder("Visual Studio Code");
+        if (requestedNewWindow) {
+            targetDesc.append(" (New Window)");
+        }
+        if (cleanPath != null) {
+            targetDesc.append(" [").append(cleanPath).append("]");
+        }
+
+        String details = "Opened Visual Studio Code"
+                + (requestedNewWindow ? " in a new window" : "")
+                + (resolvedTarget != null ? " with '" + (cleanPath != null ? cleanPath : resolvedTarget) + "'" : "");
+
+        return startProcess("open_app", targetDesc.toString(), cmd, details);
     }
 
     /**
@@ -729,8 +862,10 @@ public class WindowsController {
             return LaunchResult.failure("open_url", "default_browser", "URL cannot be empty.");
         }
 
-        List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", url.trim());
-        return startProcess("open_url", "Default Browser (" + url + ")", cmd, "Opened URL via Windows Shell");
+        String targetUrl = url.trim();
+        String cmdUrl = targetUrl.contains("&") ? targetUrl.replace("&", "^&") : targetUrl;
+        List<String> cmd = Arrays.asList("cmd.exe", "/c", "start", "", cmdUrl);
+        return startProcess("open_url", "Default Browser (" + targetUrl + ")", cmd, "Opened URL via Windows Shell");
     }
 
     /**

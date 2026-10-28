@@ -96,7 +96,7 @@ public class GeminiProvider implements AIProvider {
         }
 
         String targetModel = (request.getModel() != null && !request.getModel().isBlank()) ? request.getModel() : this.model;
-        String endpoint = baseUrl + "/v1beta/models/" + targetModel + ":generateContent?key=" + apiKey;
+        String endpoint = baseUrl + "/v1beta/models/" + targetModel + ":generateContent";
 
         ObjectNode payload = MAPPER.createObjectNode();
 
@@ -141,6 +141,7 @@ public class GeminiProvider implements AIProvider {
                 .uri(URI.create(endpoint))
                 .timeout(Duration.ofSeconds(60))
                 .header("Content-Type", "application/json")
+                .header("x-goog-api-key", apiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(requestJson))
                 .build();
 

@@ -1,20 +1,38 @@
 package com.dex.mobile;
 
+import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.app.AlertDialog;
+import android.text.Editable;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -22,20 +40,27 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * AI Assistant / DEX Mobile Companion.
- * Matches luxury warm cream / ivory and maroon design aesthetics.
+ * DEX Mobile Companion.
+ * Rich voice chat, text messaging, and remote controls.
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -44,10 +69,24 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_PORT = "dex_port";
     private static final String KEY_TOKEN = "dex_auth_token";
     private static final String KEY_DEVICE_ID = "dex_device_id";
+    private static final String KEY_USER_NAME = "dex_user_name";
+    private static final String KEY_TTS_ENABLED = "dex_tts_enabled";
+
+    private static final int REQUEST_RECORD_AUDIO = 3001;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final DexClient dexClient = new DexClient();
+
+    // Voice & Speech Components
+    private SpeechRecognizer speechRecognizer;
+    private TextToSpeech tts;
+    private boolean isTtsInitialized = false;
+    private boolean isTtsEnabled = true;
+    private boolean isLastInputVoice = false;
+    private boolean isListening = false;
+    private String currentSpeakingText = null;
+    private ActivityResultLauncher<Intent> voiceFallbackLauncher;
 
     // Pages
     private View pageHome, pageChat, pageExplore, pageSettings;
@@ -61,23 +100,32 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvHomeStatusBadge, tvStatusBadge, tvEndpoint;
 
     // Home Views
+    private TextView tvHomeUserName;
     private EditText etHomeSearch, etHomeMessage;
     private ImageView btnHomePlus, btnHomeMic, btnHomeSend;
     private View cardHomeChat, cardHomeVoice, cardHomeImage, cardHomeFiles;
     private TextView tagDailyLife, tagStudy, tagBusiness, tagHealth, tagDevelopment;
 
     // Explore Views
+    private TextView tvExploreUserName;
     private EditText etExploreMessage;
     private ImageView btnExploreBack, btnExploreMenu, btnExploreMic, btnExploreSend;
     private View cardExploreConcept, cardExploreIdeas, cardExploreCode, cardExploreImage;
 
     // Chat Views
     private EditText etMessage;
-    private ImageView btnChatBack, btnChatMenu, btnChatMic, btnSend;
+    private ImageView btnChatBack, btnChatMenu, btnChatMic, btnSend, btnChatTtsToggle;
     private ScrollView chatScrollView;
     private LinearLayout chatMessagesContainer;
 
+    // Voice Active Banner
+    private View layoutVoiceActive;
+    private ImageView ivVoicePulse;
+    private TextView tvVoiceStatus, btnCancelVoice;
+
     // Settings Views
+    private EditText etSettingsUserName;
+    private Button btnSaveUserName;
     private EditText etHostIp, etPort, etPairingPin, etVisionPrompt;
     private Button btnPair, btnCheckConnection, btnUnpair, btnTakeScreenshot, btnAnalyzeScreen;
     private TextView tvPairingStatus, tvWindowsActionStatus, tvVisionResult;
@@ -89,6 +137,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initVoiceFallbackLauncher();
+        initTts();
+        initSpeechRecognition();
+
         bindViews();
         loadSavedConfig();
         setupNavigation();
@@ -99,6 +151,241 @@ public class MainActivity extends AppCompatActivity {
 
         // Initial connection ping
         testConnection(false);
+    }
+
+    private void initVoiceFallbackLauncher() {
+        voiceFallbackLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    stopVoiceListening();
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        ArrayList<String> matches = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (matches != null && !matches.isEmpty()) {
+                            String spokenText = matches.get(0);
+                            onVoiceInputReceived(spokenText);
+                        }
+                    }
+                }
+        );
+    }
+
+    private void initTts() {
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                isTtsInitialized = true;
+                tts.setLanguage(Locale.getDefault());
+                tts.setPitch(1.0f);
+                tts.setSpeechRate(1.05f); // Natural conversational speed
+            }
+        });
+    }
+
+    private void initSpeechRecognition() {
+        if (SpeechRecognizer.isRecognitionAvailable(this)) {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                @Override
+                public void onReadyForSpeech(Bundle params) {
+                    if (tvVoiceStatus != null) tvVoiceStatus.setText("Listening... Speak now");
+                }
+
+                @Override
+                public void onBeginningOfSpeech() {
+                    if (tvVoiceStatus != null) tvVoiceStatus.setText("Hearing you...");
+                }
+
+                @Override
+                public void onRmsChanged(float rmsdB) {
+                    if (ivVoicePulse != null) {
+                        float scale = 1.0f + Math.max(0f, rmsdB / 12f);
+                        ivVoicePulse.setScaleX(scale);
+                        ivVoicePulse.setScaleY(scale);
+                    }
+                }
+
+                @Override
+                public void onBufferReceived(byte[] buffer) {}
+
+                @Override
+                public void onEndOfSpeech() {
+                    if (tvVoiceStatus != null) tvVoiceStatus.setText("Processing speech...");
+                    if (ivVoicePulse != null) {
+                        ivVoicePulse.setScaleX(1.0f);
+                        ivVoicePulse.setScaleY(1.0f);
+                    }
+                }
+
+                @Override
+                public void onError(int error) {
+                    if (ivVoicePulse != null) {
+                        ivVoicePulse.setScaleX(1.0f);
+                        ivVoicePulse.setScaleY(1.0f);
+                    }
+                    if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+                        if (tvVoiceStatus != null) tvVoiceStatus.setText("Didn't catch that. Tap mic to retry.");
+                        mainHandler.postDelayed(() -> stopVoiceListening(), 1200);
+                    } else {
+                        // Fallback to system voice dialog
+                        stopVoiceListening();
+                        launchVoiceFallbackIntent();
+                    }
+                }
+
+                @Override
+                public void onResults(Bundle results) {
+                    stopVoiceListening();
+                    if (results != null) {
+                        ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        if (matches != null && !matches.isEmpty()) {
+                            onVoiceInputReceived(matches.get(0));
+                        }
+                    }
+                }
+
+                @Override
+                public void onPartialResults(Bundle partialResults) {
+                    if (partialResults != null && tvVoiceStatus != null) {
+                        ArrayList<String> partial = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        if (partial != null && !partial.isEmpty()) {
+                            tvVoiceStatus.setText(partial.get(0));
+                        }
+                    }
+                }
+
+                @Override
+                public void onEvent(int eventType, Bundle params) {}
+            });
+        }
+    }
+
+    private void onVoiceInputReceived(String spokenText) {
+        if (spokenText == null || spokenText.trim().isEmpty()) return;
+        String text = spokenText.trim();
+        if (etMessage != null) etMessage.setText(text);
+        isLastInputVoice = true; // Flag so DEX speaks response aloud
+        dispatchUserMessage(text);
+    }
+
+    private void startVoiceListening() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
+            return;
+        }
+
+        // Stop TTS if speaking
+        stopTts();
+
+        isListening = true;
+        if (layoutVoiceActive != null) layoutVoiceActive.setVisibility(View.VISIBLE);
+        if (tvVoiceStatus != null) tvVoiceStatus.setText("Initializing mic...");
+        if (btnChatMic != null) btnChatMic.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.status_online)));
+
+        if (speechRecognizer != null && SpeechRecognizer.isRecognitionAvailable(this)) {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+            intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+            try {
+                speechRecognizer.startListening(intent);
+            } catch (Exception e) {
+                launchVoiceFallbackIntent();
+            }
+        } else {
+            launchVoiceFallbackIntent();
+        }
+    }
+
+    private void stopVoiceListening() {
+        isListening = false;
+        if (speechRecognizer != null) {
+            try { speechRecognizer.stopListening(); } catch (Exception ignored) {}
+        }
+        if (layoutVoiceActive != null) layoutVoiceActive.setVisibility(View.GONE);
+        if (btnChatMic != null) btnChatMic.setImageTintList(null);
+        if (ivVoicePulse != null) {
+            ivVoicePulse.setScaleX(1.0f);
+            ivVoicePulse.setScaleY(1.0f);
+        }
+    }
+
+    private void toggleVoiceListening() {
+        if (isListening) {
+            stopVoiceListening();
+        } else {
+            startVoiceListening();
+        }
+    }
+
+    private void launchVoiceFallbackIntent() {
+        try {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to DEX...");
+            voiceFallbackLauncher.launch(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Voice recognition not available on this device.", Toast.LENGTH_SHORT).show();
+            stopVoiceListening();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_RECORD_AUDIO) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startVoiceListening();
+            } else {
+                Toast.makeText(this, "Microphone permission is required for Voice Chat.", Toast.LENGTH_SHORT).show();
+                stopVoiceListening();
+            }
+        }
+    }
+
+    private void speakAssistantReply(String text) {
+        if (!isTtsInitialized || tts == null) return;
+        if (!isTtsEnabled && !isLastInputVoice) return;
+
+        String clean = cleanTextForSpeech(text);
+        if (clean.isEmpty()) return;
+
+        currentSpeakingText = clean;
+        tts.speak(clean, TextToSpeech.QUEUE_FLUSH, null, "DEX_REPLY");
+    }
+
+    private void stopTts() {
+        if (tts != null) {
+            try { tts.stop(); } catch (Exception ignored) {}
+        }
+        currentSpeakingText = null;
+    }
+
+    /**
+     * Cleans assistant reply for smooth natural speech.
+     * Skips code blocks, complex brackets, and URLs.
+     */
+    private String cleanTextForSpeech(String raw) {
+        if (raw == null || raw.isEmpty()) return "";
+        String text = raw;
+
+        // Strip multi-step headers and PID markers for conversational speech
+        text = text.replaceAll("=== Multi-Step Task: [^=]+ ===", "")
+                   .replaceAll("\\(PID: \\d+\\)", "")
+                   .replaceAll("\\[SUCCESS\\]", "Successfully completed: ")
+                   .replaceAll("\\[FAILED\\]", "Failed: ")
+                   .replaceAll("(?i)\\bresult:\\s*", "");
+
+        // Replace code fences with pleasant speech note
+        text = text.replaceAll("(?s)```.*?```", " I have generated the code snippet for you. ");
+
+        // Remove URLs
+        text = text.replaceAll("https?://\\S+", "link");
+
+        // Clean markdown markers and symbols
+        text = text.replaceAll("[*#`_~>•]", "");
+        text = text.replace("\\n", "\n").replace("\\\"", "\"").replace("\\\\", "\\");
+
+        return text.trim().replaceAll("\\s+", " ");
     }
 
     private void bindViews() {
@@ -130,6 +417,7 @@ public class MainActivity extends AppCompatActivity {
         tvEndpoint = findViewById(R.id.tvEndpoint);
 
         // Home
+        tvHomeUserName = findViewById(R.id.tvHomeUserName);
         etHomeSearch = findViewById(R.id.etHomeSearch);
         etHomeMessage = findViewById(R.id.etHomeMessage);
         btnHomePlus = findViewById(R.id.btnHomePlus);
@@ -146,6 +434,7 @@ public class MainActivity extends AppCompatActivity {
         tagDevelopment = findViewById(R.id.tagDevelopment);
 
         // Explore
+        tvExploreUserName = findViewById(R.id.tvExploreUserName);
         etExploreMessage = findViewById(R.id.etExploreMessage);
         btnExploreBack = findViewById(R.id.btnExploreBack);
         btnExploreMenu = findViewById(R.id.btnExploreMenu);
@@ -162,10 +451,19 @@ public class MainActivity extends AppCompatActivity {
         btnChatMenu = findViewById(R.id.btnChatMenu);
         btnChatMic = findViewById(R.id.btnChatMic);
         btnSend = findViewById(R.id.btnSend);
+        btnChatTtsToggle = findViewById(R.id.btnChatTtsToggle);
         chatScrollView = findViewById(R.id.chatScrollView);
         chatMessagesContainer = findViewById(R.id.chatMessagesContainer);
 
+        // Voice Banner
+        layoutVoiceActive = findViewById(R.id.layoutVoiceActive);
+        ivVoicePulse = findViewById(R.id.ivVoicePulse);
+        tvVoiceStatus = findViewById(R.id.tvVoiceStatus);
+        btnCancelVoice = findViewById(R.id.btnCancelVoice);
+
         // Settings
+        etSettingsUserName = findViewById(R.id.etSettingsUserName);
+        btnSaveUserName = findViewById(R.id.btnSaveUserName);
         etHostIp = findViewById(R.id.etHostIp);
         etPort = findViewById(R.id.etPort);
         etPairingPin = findViewById(R.id.etPairingPin);
@@ -183,6 +481,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadSavedConfig() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String defaultName = getString(R.string.user_name);
+        String userName = prefs.getString(KEY_USER_NAME, defaultName);
+        updateUserNameDisplay(userName);
+
+        isTtsEnabled = prefs.getBoolean(KEY_TTS_ENABLED, true);
+        updateTtsIcon();
+
         String host = prefs.getString(KEY_HOST, "192.168.1.35");
         int port = prefs.getInt(KEY_PORT, 31416);
         String token = prefs.getString(KEY_TOKEN, null);
@@ -197,6 +502,79 @@ public class MainActivity extends AppCompatActivity {
         dexClient.setDeviceId(devId);
 
         updateEndpointDisplay();
+        checkFirstTimeNameSetup();
+    }
+
+    private void checkFirstTimeNameSetup() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean firstTimeDone = prefs.getBoolean("first_launch_done", false);
+        if (!firstTimeDone) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Welcome to DEX");
+            builder.setMessage("What should X call you?");
+
+            final EditText input = new EditText(this);
+            input.setHint("Enter your name (e.g. Muhammed Muzain)");
+            input.setText(prefs.getString(KEY_USER_NAME, ""));
+            input.setSingleLine(true);
+            int pad = dpToPx(20);
+            FrameLayout container = new FrameLayout(this);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.leftMargin = pad;
+            lp.rightMargin = pad;
+            input.setLayoutParams(lp);
+            container.addView(input);
+            builder.setView(container);
+
+            builder.setPositiveButton("Get Started", (dialog, which) -> {
+                String entered = input.getText().toString().trim();
+                if (!entered.isEmpty()) {
+                    saveUserName(entered);
+                }
+                prefs.edit().putBoolean("first_launch_done", true).apply();
+            });
+            builder.setNegativeButton("Skip", (dialog, which) -> {
+                prefs.edit().putBoolean("first_launch_done", true).apply();
+            });
+            builder.setCancelable(false);
+            builder.show();
+        }
+    }
+
+    private void updateTtsIcon() {
+        if (btnChatTtsToggle != null) {
+            int activeColor = ContextCompat.getColor(this, R.color.primary_maroon);
+            int inactiveColor = ContextCompat.getColor(this, R.color.text_muted);
+            btnChatTtsToggle.setImageTintList(ColorStateList.valueOf(isTtsEnabled ? activeColor : inactiveColor));
+            btnChatTtsToggle.setAlpha(isTtsEnabled ? 1.0f : 0.45f);
+        }
+    }
+
+    private void updateUserNameDisplay(String name) {
+        if (name == null || name.trim().isEmpty()) return;
+        String trimmed = name.trim();
+        if (tvHomeUserName != null) tvHomeUserName.setText(trimmed);
+        if (tvExploreUserName != null) tvExploreUserName.setText(trimmed);
+        if (etSettingsUserName != null) etSettingsUserName.setText(trimmed);
+    }
+
+    private void saveUserName(String newName) {
+        if (newName == null || newName.trim().isEmpty()) return;
+        String trimmed = newName.trim();
+        SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+        editor.putString(KEY_USER_NAME, trimmed);
+        editor.apply();
+
+        updateUserNameDisplay(trimmed);
+        Toast.makeText(this, "Profile name saved: " + trimmed, Toast.LENGTH_SHORT).show();
+
+        // Sync with DEX Desktop
+        executor.execute(() -> {
+            try {
+                dexClient.updateProfile(trimmed);
+            } catch (Exception ignored) {}
+        });
     }
 
     private void saveConfig(String host, int port, String token, String devId) {
@@ -235,9 +613,11 @@ public class MainActivity extends AppCompatActivity {
         btnExploreBack.setOnClickListener(v -> switchTab(0));
         btnChatBack.setOnClickListener(v -> switchTab(0));
 
-        findViewById(R.id.btnProfileAvatar).setOnClickListener(v -> switchTab(3));
-        findViewById(R.id.btnHomeSeeAllTopics).setOnClickListener(v -> switchTab(2));
-        findViewById(R.id.btnRecentSeeAll).setOnClickListener(v -> switchTab(2));
+        View profileAvatar = findViewById(R.id.btnProfileAvatar);
+        if (profileAvatar != null) profileAvatar.setOnClickListener(v -> switchTab(3));
+
+        View seeAllTopics = findViewById(R.id.btnHomeSeeAllTopics);
+        if (seeAllTopics != null) seeAllTopics.setOnClickListener(v -> switchTab(2));
     }
 
     public void switchTab(int index) {
@@ -269,13 +649,16 @@ public class MainActivity extends AppCompatActivity {
     private void setupHomeInteractions() {
         // Feature Cards
         cardHomeChat.setOnClickListener(v -> switchTab(1));
+
+        // Voice Card: activates Voice Chat immediately
         cardHomeVoice.setOnClickListener(v -> {
             switchTab(1);
-            Toast.makeText(this, "Voice mode activated. Listening...", Toast.LENGTH_SHORT).show();
+            mainHandler.postDelayed(() -> startVoiceListening(), 250);
         });
+
         cardHomeImage.setOnClickListener(v -> {
             switchTab(1);
-            dispatchUserMessage("Generate an image of a futuristic minimalist workspace");
+            dispatchUserMessage("Capture desktop screen and analyze active window");
         });
         cardHomeFiles.setOnClickListener(v -> {
             switchTab(1);
@@ -298,8 +681,24 @@ public class MainActivity extends AppCompatActivity {
             dispatchUserMessage(msg);
         });
 
+        // Home Search Bar Input
+        if (etHomeSearch != null) {
+            etHomeSearch.setOnEditorActionListener((v, actionId, event) -> {
+                String query = etHomeSearch.getText().toString().trim();
+                if (!query.isEmpty()) {
+                    etHomeSearch.setText("");
+                    switchTab(1);
+                    dispatchUserMessage(query);
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // Home Mic Button
         btnHomeMic.setOnClickListener(v -> {
-            Toast.makeText(this, "Listening for voice prompt...", Toast.LENGTH_SHORT).show();
+            switchTab(1);
+            mainHandler.postDelayed(() -> startVoiceListening(), 250);
         });
 
         btnHomePlus.setOnClickListener(v -> {
@@ -349,7 +748,7 @@ public class MainActivity extends AppCompatActivity {
 
         cardExploreImage.setOnClickListener(v -> {
             switchTab(1);
-            dispatchUserMessage("Generate an image: Elegant rose gold crystal orb");
+            dispatchUserMessage("Capture desktop screen and analyze active window");
         });
 
         btnExploreSend.setOnClickListener(v -> {
@@ -361,7 +760,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnExploreMic.setOnClickListener(v -> {
-            Toast.makeText(this, "Listening for prompt...", Toast.LENGTH_SHORT).show();
+            switchTab(1);
+            mainHandler.postDelayed(() -> startVoiceListening(), 250);
         });
 
         btnExploreMenu.setOnClickListener(v -> switchTab(3));
@@ -370,43 +770,76 @@ public class MainActivity extends AppCompatActivity {
     // ==================== SCREEN 3: CHAT ====================
 
     private void setupChatInteractions() {
-        btnSend.setOnClickListener(v -> {
-            String msg = etMessage.getText().toString().trim();
-            if (msg.isEmpty()) return;
-            etMessage.setText("");
-            dispatchUserMessage(msg);
+        // Send button click
+        btnSend.setOnClickListener(v -> sendCurrentChatMessage());
+
+        // Keyboard Enter and IME Action Send handling
+        etMessage.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEND ||
+                    (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                sendCurrentChatMessage();
+                return true;
+            }
+            return false;
         });
 
-        btnChatMic.setOnClickListener(v -> {
-            Toast.makeText(this, "Microphone enabled", Toast.LENGTH_SHORT).show();
+        etMessage.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN && !event.isShiftPressed()) {
+                sendCurrentChatMessage();
+                return true;
+            }
+            return false;
         });
 
-        btnChatMenu.setOnClickListener(v -> switchTab(3));
+        // Mic Button: triggers voice chat listening
+        btnChatMic.setOnClickListener(v -> toggleVoiceListening());
 
-        // Sample copy button
-        View copyBtn = findViewById(R.id.btnCopySample);
-        if (copyBtn != null) {
-            copyBtn.setOnClickListener(v -> {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Copied", "Web3 is a decentralized internet built on blockchain technology...");
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+        // Cancel Voice Button
+        if (btnCancelVoice != null) {
+            btnCancelVoice.setOnClickListener(v -> stopVoiceListening());
+        }
+
+        // Speaker TTS Toggle: turns voice spoken replies on/off
+        if (btnChatTtsToggle != null) {
+            btnChatTtsToggle.setOnClickListener(v -> {
+                isTtsEnabled = !isTtsEnabled;
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                        .putBoolean(KEY_TTS_ENABLED, isTtsEnabled).apply();
+                updateTtsIcon();
+                if (!isTtsEnabled) {
+                    stopTts();
+                    Toast.makeText(this, "Voice responses muted", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Voice responses enabled", Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
-        // Recent Chats Clicks
-        setupRecentChat(R.id.recentChat1, "Study Plan for Maths");
-        setupRecentChat(R.id.recentChat2, "Create a Product Image");
-        setupRecentChat(R.id.recentChat3, "YouTube Tags");
-        setupRecentChat(R.id.recentChat4, "Web App Deployment");
-        setupRecentChat(R.id.recentChat5, "Gaming Setup Help");
+        btnChatMenu.setOnClickListener(v -> switchTab(3));
+
+        // Initial welcoming message if chat is fresh
+        if (chatMessagesContainer != null && chatMessagesContainer.getChildCount() <= 1) {
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            String userName = prefs.getString(KEY_USER_NAME, getString(R.string.user_name));
+            String initialGreeting = "Hello " + userName + "! I am X, your personal AI assistant.\n\n"
+                    + "I can launch PC applications, inspect your screen, write complete programs to disk, and open them in VS Code.\n\n"
+                    + "Tap the mic below anytime to speak with me!";
+            String initialTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
+            addAssistantMessageBubble(initialGreeting, initialTime);
+        }
     }
 
-    private void setupRecentChat(int viewId, String promptTitle) {
-        View view = findViewById(viewId);
-        if (view != null) {
-            view.setOnClickListener(v -> dispatchUserMessage(promptTitle));
-        }
+    private void sendCurrentChatMessage() {
+        if (etMessage == null) return;
+        Editable editable = etMessage.getText();
+        if (editable == null) return;
+        // Ensure any active IME composing word is committed so no text is lost
+        BaseInputConnection.setComposingSpans(editable);
+        String msg = editable.toString().trim();
+        if (msg.isEmpty()) return;
+        etMessage.setText("");
+        isLastInputVoice = false; // Typed query
+        dispatchUserMessage(msg);
     }
 
     private void dispatchUserMessage(String message) {
@@ -424,11 +857,16 @@ public class MainActivity extends AppCompatActivity {
                 mainHandler.post(() -> {
                     String replyTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
                     addAssistantMessageBubble(reply, replyTime);
+                    speakAssistantReply(reply);
+                    isLastInputVoice = false;
                 });
             } catch (Exception e) {
                 mainHandler.post(() -> {
                     String replyTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
-                    addAssistantMessageBubble("Error connecting to DEX: " + e.getMessage() + "\n\nTip: Ensure DEX is running on your Windows PC and both devices are on the same Wi-Fi.", replyTime);
+                    String err = "Error connecting to DEX: " + e.getMessage() + "\n\nTip: Ensure DEX is running on your Windows PC and both devices are on the same Wi-Fi.";
+                    addAssistantMessageBubble(err, replyTime);
+                    speakAssistantReply("I could not connect to your Windows PC. Please check your connection.");
+                    isLastInputVoice = false;
                 });
             }
         });
@@ -442,6 +880,8 @@ public class MainActivity extends AppCompatActivity {
         int padV = dpToPx(12);
         userBubbleLayout.setPadding(padH, padV, padH, padV);
 
+        int maxWidth = (int) (getResources().getDisplayMetrics().widthPixels * 0.78);
+
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -454,6 +894,9 @@ public class MainActivity extends AppCompatActivity {
         tvMsg.setText(text);
         tvMsg.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
         tvMsg.setTextSize(15);
+        tvMsg.setMaxWidth(maxWidth);
+        tvMsg.setSingleLine(false);
+        tvMsg.setLineSpacing(dpToPx(2), 1.0f);
         userBubbleLayout.addView(tvMsg);
 
         // Timestamp row with double checkmark
@@ -487,7 +930,7 @@ public class MainActivity extends AppCompatActivity {
         chatScrollView.post(() -> chatScrollView.fullScroll(ScrollView.FOCUS_DOWN));
     }
 
-    private void addAssistantMessageBubble(String text, String time) {
+    private void addAssistantMessageBubble(String rawText, String time) {
         LinearLayout assistantRow = new LinearLayout(this);
         assistantRow.setOrientation(LinearLayout.HORIZONTAL);
         assistantRow.setGravity(Gravity.TOP);
@@ -521,13 +964,14 @@ public class MainActivity extends AppCompatActivity {
         card.setLayoutParams(cardParams);
 
         TextView tvText = new TextView(this);
-        tvText.setText(text);
+        CharSequence formatted = formatAssistantMessage(rawText);
+        tvText.setText(formatted);
         tvText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
         tvText.setTextSize(14);
         tvText.setLineSpacing(dpToPx(3), 1.0f);
         card.addView(tvText);
 
-        // Bottom Row with Timestamp and Copy Button
+        // Bottom Row with Timestamp, Speaker and Copy Button
         RelativeLayout bottomBar = new RelativeLayout(this);
         LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -549,25 +993,126 @@ public class MainActivity extends AppCompatActivity {
         tvTime.setLayoutParams(timeParams);
         bottomBar.addView(tvTime);
 
+        // Actions container (Speaker + Copy)
+        LinearLayout actionsLayout = new LinearLayout(this);
+        actionsLayout.setOrientation(LinearLayout.HORIZONTAL);
+        actionsLayout.setGravity(Gravity.CENTER_VERTICAL);
+        RelativeLayout.LayoutParams actionsParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        actionsParams.addRule(RelativeLayout.ALIGN_PARENT_END);
+        actionsParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        actionsLayout.setLayoutParams(actionsParams);
+
+        // Speaker Button
+        ImageView btnSpeak = new ImageView(this);
+        btnSpeak.setImageResource(R.drawable.ic_speaker);
+        LinearLayout.LayoutParams speakParams = new LinearLayout.LayoutParams(dpToPx(20), dpToPx(20));
+        speakParams.rightMargin = dpToPx(12);
+        btnSpeak.setLayoutParams(speakParams);
+        btnSpeak.setContentDescription("Listen Aloud");
+        String speechClean = cleanTextForSpeech(rawText);
+        btnSpeak.setOnClickListener(v -> {
+            if (tts != null && tts.isSpeaking() && speechClean.equals(currentSpeakingText)) {
+                stopTts();
+                Toast.makeText(this, "Speech stopped", Toast.LENGTH_SHORT).show();
+            } else {
+                currentSpeakingText = speechClean;
+                tts.speak(speechClean, TextToSpeech.QUEUE_FLUSH, null, "DEX_PLAY_BUBBLE");
+                Toast.makeText(this, "Speaking aloud...", Toast.LENGTH_SHORT).show();
+            }
+        });
+        actionsLayout.addView(btnSpeak);
+
+        // Copy Button
         ImageView btnCopy = new ImageView(this);
         btnCopy.setImageResource(R.drawable.ic_copy);
-        RelativeLayout.LayoutParams copyParams = new RelativeLayout.LayoutParams(dpToPx(20), dpToPx(20));
-        copyParams.addRule(RelativeLayout.ALIGN_PARENT_END);
-        copyParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        LinearLayout.LayoutParams copyParams = new LinearLayout.LayoutParams(dpToPx(20), dpToPx(20));
         btnCopy.setLayoutParams(copyParams);
+        btnCopy.setContentDescription("Copy");
         btnCopy.setOnClickListener(v -> {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("Copied", text);
+            ClipData clip = ClipData.newPlainText("Copied", formatted.toString());
             clipboard.setPrimaryClip(clip);
             Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
         });
-        bottomBar.addView(btnCopy);
+        actionsLayout.addView(btnCopy);
+
+        bottomBar.addView(actionsLayout);
 
         card.addView(bottomBar);
         assistantRow.addView(card);
 
         chatMessagesContainer.addView(assistantRow);
         chatScrollView.post(() -> chatScrollView.fullScroll(ScrollView.FOCUS_DOWN));
+    }
+
+    /**
+     * Cleans up raw JSON tool blocks, escaped newlines, and transforms markdown markers
+     * into clean, readable typography without raw **, ##, or //.
+     */
+    private CharSequence formatAssistantMessage(String raw) {
+        if (raw == null || raw.isEmpty()) return "";
+
+        // 1. Strip raw tool invocation JSON blocks
+        String text = raw.replaceAll("(?s)```(?:json)?\\s*\\{[^}]*\"tool\"[^}]*\\}\\s*```", "").trim();
+
+        // 2. Unescape common JSON escape sequences
+        text = text.replace("\\n", "\n")
+                   .replace("\\\"", "\"")
+                   .replace("\\\\", "\\")
+                   .replaceAll("(?m)^//.*$", ""); // remove raw standalone comments
+
+        // 3. Process line-by-line for headers and list bullets
+        String[] lines = text.split("\n");
+        StringBuilder cleanBuilder = new StringBuilder();
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            // Strip markdown heading hashes: ### 1. Header -> 1. Header
+            line = line.replaceAll("^#{1,6}\\s*", "");
+
+            // Convert bullet markers: * or - at start of line -> •
+            line = line.replaceAll("^[*-]\\s+", "• ");
+
+            cleanBuilder.append(line);
+            if (i < lines.length - 1) {
+                cleanBuilder.append("\n");
+            }
+        }
+
+        String processed = cleanBuilder.toString();
+
+        // 4. Use SpannableStringBuilder to render bold **text** and `code` spans cleanly
+        SpannableStringBuilder ssb = new SpannableStringBuilder();
+        Pattern pattern = Pattern.compile("(\\*\\*(.+?)\\*\\*)|(`([^`]+?)`)");
+        Matcher matcher = pattern.matcher(processed);
+        int lastEnd = 0;
+
+        while (matcher.find()) {
+            ssb.append(processed.substring(lastEnd, matcher.start()));
+            if (matcher.group(1) != null) {
+                // Bold **text**
+                String boldText = matcher.group(2);
+                int startSpan = ssb.length();
+                ssb.append(boldText);
+                ssb.setSpan(new StyleSpan(Typeface.BOLD), startSpan, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (matcher.group(3) != null) {
+                // Inline `code`
+                String codeText = matcher.group(4);
+                int startSpan = ssb.length();
+                ssb.append(codeText);
+                ssb.setSpan(new TypefaceSpan("monospace"), startSpan, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            lastEnd = matcher.end();
+        }
+        if (lastEnd < processed.length()) {
+            ssb.append(processed.substring(lastEnd));
+        }
+
+        return ssb;
     }
 
     private int dpToPx(int dp) {
@@ -577,6 +1122,18 @@ public class MainActivity extends AppCompatActivity {
     // ==================== SCREEN 4: SETTINGS, REMOTE & VISION ====================
 
     private void setupSettingsAndRemote() {
+        // User profile name save
+        if (btnSaveUserName != null) {
+            btnSaveUserName.setOnClickListener(v -> {
+                String name = etSettingsUserName.getText().toString().trim();
+                if (!name.isEmpty()) {
+                    saveUserName(name);
+                } else {
+                    Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         btnPair.setOnClickListener(v -> {
             String host = etHostIp.getText().toString().trim();
             int port = 31416;
@@ -608,6 +1165,7 @@ public class MainActivity extends AppCompatActivity {
                         setOnlineStatus(true);
                         Toast.makeText(this, "Paired successfully with DEX PC!", Toast.LENGTH_LONG).show();
                         etPairingPin.setText("");
+                        testConnection(false);
                         switchTab(1); // Switch to Chat
                     });
                 } catch (Exception e) {
@@ -693,10 +1251,17 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONObject status = dexClient.checkStatus();
                 boolean online = "ONLINE".equalsIgnoreCase(status.optString("status"));
+                String userName = status.optString("userName", "");
                 mainHandler.post(() -> {
                     setOnlineStatus(online);
+                    if (!userName.isEmpty()) {
+                        SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+                        editor.putString(KEY_USER_NAME, userName);
+                        editor.apply();
+                        updateUserNameDisplay(userName);
+                    }
                     if (notifyUser) {
-                        String msg = "Connected to " + status.optString("assistant", "AI Assistant")
+                        String msg = "Connected to " + status.optString("assistant", "DEX")
                                 + " | Provider: " + status.optString("activeProvider", "Default");
                         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
                         tvPairingStatus.setText(msg);
@@ -726,5 +1291,26 @@ public class MainActivity extends AppCompatActivity {
             tvHomeStatusBadge.setText(text);
             tvHomeStatusBadge.setTextColor(color);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopVoiceListening();
+        stopTts();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopVoiceListening();
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+        }
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        executor.shutdown();
     }
 }

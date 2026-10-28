@@ -244,4 +244,70 @@ public class TaskManagerTest {
         assertNotNull(steam);
         assertEquals("open_app", steam.getToolName());
     }
+
+    @Test
+    public void testVSCodeNewWindowParsing() {
+        TaskManager.TaskStep step1 = TaskManager.parseSingleStep(1, "open vs code in a new window");
+        assertNotNull(step1);
+        assertEquals("open_app", step1.getToolName());
+        assertEquals("vscode -n", step1.getArgument());
+
+        TaskManager.TaskStep step2 = TaskManager.parseSingleStep(2, "open a new window");
+        assertNotNull(step2);
+        assertEquals("open_app", step2.getToolName());
+        assertEquals("vscode -n", step2.getArgument());
+    }
+
+    @Test
+    public void testOpenSpecificFileInVSCodeParsing() {
+        TaskManager.TaskStep step1 = TaskManager.parseSingleStep(1, "open test.py in vs code");
+        assertNotNull(step1);
+        assertEquals("open_app", step1.getToolName());
+        assertEquals("vscode test.py", step1.getArgument());
+
+        TaskManager.TaskStep step2 = TaskManager.parseSingleStep(2, "open test.py in vscode in a new window");
+        assertNotNull(step2);
+        assertEquals("open_app", step2.getToolName());
+        assertEquals("vscode -n test.py", step2.getArgument());
+    }
+
+    @Test
+    public void testWriteProgramParsing() {
+        TaskManager.TaskStep step1 = TaskManager.parseSingleStep(1, "write a program to add two numbers");
+        assertNotNull(step1);
+        assertEquals("write_program", step1.getToolName());
+
+        TaskManager.TaskStep step2 = TaskManager.parseSingleStep(2, "write any program in that vs code");
+        assertNotNull(step2);
+        assertEquals("write_program", step2.getToolName());
+    }
+
+    @Test
+    public void testCompoundVSCodeAndWriteProgramExecution() {
+        String result = TaskManager.handle("open VS Code in a new window and write a program to add two numbers");
+        assertNotNull(result);
+        assertTrue(result.contains("Multi-Step Task"));
+        assertTrue(result.contains("Open VS Code in New Window"));
+        assertTrue(result.contains("Write Program: write a program to add two numbers"));
+
+        List<TaskManager.TaskRecord> history = TaskManager.getHistory();
+        assertFalse(history.isEmpty());
+        TaskManager.TaskRecord last = history.get(history.size() - 1);
+        assertEquals(2, last.getSteps().size());
+        assertEquals(TaskManager.StepStatus.SUCCESS, last.getSteps().get(0).getStatus());
+        assertEquals(TaskManager.StepStatus.SUCCESS, last.getSteps().get(1).getStatus());
+    }
+
+    @Test
+    public void testGenericMusicPlaybackParsing() {
+        TaskManager.TaskStep step1 = TaskManager.parseSingleStep(1, "play any music");
+        assertNotNull(step1);
+        assertEquals("play_music", step1.getToolName());
+        assertEquals("any music", step1.getArgument());
+
+        TaskManager.TaskStep step2 = TaskManager.parseSingleStep(2, "play music");
+        assertNotNull(step2);
+        assertEquals("play_music", step2.getToolName());
+        assertEquals("any music", step2.getArgument());
+    }
 }

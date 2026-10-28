@@ -10,6 +10,7 @@ import com.dex.ai.ProviderManager;
 import com.dex.browser.BrowserAutomation;
 import com.dex.config.DEXConfig;
 import com.dex.memory.MemoryManager;
+import com.dex.profile.UserProfileManager;
 import com.dex.security.DeviceManager;
 import com.dex.security.SecretStorage;
 import com.dex.tools.SystemTools;
@@ -33,34 +34,34 @@ import java.util.List;
 
 /**
  * DEX Windows Desktop Application — Native Executable (dex.exe) UI.
- * Replicates the warm ivory, cream, and luxury maroon design aesthetics with high fidelity.
+ * Notion-inspired clean, minimal, typographic design system.
  * Preserves 100% of all DEX capabilities, tools, and configurations.
  */
 public class DEXDesktopApp extends JFrame {
 
-    // ==================== COLOR SYSTEM ====================
-    public static final Color BG_APP              = new Color(0xFA, 0xF4, 0xEE); // Warm ivory background
-    public static final Color BG_CARD             = new Color(0xFF, 0xFD, 0xFB); // Soft white card
-    public static final Color BG_CARD_ALT         = new Color(0xF7, 0xEF, 0xE8); // Icon container & pill background
-    public static final Color BG_ELEVATED         = new Color(0xF4, 0xEB, 0xE3);
-    public static final Color PRIMARY_MAROON      = new Color(0x67, 0x1A, 0x29); // Deep wine/burgundy accent
-    public static final Color PRIMARY_MAROON_DARK = new Color(0x4E, 0x11, 0x1E);
-    public static final Color PRIMARY_MAROON_LIGHT= new Color(0xF5, 0xE8, 0xEB);
-    public static final Color TEXT_TITLE_MAROON   = new Color(0x56, 0x14, 0x22); // Maroon headings
-    public static final Color TEXT_PRIMARY        = new Color(0x2D, 0x21, 0x20); // Dark text
-    public static final Color TEXT_SECONDARY      = new Color(0x8E, 0x75, 0x6D); // Warm secondary text
-    public static final Color TEXT_MUTED          = new Color(0xB8, 0xA3, 0x9C); // Muted / placeholder
-    public static final Color BORDER_SUBTLE       = new Color(0xEF, 0xE4, 0xDA); // Card borders
-    public static final Color BORDER_PILL         = new Color(0xE8, 0xD9, 0xCC);
-    public static final Color CHAT_USER_BUBBLE    = new Color(0xF8, 0xE7, 0xDF); // Peach user bubble
-    public static final Color CHAT_BOT_BUBBLE     = new Color(0xFF, 0xFF, 0xFF); // White assistant card
+    // ==================== COLOR SYSTEM (Notion-inspired) ====================
+    public static final Color BG_APP              = new Color(0xF7, 0xF6, 0xF3); // Notion warm off-white canvas
+    public static final Color BG_CARD             = new Color(0xFF, 0xFF, 0xFF); // Pure white surfaces
+    public static final Color BG_CARD_ALT         = new Color(0xEF, 0xEE, 0xEC); // Notion hover / secondary surface
+    public static final Color BG_ELEVATED         = new Color(0xE9, 0xE9, 0xE8); // Elevated elements
+    public static final Color PRIMARY_MAROON      = new Color(0x37, 0x35, 0x2F); // Notion near-black accent
+    public static final Color PRIMARY_MAROON_DARK = new Color(0x1A, 0x19, 0x16); // Deeper dark
+    public static final Color PRIMARY_MAROON_LIGHT= new Color(0xEF, 0xEE, 0xEC); // Light hover tint
+    public static final Color TEXT_TITLE_MAROON   = new Color(0x37, 0x35, 0x2F); // Primary heading color
+    public static final Color TEXT_PRIMARY        = new Color(0x37, 0x35, 0x2F); // Notion default text
+    public static final Color TEXT_SECONDARY      = new Color(0x78, 0x77, 0x74); // Notion gray secondary text
+    public static final Color TEXT_MUTED          = new Color(0xAC, 0xAB, 0xA8); // Notion placeholder / muted
+    public static final Color BORDER_SUBTLE       = new Color(0xE9, 0xE9, 0xE8); // Notion subtle borders
+    public static final Color BORDER_PILL         = new Color(0xE3, 0xE2, 0xDF); // Slightly stronger border
+    public static final Color CHAT_USER_BUBBLE    = new Color(0xF1, 0xF0, 0xEF); // User message: warm neutral
+    public static final Color CHAT_BOT_BUBBLE     = new Color(0xFF, 0xFF, 0xFF); // Bot: white card
     public static final Color SUCCESS             = new Color(0x34, 0xA8, 0x53);
     public static final Color ERROR               = new Color(0xD9, 0x30, 0x25);
 
     // ==================== FONTS ====================
     public static final Font FONT_SERIF_TITLE = getSerifTitleFont();
-    public static final Font FONT_HEADING     = new Font("Segoe UI", Font.BOLD, 17);
-    public static final Font FONT_SUBHEAD     = new Font("Segoe UI", Font.BOLD, 14);
+    public static final Font FONT_HEADING     = new Font("Segoe UI", Font.BOLD, 16);
+    public static final Font FONT_SUBHEAD     = new Font("Segoe UI", Font.BOLD, 13);
     public static final Font FONT_BODY        = new Font("Segoe UI", Font.PLAIN, 13);
     public static final Font FONT_BOLD        = new Font("Segoe UI", Font.BOLD, 13);
     public static final Font FONT_SMALL       = new Font("Segoe UI", Font.PLAIN, 11);
@@ -68,9 +69,8 @@ public class DEXDesktopApp extends JFrame {
     public static final Font FONT_MONO        = new Font("Consolas", Font.PLAIN, 12);
 
     private static Font getSerifTitleFont() {
-        Font f = new Font("Georgia", Font.BOLD, 28);
-        if ("Georgia".equalsIgnoreCase(f.getFamily())) return f;
-        return new Font("Serif", Font.BOLD, 28);
+        // Use Segoe UI Semibold for Notion-style heading instead of serif
+        return new Font("Segoe UI", Font.BOLD, 26);
     }
 
     // ==================== STATE ====================
@@ -82,6 +82,12 @@ public class DEXDesktopApp extends JFrame {
     private JPanel centerContentArea;
     private JPanel rightPanel;
     private final JPanel[] navButtons = new JPanel[7];
+
+    // Personalization labels
+    private JLabel sidebarUserNameLabel;
+    private JLabel homeGreetingPrefixLabel;
+    private JLabel homeGreetingNameLabel;
+    private JLabel homeGreetingSubLabel;
 
     // Home views
     private JTextField homeSearchInput;
@@ -173,14 +179,17 @@ public class DEXDesktopApp extends JFrame {
             UIManager.put("Panel.background", BG_APP);
             UIManager.put("Viewport.background", BG_APP);
             UIManager.put("ScrollPane.background", BG_APP);
-            UIManager.put("Component.arc", 18);
-            UIManager.put("Button.arc", 24);
-            UIManager.put("TextComponent.arc", 24);
-            UIManager.put("ScrollBar.thumb", new Color(0xDE, 0xD0, 0xC5));
+            UIManager.put("Component.arc", 6);   // Notion uses subtle 4-6px radius
+            UIManager.put("Button.arc", 6);
+            UIManager.put("TextComponent.arc", 6);
+            UIManager.put("ScrollBar.thumb", new Color(0xD3, 0xD2, 0xCF));
             UIManager.put("ScrollBar.track", BG_APP);
-            UIManager.put("ScrollBar.width", 6);
+            UIManager.put("ScrollBar.width", 5);
             UIManager.put("RootPane.titleBarBackground", BG_APP);
             UIManager.put("RootPane.titleBarForeground", TEXT_PRIMARY);
+            // Notion-style: no focus ring color
+            UIManager.put("Component.focusColor", new Color(0x37, 0x35, 0x2F, 100));
+            UIManager.put("Component.focusWidth", 1);
         } catch (Exception e) {
             System.err.println("[DEX UI] FlatLaf init error: " + e.getMessage());
         }
@@ -214,7 +223,7 @@ public class DEXDesktopApp extends JFrame {
         centerContentArea = new JPanel(new CardLayout());
         centerContentArea.setBackground(BG_APP);
 
-        // Add 7 Main Pages (preserving all underlying features)
+        // Add 7 Main Pages (preserving all underlying features) + Welcome Page
         centerContentArea.add(createHomePage(),     "page0");
         centerContentArea.add(createChatPage(),     "page1");
         centerContentArea.add(createVoicePage(),    "page2");
@@ -222,6 +231,7 @@ public class DEXDesktopApp extends JFrame {
         centerContentArea.add(createFilesPage(),    "page4");
         centerContentArea.add(createToolsPage(),    "page5");
         centerContentArea.add(createSettingsPage(), "page6");
+        centerContentArea.add(createWelcomePage(),  "pageWelcome");
 
         root.add(centerContentArea, BorderLayout.CENTER);
 
@@ -229,7 +239,161 @@ public class DEXDesktopApp extends JFrame {
         root.add(rightPanel, BorderLayout.EAST);
 
         setContentPane(root);
-        navigateTo(0);
+
+        if (UserProfileManager.isFirstTimeUser()) {
+            sidebar.setVisible(false);
+            if (rightPanel != null) rightPanel.setVisible(false);
+            CardLayout cl = (CardLayout) centerContentArea.getLayout();
+            cl.show(centerContentArea, "pageWelcome");
+        } else {
+            navigateTo(0);
+        }
+    }
+
+    private void updateGreetingLabels() {
+        String name = UserProfileManager.getUserName();
+        boolean hasName = UserProfileManager.hasCustomName();
+
+        if (sidebarUserNameLabel != null) {
+            sidebarUserNameLabel.setText(hasName ? name : "User");
+        }
+        if (homeGreetingPrefixLabel != null) {
+            homeGreetingPrefixLabel.setText(hasName ? "Good to see you," : "Welcome");
+        }
+        if (homeGreetingNameLabel != null) {
+            homeGreetingNameLabel.setText(hasName ? name : "DEX — Your AI Assistant");
+        }
+        if (homeGreetingSubLabel != null) {
+            homeGreetingSubLabel.setText("How can I help you today?");
+        }
+    }
+
+    private JPanel createWelcomePage() {
+        JPanel page = new JPanel(new GridBagLayout());
+        page.setBackground(BG_APP);
+
+        JPanel card = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(BG_CARD);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.setColor(BORDER_SUBTLE);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(BG_CARD);
+        card.setBorder(new EmptyBorder(36, 48, 36, 48));
+        card.setPreferredSize(new Dimension(520, 480));
+        card.setMaximumSize(new Dimension(560, 520));
+
+        JComponent orbComp = new JComponent() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int cx = getWidth() / 2;
+                int cy = getHeight() / 2;
+                int orbSize = 80;
+                if (orbImage != null) {
+                    Shape clip = new Ellipse2D.Float(cx - orbSize/2, cy - orbSize/2, orbSize, orbSize);
+                    g2.setClip(clip);
+                    g2.drawImage(orbImage, cx - orbSize/2, cy - orbSize/2, orbSize, orbSize, null);
+                    g2.setClip(null);
+                } else {
+                    g2.setColor(PRIMARY_MAROON);
+                    g2.fillOval(cx - orbSize/2, cy - orbSize/2, orbSize, orbSize);
+                }
+                g2.dispose();
+            }
+        };
+        orbComp.setPreferredSize(new Dimension(100, 90));
+        orbComp.setMaximumSize(new Dimension(100, 90));
+        orbComp.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel appTitle = new JLabel("WELCOME TO DEX");
+        appTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        appTitle.setForeground(TEXT_SECONDARY);
+        appTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel questionLbl = new JLabel("What is your name?");
+        questionLbl.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        questionLbl.setForeground(TEXT_TITLE_MAROON);
+        questionLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel subNote = new JLabel("<html><center>Enter your name to personalize your assistant,<br>or click Continue to skip.</center></html>");
+        subNote.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        subNote.setForeground(TEXT_SECONDARY);
+        subNote.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JTextField nameField = new JTextField();
+        nameField.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        nameField.setForeground(TEXT_PRIMARY);
+        nameField.setCaretColor(PRIMARY_MAROON);
+        nameField.putClientProperty("JTextField.placeholderText", "Your name (optional)");
+        nameField.setMaximumSize(new Dimension(380, 42));
+        nameField.setPreferredSize(new Dimension(380, 42));
+        nameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        nameField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_PILL, 1),
+            new EmptyBorder(8, 14, 8, 14)
+        ));
+
+        JButton continueBtn = new JButton("Continue");
+        continueBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setBackground(PRIMARY_MAROON);
+        continueBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        continueBtn.setMaximumSize(new Dimension(380, 42));
+        continueBtn.setPreferredSize(new Dimension(380, 42));
+        continueBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        Runnable proceedAction = () -> {
+            String entered = nameField.getText().trim();
+            UserProfileManager.completeSetup(entered);
+            updateGreetingLabels();
+            sidebar.setVisible(true);
+            if (rightPanel != null) rightPanel.setVisible(true);
+            navigateTo(0);
+        };
+
+        continueBtn.addActionListener(e -> proceedAction.run());
+        nameField.addActionListener(e -> proceedAction.run());
+
+        JButton skipBtn = new JButton("Skip for now");
+        skipBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        skipBtn.setForeground(TEXT_MUTED);
+        skipBtn.setBorderPainted(false);
+        skipBtn.setContentAreaFilled(false);
+        skipBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        skipBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        skipBtn.addActionListener(e -> {
+            UserProfileManager.completeSetup("");
+            updateGreetingLabels();
+            sidebar.setVisible(true);
+            if (rightPanel != null) rightPanel.setVisible(true);
+            navigateTo(0);
+        });
+
+        card.add(orbComp);
+        card.add(Box.createVerticalStrut(10));
+        card.add(appTitle);
+        card.add(Box.createVerticalStrut(8));
+        card.add(questionLbl);
+        card.add(Box.createVerticalStrut(8));
+        card.add(subNote);
+        card.add(Box.createVerticalStrut(24));
+        card.add(nameField);
+        card.add(Box.createVerticalStrut(16));
+        card.add(continueBtn);
+        card.add(Box.createVerticalStrut(8));
+        card.add(skipBtn);
+
+        page.add(card);
+        return page;
     }
 
     // ==================== NAVIGATION ====================
@@ -244,17 +408,18 @@ public class DEXDesktopApp extends JFrame {
             rightPanel.setVisible(page == 0 || page == 1);
         }
 
-        // Update sidebar nav items
+        // Update sidebar nav items (Notion-style: active = subtle bg, bold font)
         for (int i = 0; i < navButtons.length; i++) {
             if (navButtons[i] != null) {
                 boolean active = (i == page);
-                navButtons[i].setBackground(active ? PRIMARY_MAROON : BG_APP);
+                // Notion active state: light warm gray background, not harsh color
+                navButtons[i].setBackground(active ? BG_ELEVATED : BG_APP);
                 Component[] comps = navButtons[i].getComponents();
                 for (Component c : comps) {
                     if (c instanceof JLabel) {
                         JLabel lbl = (JLabel) c;
                         if ("navLabel".equals(lbl.getName())) {
-                            lbl.setForeground(active ? Color.WHITE : TEXT_PRIMARY);
+                            lbl.setForeground(active ? TEXT_PRIMARY : TEXT_SECONDARY);
                             lbl.setFont(active ? FONT_BOLD : FONT_BODY);
                         }
                     }
@@ -277,16 +442,16 @@ public class DEXDesktopApp extends JFrame {
     private JPanel createSidebar() {
         JPanel panel = new JPanel(new BorderLayout(0, 0));
         panel.setBackground(BG_APP);
-        panel.setPreferredSize(new Dimension(210, 0));
+        panel.setPreferredSize(new Dimension(220, 0));
         panel.setBorder(new MatteBorder(0, 0, 0, 1, BORDER_SUBTLE));
 
-        // Top Branding: Rosette Logo + "AI ASSISTANT"
+        // Top Branding
         JPanel topSection = new JPanel();
         topSection.setLayout(new BoxLayout(topSection, BoxLayout.Y_AXIS));
         topSection.setBackground(BG_APP);
-        topSection.setBorder(new EmptyBorder(22, 18, 20, 18));
+        topSection.setBorder(new EmptyBorder(18, 14, 14, 14));
 
-        JPanel brandRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JPanel brandRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         brandRow.setBackground(BG_APP);
 
         // Vector Logo Emblem
@@ -300,7 +465,7 @@ public class DEXDesktopApp extends JFrame {
         };
         logoIcon.setPreferredSize(new Dimension(24, 24));
 
-        JLabel brandText = new JLabel("AI ASSISTANT");
+        JLabel brandText = new JLabel("DEX");
         brandText.setFont(new Font("Segoe UI", Font.BOLD, 15));
         brandText.setForeground(TEXT_TITLE_MAROON);
 
@@ -314,13 +479,13 @@ public class DEXDesktopApp extends JFrame {
         JPanel navList = new JPanel();
         navList.setLayout(new BoxLayout(navList, BoxLayout.Y_AXIS));
         navList.setBackground(BG_APP);
-        navList.setBorder(new EmptyBorder(0, 14, 0, 14));
+        navList.setBorder(new EmptyBorder(0, 8, 0, 8));
 
         String[][] navDefinitions = {
             {"Home", "0", "home"},
             {"Chat", "1", "chat"},
             {"Voice", "2", "voice"},
-            {"Image", "3", "image"},
+            {"Vision", "3", "image"},
             {"Files", "4", "files"},
             {"Tools", "5", "tools"},
             {"Settings", "6", "settings"}
@@ -331,17 +496,17 @@ public class DEXDesktopApp extends JFrame {
             JPanel navItem = createNavPill(def[0], pageIdx, def[2]);
             navButtons[pageIdx] = navItem;
             navList.add(navItem);
-            navList.add(Box.createVerticalStrut(6));
+            navList.add(Box.createVerticalStrut(2));
         }
 
         panel.add(navList, BorderLayout.CENTER);
 
-        // Bottom User Profile Card: Avatar with online dot, "Muhammed Muzain", "Online", Chevron
+        // Bottom User Profile Card: Avatar with online dot, User Name, "Online", Chevron
         JPanel profileCard = new JPanel(new BorderLayout(10, 0));
         profileCard.setBackground(BG_APP);
         profileCard.setBorder(BorderFactory.createCompoundBorder(
             new MatteBorder(1, 0, 0, 0, BORDER_SUBTLE),
-            new EmptyBorder(16, 16, 18, 16)
+            new EmptyBorder(10, 14, 10, 14)
         ));
         profileCard.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -368,15 +533,15 @@ public class DEXDesktopApp extends JFrame {
 
         JPanel nameCol = new JPanel(new GridLayout(2, 1, 0, 2));
         nameCol.setBackground(BG_APP);
-        JLabel nameLbl = new JLabel("Muhammed Muzain");
-        nameLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        nameLbl.setForeground(TEXT_PRIMARY);
+        sidebarUserNameLabel = new JLabel(UserProfileManager.hasCustomName() ? UserProfileManager.getUserName() : "User");
+        sidebarUserNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        sidebarUserNameLabel.setForeground(TEXT_PRIMARY);
 
         JLabel statusLbl = new JLabel("Online");
         statusLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         statusLbl.setForeground(TEXT_SECONDARY);
 
-        nameCol.add(nameLbl);
+        nameCol.add(sidebarUserNameLabel);
         nameCol.add(statusLbl);
 
         JLabel chevronLbl = new JLabel(">");
@@ -398,36 +563,38 @@ public class DEXDesktopApp extends JFrame {
     }
 
     private JPanel createNavPill(String title, int pageIdx, String iconType) {
-        JPanel pill = new JPanel(new BorderLayout(12, 0)) {
+        JPanel pill = new JPanel(new BorderLayout(10, 0)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
+                // Notion uses 6px corner radius for nav items
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
                 g2.dispose();
             }
         };
         pill.setOpaque(false);
         pill.setBackground(BG_APP);
-        pill.setBorder(new EmptyBorder(8, 14, 8, 14));
+        pill.setBorder(new EmptyBorder(6, 10, 6, 10));
         pill.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        pill.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        pill.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
 
         JComponent iconComp = new JComponent() {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color iconColor = (currentPage == pageIdx) ? Color.WHITE : TEXT_PRIMARY;
-                DrawIcons.drawNavIcon(g2, iconType, 0, 0, 20, 20, iconColor);
+                // Notion: active and inactive nav icons share the same dark color
+                Color iconColor = (currentPage == pageIdx) ? TEXT_PRIMARY : TEXT_SECONDARY;
+                DrawIcons.drawNavIcon(g2, iconType, 0, 0, 16, 16, iconColor);
                 g2.dispose();
             }
         };
-        iconComp.setPreferredSize(new Dimension(20, 20));
+        iconComp.setPreferredSize(new Dimension(16, 16));
 
         JLabel titleLbl = new JLabel(title);
         titleLbl.setName("navLabel");
         titleLbl.setFont(FONT_BODY);
-        titleLbl.setForeground(TEXT_PRIMARY);
+        titleLbl.setForeground(TEXT_SECONDARY);
 
         pill.add(iconComp, BorderLayout.WEST);
         pill.add(titleLbl, BorderLayout.CENTER);
@@ -465,16 +632,17 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 30, 30));
+                // Notion uses subtle 8px radius for search bar
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 30, 30));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
         searchCapsule.setOpaque(false);
-        searchCapsule.setPreferredSize(new Dimension(640, 44));
-        searchCapsule.setBorder(new EmptyBorder(6, 18, 6, 18));
+        searchCapsule.setPreferredSize(new Dimension(600, 42));
+        searchCapsule.setBorder(new EmptyBorder(5, 14, 5, 14));
 
         JComponent searchIcon = new JComponent() {
             @Override protected void paintComponent(Graphics g) {
@@ -530,22 +698,22 @@ public class DEXDesktopApp extends JFrame {
                 int cx = w / 2;
                 int cy = h / 2;
 
-                // Orbit Circle (dashed ring in subtle maroon)
+                // Orbit Circle (dashed ring in neutral gray — Notion tone)
                 int orbitSize = 186;
                 float[] dash = {4f, 4f};
-                g2.setColor(new Color(0x67, 0x1A, 0x29, 65));
+                g2.setColor(new Color(0xAC, 0xAB, 0xA8, 80));
                 g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10f, dash, 0f));
                 g2.drawOval(cx - orbitSize/2, cy - orbitSize/2, orbitSize, orbitSize);
 
-                // 4 Orbit Accent Dots
-                g2.setColor(PRIMARY_MAROON);
+                // 4 Orbit Accent Dots (subtle dark)
+                g2.setColor(new Color(0xD3, 0xD2, 0xCF));
                 int dotR = 5;
                 g2.fillOval(cx - dotR/2, cy - orbitSize/2 - dotR/2, dotR, dotR); // top
                 g2.fillOval(cx - dotR/2, cy + orbitSize/2 - dotR/2, dotR, dotR); // bottom
                 g2.fillOval(cx - orbitSize/2 - dotR/2, cy - dotR/2, dotR, dotR); // left
                 g2.fillOval(cx + orbitSize/2 - dotR/2, cy - dotR/2, dotR, dotR); // right
 
-                // 3D Glowing Silk Rose Gold Orb Image
+                // 3D Orb Image or neutral gradient fallback
                 int orbSize = 144;
                 if (orbImage != null) {
                     Shape clip = new Ellipse2D.Float(cx - orbSize/2, cy - orbSize/2, orbSize, orbSize);
@@ -556,7 +724,7 @@ public class DEXDesktopApp extends JFrame {
                     RadialGradientPaint rgp = new RadialGradientPaint(
                         cx - 20, cy - 20, orbSize/2,
                         new float[]{0f, 0.6f, 1f},
-                        new Color[]{new Color(0xF5, 0xD4, 0xCE), new Color(0xC7, 0x7E, 0x82), PRIMARY_MAROON}
+                        new Color[]{new Color(0xE0, 0xDF, 0xDC), new Color(0xAC, 0xAB, 0xA8), PRIMARY_MAROON}
                     );
                     g2.setPaint(rgp);
                     g2.fillOval(cx - orbSize/2, cy - orbSize/2, orbSize, orbSize);
@@ -575,35 +743,35 @@ public class DEXDesktopApp extends JFrame {
         greetingPanel.setBackground(BG_APP);
         greetingPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel helloLbl = new JLabel("HELLO,");
-        helloLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        helloLbl.setForeground(TEXT_TITLE_MAROON);
-        helloLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+        homeGreetingPrefixLabel = new JLabel(UserProfileManager.hasCustomName() ? "Good to see you," : "Welcome");
+        homeGreetingPrefixLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        homeGreetingPrefixLabel.setForeground(TEXT_SECONDARY);
+        homeGreetingPrefixLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel nameLbl = new JLabel("Muhammed Muzain");
-        nameLbl.setFont(FONT_SERIF_TITLE);
-        nameLbl.setForeground(TEXT_TITLE_MAROON);
-        nameLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+        homeGreetingNameLabel = new JLabel(UserProfileManager.hasCustomName() ? UserProfileManager.getUserName() : "DEX — Your AI Assistant");
+        homeGreetingNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        homeGreetingNameLabel.setForeground(TEXT_PRIMARY);
+        homeGreetingNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel subGreeting = new JLabel("How can I help you today?");
-        subGreeting.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subGreeting.setForeground(TEXT_SECONDARY);
-        subGreeting.setAlignmentX(Component.CENTER_ALIGNMENT);
+        homeGreetingSubLabel = new JLabel("How can I help you today?");
+        homeGreetingSubLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        homeGreetingSubLabel.setForeground(TEXT_SECONDARY);
+        homeGreetingSubLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        greetingPanel.add(helloLbl);
-        greetingPanel.add(Box.createVerticalStrut(2));
-        greetingPanel.add(nameLbl);
+        greetingPanel.add(homeGreetingPrefixLabel);
+        greetingPanel.add(Box.createVerticalStrut(4));
+        greetingPanel.add(homeGreetingNameLabel);
         greetingPanel.add(Box.createVerticalStrut(6));
-        greetingPanel.add(subGreeting);
+        greetingPanel.add(homeGreetingSubLabel);
 
         centerBody.add(greetingPanel);
-        centerBody.add(Box.createVerticalStrut(24));
+        centerBody.add(Box.createVerticalStrut(20));
 
-        // 5 Action Cards (Chat, Voice, Image, File Analysis, Tools)
-        JPanel actionRow = new JPanel(new GridLayout(1, 5, 12, 0));
+        // 5 Action Cards (Chat, Voice, Vision, File Analysis, Tools)
+        JPanel actionRow = new JPanel(new GridLayout(1, 5, 10, 0));
         actionRow.setBackground(BG_APP);
-        actionRow.setMaximumSize(new Dimension(740, 136));
-        actionRow.setPreferredSize(new Dimension(740, 136));
+        actionRow.setMaximumSize(new Dimension(720, 122));
+        actionRow.setPreferredSize(new Dimension(720, 122));
         actionRow.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         actionRow.add(createActionCard("Chat", "Ask anything", "chat", e -> navigateTo(1)));
@@ -611,7 +779,7 @@ public class DEXDesktopApp extends JFrame {
             navigateTo(2);
             startInAppMic();
         }));
-        actionRow.add(createActionCard("Image", "Create anything", "image", e -> navigateTo(3)));
+        actionRow.add(createActionCard("Vision", "Screen analysis", "image", e -> navigateTo(3)));
         actionRow.add(createActionCard("File Analysis", "Documents, code, more", "files", e -> navigateTo(4)));
         actionRow.add(createActionCard("Tools", "Code, math, translate", "wrench", e -> navigateTo(5)));
 
@@ -619,7 +787,7 @@ public class DEXDesktopApp extends JFrame {
         page.add(centerBody, BorderLayout.CENTER);
 
         // Bottom Message Input Dock
-        JPanel bottomDockPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 16));
+        JPanel bottomDockPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 12));
         bottomDockPanel.setBackground(BG_APP);
 
         JPanel dockCapsule = new JPanel(new BorderLayout(10, 0)) {
@@ -627,15 +795,16 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 36, 36));
-                g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 36, 36));
+                // Notion style: 8px border radius, clean white, 1px border
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.setColor(BORDER_PILL);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
         dockCapsule.setOpaque(false);
-        dockCapsule.setPreferredSize(new Dimension(680, 52));
+        dockCapsule.setPreferredSize(new Dimension(650, 48));
         dockCapsule.setBorder(new EmptyBorder(4, 14, 4, 6));
 
         // Plus Attach Button
@@ -723,10 +892,11 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 22, 22));
+                // Notion card: 8px radius, minimal shadow
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
@@ -739,25 +909,26 @@ public class DEXDesktopApp extends JFrame {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(BG_CARD_ALT);
-                g2.fillOval(0, 0, 32, 32);
-                DrawIcons.drawActionIcon(g2, iconType, 7, 7, 18, 18, PRIMARY_MAROON);
+                // Notion icon badge: subtle gray square with 6px radius
+                g2.setColor(BG_ELEVATED);
+                g2.fill(new RoundRectangle2D.Float(0, 0, 30, 30, 6, 6));
+                DrawIcons.drawActionIcon(g2, iconType, 6, 6, 18, 18, PRIMARY_MAROON);
                 g2.dispose();
             }
         };
-        iconBadge.setPreferredSize(new Dimension(32, 32));
+        iconBadge.setPreferredSize(new Dimension(30, 30));
         card.add(iconBadge, BorderLayout.NORTH);
 
-        JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 1));
+        JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 2));
         textPanel.setOpaque(false);
 
         JLabel titleLbl = new JLabel(title);
-        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         titleLbl.setForeground(TEXT_PRIMARY);
 
         JLabel descLbl = new JLabel(desc);
         descLbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        descLbl.setForeground(TEXT_SECONDARY);
+        descLbl.setForeground(TEXT_MUTED);
 
         textPanel.add(titleLbl);
         textPanel.add(descLbl);
@@ -771,19 +942,19 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_ELEVATED);
-                g2.fillOval(0, 0, 22, 22);
-                DrawIcons.drawRightArrow(g2, 5, 5, 12, 12, PRIMARY_MAROON);
+                g2.fill(new RoundRectangle2D.Float(0, 0, 20, 20, 4, 4));
+                DrawIcons.drawRightArrow(g2, 4, 4, 12, 12, TEXT_SECONDARY);
                 g2.dispose();
             }
         };
-        arrowBtn.setPreferredSize(new Dimension(22, 22));
+        arrowBtn.setPreferredSize(new Dimension(20, 20));
         bottomRow.add(arrowBtn);
         card.add(bottomRow, BorderLayout.SOUTH);
 
         card.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) { listener.actionPerformed(null); }
             @Override public void mouseEntered(MouseEvent e) {
-                card.setBackground(new Color(0xFF, 0xFA, 0xF5));
+                card.setBackground(BG_CARD_ALT);
                 card.repaint();
             }
             @Override public void mouseExited(MouseEvent e) {
@@ -812,10 +983,11 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 22, 22));
+                // Notion card: 8px radius, 1px border
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
@@ -847,7 +1019,7 @@ public class DEXDesktopApp extends JFrame {
 
         String[][] recentData = {
             {"Study Plan for Maths", "Can you help me with the midpoint...", "09:15 AM", "school"},
-            {"Create a Product Image", "Make a cute product image with price...", "Yesterday", "image"},
+            {"Desktop Diagnostics", "Run system performance & memory audit...", "Yesterday", "tools"},
             {"YouTube Tags", "Give me viral tags for Brawl Stars...", "Yesterday", "play"},
             {"Web App Deployment", "My Vercel deployment shows 404 error...", "2 days ago", "code"},
             {"Gaming Setup Help", "How to build a steering wheel for Xbox...", "3 days ago", "gamepad"},
@@ -870,10 +1042,11 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 22, 22));
+                // Notion card: 8px radius
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
@@ -1031,10 +1204,11 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
+                // Notion: small 6px radius squares
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 16, 16));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 6, 6));
                 g2.dispose();
             }
         };
@@ -1045,12 +1219,12 @@ public class DEXDesktopApp extends JFrame {
 
         JLabel symLbl = new JLabel(symbol);
         symLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        symLbl.setForeground(PRIMARY_MAROON);
+        symLbl.setForeground(TEXT_PRIMARY);
         symLbl.setHorizontalAlignment(SwingConstants.CENTER);
 
         JLabel textLbl = new JLabel(label);
         textLbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        textLbl.setForeground(TEXT_PRIMARY);
+        textLbl.setForeground(TEXT_SECONDARY);
         textLbl.setHorizontalAlignment(SwingConstants.CENTER);
 
         btn.add(symLbl, BorderLayout.CENTER);
@@ -1059,7 +1233,7 @@ public class DEXDesktopApp extends JFrame {
         btn.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) { listener.actionPerformed(null); }
             @Override public void mouseEntered(MouseEvent e) {
-                btn.setBackground(new Color(0xFB, 0xE7, 0xDD));
+                btn.setBackground(BG_ELEVATED);
                 btn.repaint();
             }
             @Override public void mouseExited(MouseEvent e) {
@@ -1166,10 +1340,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 36, 36));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 36, 36));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
@@ -1298,7 +1472,7 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(CHAT_USER_BUBBLE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 22, 22));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.dispose();
             }
         };
@@ -1346,10 +1520,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(CHAT_BOT_BUBBLE);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 22, 22));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
@@ -1432,10 +1606,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 24, 24));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 6, 6));
                 g2.dispose();
             }
         };
@@ -1482,14 +1656,14 @@ public class DEXDesktopApp extends JFrame {
                 // Halo glow pulse
                 float pulse = (float) (Math.sin(voiceOrbPhase) * (isVoiceListening ? 16 : 8));
                 int haloR = isVoiceListening ? 92 : 78;
-                Color haloColor = isVoiceListening ? new Color(0xC7, 0x2C, 0x48, 120) : new Color(0xE8, 0xCC, 0xD2, 90);
+                Color haloColor = isVoiceListening ? new Color(0x37, 0x35, 0x2F, 50) : new Color(0xEF, 0xEE, 0xEC, 70);
                 g2.setColor(haloColor);
                 g2.fillOval(cx - haloR - (int)pulse, cy - haloR - (int)pulse, (haloR*2) + (int)(pulse*2), (haloR*2) + (int)(pulse*2));
 
                 // Dashed orbit ring
                 int orbitSize = 176;
                 float[] dash = {4f, 4f};
-                g2.setColor(new Color(0x67, 0x1A, 0x29, 60));
+                g2.setColor(new Color(0xAC, 0xAB, 0xA8, 80));
                 g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10f, dash, 0f));
                 g2.drawOval(cx - orbitSize/2, cy - orbitSize/2, orbitSize, orbitSize);
 
@@ -1637,9 +1811,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth()-1, getHeight()-1, 20, 20));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth()-1, getHeight()-1, 8, 8));
                 g2.dispose();
             }
         };
@@ -1649,10 +1824,10 @@ public class DEXDesktopApp extends JFrame {
         transcriptCard.setBorder(new EmptyBorder(12, 18, 12, 18));
         transcriptCard.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        voiceUserTranscript = new JLabel("<html><span style='color:#8E756D;'>You said:</span> <span style='color:#2D2120;'>Ready to listen. Click the microphone above to start speaking.</span></html>");
+        voiceUserTranscript = new JLabel("<html><span style='color:#787774;'>You said:</span> <span style='color:#37352F;'>Ready to listen. Click the microphone above to start speaking.</span></html>");
         voiceUserTranscript.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
-        voiceAiReply = new JLabel("<html><span style='color:#671A29;font-weight:bold;'>DEX:</span> <span style='color:#2D2120;'>How can I assist you today?</span></html>");
+        voiceAiReply = new JLabel("<html><span style='color:#37352F;font-weight:bold;'>DEX:</span> <span style='color:#37352F;'>How can I assist you today?</span></html>");
         voiceAiReply.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
         JPanel transcriptBox = new JPanel(new GridLayout(2, 1, 0, 6));
@@ -1669,9 +1844,10 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth()-1, getHeight()-1, 24, 24));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth()-1, getHeight()-1, 8, 8));
                 g2.dispose();
             }
         };
@@ -1817,10 +1993,10 @@ public class DEXDesktopApp extends JFrame {
             voiceStatusText.setText("Processing with DEX AI...");
         }
         if (voiceUserTranscript != null) {
-            voiceUserTranscript.setText("<html><span style='color:#8E756D;'>You said:</span> <span style='color:#2D2120;'>\"" + escapeHtml(text) + "\"</span></html>");
+            voiceUserTranscript.setText("<html><span style='color:#787774;'>You said:</span> <span style='color:#37352F;'>\"" + escapeHtml(text) + "\"</span></html>");
         }
         if (voiceAiReply != null) {
-            voiceAiReply.setText("<html><span style='color:#671A29;font-weight:bold;'>DEX:</span> <span style='color:#8E756D;'>Thinking...</span></html>");
+            voiceAiReply.setText("<html><span style='color:#37352F;font-weight:bold;'>DEX:</span> <span style='color:#787774;'>Thinking...</span></html>");
         }
 
         SwingWorker<String, Void> aiWorker = new SwingWorker<>() {
@@ -1838,7 +2014,7 @@ public class DEXDesktopApp extends JFrame {
                 try {
                     String reply = get();
                     if (voiceAiReply != null) {
-                        voiceAiReply.setText("<html><span style='color:#671A29;font-weight:bold;'>DEX:</span> <span style='color:#2D2120;'>" + escapeHtml(reply).replace("\n", "<br>") + "</span></html>");
+                        voiceAiReply.setText("<html><span style='color:#37352F;font-weight:bold;'>DEX:</span> <span style='color:#37352F;'>" + escapeHtml(reply).replace("\n", "<br>") + "</span></html>");
                     }
                     if (voiceStatusText != null) {
                         voiceStatusText.setText(voiceTtsCheckBox != null && voiceTtsCheckBox.isSelected() ? "Speaking response aloud..." : "Response ready.");
@@ -1864,22 +2040,19 @@ public class DEXDesktopApp extends JFrame {
         aiWorker.execute();
     }
 
-    // ==================== 6. IMAGE & VISION PAGE (PAGE 3) ====================
+    // ==================== 6. SCREEN VISION & ANALYSIS PAGE (PAGE 3) ====================
 
     private JPanel createImagePage() {
         JPanel page = new JPanel(new BorderLayout(0, 16));
         page.setBackground(BG_APP);
         page.setBorder(new EmptyBorder(24, 32, 24, 32));
 
-        JLabel title = new JLabel("Image Generation & Screen Vision");
+        JLabel title = new JLabel("Screen Vision & Desktop Analysis");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(TEXT_TITLE_MAROON);
         page.add(title, BorderLayout.NORTH);
 
-        JPanel content = new JPanel(new GridLayout(1, 2, 20, 0));
-        content.setOpaque(false);
-
-        // Left: Screen Analysis
+        // Desktop Screen Analysis Card (Image Generation removed per specification)
         JPanel screenCard = createTitledCard("Desktop Screen Analysis");
         JTextField promptField = new JTextField("What is currently visible on my screen?");
         promptField.setFont(FONT_BODY);
@@ -1918,42 +2091,7 @@ public class DEXDesktopApp extends JFrame {
         screenCard.add(new JScrollPane(resultArea), BorderLayout.CENTER);
         screenCard.add(captureBtn, BorderLayout.SOUTH);
 
-        // Right: Image Generation
-        JPanel genCard = createTitledCard("AI Image Generation");
-        JTextField genPrompt = new JTextField("Elegant rose gold crystal orb on ivory background");
-        genPrompt.setFont(FONT_BODY);
-        genPrompt.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(BORDER_SUBTLE, 1),
-            new EmptyBorder(8, 12, 8, 12)
-        ));
-
-        JTextArea genResultArea = new JTextArea("Enter a description above to generate AI visual concept prompts.");
-        genResultArea.setFont(FONT_BODY);
-        genResultArea.setLineWrap(true);
-        genResultArea.setWrapStyleWord(true);
-        genResultArea.setEditable(false);
-        genResultArea.setBackground(BG_CARD_ALT);
-        genResultArea.setBorder(new EmptyBorder(12, 12, 12, 12));
-
-        JButton genBtn = new JButton("Generate Visual Concept");
-        genBtn.setFont(FONT_BOLD);
-        genBtn.setForeground(Color.WHITE);
-        genBtn.setBackground(PRIMARY_MAROON);
-        genBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        genBtn.addActionListener(e -> {
-            String p = genPrompt.getText().trim();
-            navigateTo(1);
-            dispatchPromptToChat("Generate an image concept and detailed prompt for: " + p);
-        });
-
-        genCard.add(genPrompt, BorderLayout.NORTH);
-        genCard.add(new JScrollPane(genResultArea), BorderLayout.CENTER);
-        genCard.add(genBtn, BorderLayout.SOUTH);
-
-        content.add(screenCard);
-        content.add(genCard);
-
-        page.add(content, BorderLayout.CENTER);
+        page.add(screenCard, BorderLayout.CENTER);
         return page;
     }
 
@@ -2193,12 +2331,12 @@ public class DEXDesktopApp extends JFrame {
     // ==================== 9. SETTINGS PAGE (PAGE 6) ====================
 
     private JPanel createSettingsPage() {
-        JPanel page = new JPanel(new BorderLayout(0, 16));
+        JPanel page = new JPanel(new BorderLayout(0, 10));
         page.setBackground(BG_APP);
-        page.setBorder(new EmptyBorder(24, 32, 24, 32));
+        page.setBorder(new EmptyBorder(14, 24, 14, 24));
 
         JLabel title = new JLabel("Settings & Diagnostics");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
         title.setForeground(TEXT_TITLE_MAROON);
         page.add(title, BorderLayout.NORTH);
 
@@ -2216,6 +2354,21 @@ public class DEXDesktopApp extends JFrame {
         provForm.add(new JLabel("Active AI Provider:"));
         providerCombo = new JComboBox<>(AIProviderType.values());
         providerCombo.setSelectedItem(ProviderManager.getActiveProviderType());
+        providerCombo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                AIProviderType sel = (AIProviderType) e.getItem();
+                AIProvider p = ProviderManager.getProvider(sel);
+                if (p != null) {
+                    providerBaseUrl.setText(p.getBaseUrl());
+                    providerModel.setText(p.getModel());
+                    String masked = SecretStorage.getMaskedSecret(sel.name().toLowerCase() + "_key");
+                    if ("NOT CONFIGURED".equals(masked) && !sel.getDefaultEnvVar().isBlank()) {
+                        masked = SecretStorage.getMaskedSecret(sel.getDefaultEnvVar());
+                    }
+                    providerStatusLabel.setText(sel.getDisplayName() + " Key: " + masked);
+                }
+            }
+        });
         provForm.add(providerCombo);
 
         provForm.add(new JLabel("Base Endpoint:"));
@@ -2248,9 +2401,7 @@ public class DEXDesktopApp extends JFrame {
             AIProviderType pType = (AIProviderType) providerCombo.getSelectedItem();
             ProviderManager.setActiveProviderType(pType);
             String key = new String(providerApiKey.getPassword()).trim();
-            if (!key.isEmpty()) {
-                ProviderManager.configureProvider(pType, providerBaseUrl.getText().trim(), providerModel.getText().trim(), key);
-            }
+            ProviderManager.configureProvider(pType, providerBaseUrl.getText().trim(), providerModel.getText().trim(), key.isEmpty() ? null : key);
             ProviderManager.setFallbackEnabled(fallbackEnabled.isSelected());
             ProviderManager.setFallbackProviderType((AIProviderType) fallbackCombo.getSelectedItem());
             providerStatusLabel.setText("Saved configuration for " + pType.getDisplayName());
@@ -2269,6 +2420,70 @@ public class DEXDesktopApp extends JFrame {
         provPanel.add(provForm, BorderLayout.NORTH);
         provPanel.add(provBottom, BorderLayout.SOUTH);
         settingsTabs.addTab("AI Providers", provPanel);
+
+        // Tab B: User Profile
+        JPanel profilePanel = new JPanel(new BorderLayout(0, 16));
+        profilePanel.setBackground(BG_APP);
+        profilePanel.setBorder(new EmptyBorder(16, 16, 16, 16));
+
+        JPanel profileCard = createTitledCard("Personal Profile & Identity");
+        profileCard.setLayout(new BoxLayout(profileCard, BoxLayout.Y_AXIS));
+
+        JLabel profileHint = new JLabel("Personalize your assistant greeting name or reset your profile:");
+        profileHint.setFont(FONT_BODY);
+        profileHint.setForeground(TEXT_SECONDARY);
+
+        JTextField profileNameField = new JTextField(UserProfileManager.getUserName());
+        profileNameField.setFont(FONT_BODY);
+        profileNameField.setMaximumSize(new Dimension(400, 38));
+        profileNameField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_SUBTLE, 1),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+
+        JPanel profileBtnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        profileBtnRow.setOpaque(false);
+
+        JButton saveProfileBtn = new JButton("Save Name");
+        saveProfileBtn.setFont(FONT_BOLD);
+        saveProfileBtn.setForeground(Color.WHITE);
+        saveProfileBtn.setBackground(PRIMARY_MAROON);
+        saveProfileBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        saveProfileBtn.addActionListener(e -> {
+            String updated = profileNameField.getText().trim();
+            UserProfileManager.setUserName(updated);
+            updateGreetingLabels();
+            JOptionPane.showMessageDialog(this, "Profile name updated to: " + (updated.isEmpty() ? "(None)" : updated));
+        });
+
+        JButton resetProfileBtn = new JButton("Reset Profile (First-Time Setup)");
+        resetProfileBtn.setFont(FONT_BODY);
+        resetProfileBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        resetProfileBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "Reset your user profile? You will see the first-time welcome screen on next launch.",
+                "Reset Profile", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                UserProfileManager.resetProfile();
+                profileNameField.setText("");
+                updateGreetingLabels();
+                JOptionPane.showMessageDialog(this, "Profile reset successfully.");
+            }
+        });
+
+        profileBtnRow.add(saveProfileBtn);
+        profileBtnRow.add(resetProfileBtn);
+
+        profileCard.add(profileHint);
+        profileCard.add(Box.createVerticalStrut(12));
+        profileCard.add(new JLabel("Your Name:"));
+        profileCard.add(Box.createVerticalStrut(4));
+        profileCard.add(profileNameField);
+        profileCard.add(Box.createVerticalStrut(16));
+        profileCard.add(profileBtnRow);
+
+        profilePanel.add(profileCard, BorderLayout.NORTH);
+        settingsTabs.addTab("Profile", profilePanel);
 
         // Tab B: Mobile Companion Pairing
         settingsTabs.addTab("Mobile Companion", createMobileCompanionPanel());
@@ -2307,62 +2522,85 @@ public class DEXDesktopApp extends JFrame {
     }
 
     private JPanel createMobileCompanionPanel() {
-        JPanel mobilePanel = new JPanel(new BorderLayout(0, 14));
+        JPanel mobilePanel = new JPanel(new BorderLayout(0, 10));
         mobilePanel.setBackground(BG_APP);
-        mobilePanel.setBorder(new EmptyBorder(14, 16, 14, 16));
+        mobilePanel.setBorder(new EmptyBorder(8, 12, 8, 12));
 
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(BG_APP);
 
-        // Header Status Card
-        JPanel headerCard = createTitledCard("Mobile Companion Connection Status");
-        headerCard.setLayout(new BorderLayout(10, 0));
-        JLabel statusLbl = new JLabel("● DEX Web Server is ONLINE on port " + DEXConfig.getWebPort());
-        statusLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        statusLbl.setForeground(SUCCESS);
-        JButton openWebBtn = new JButton("Open Web Dashboard");
-        openWebBtn.setFont(FONT_SMALL);
-        openWebBtn.addActionListener(e -> SystemTools.openUrl("http://127.0.0.1:" + DEXConfig.getWebPort()));
-        headerCard.add(statusLbl, BorderLayout.WEST);
-        headerCard.add(openWebBtn, BorderLayout.EAST);
-        content.add(headerCard);
-        content.add(Box.createVerticalStrut(12));
+        // 1. Slim Top Status Card
+        JPanel topBanner = new JPanel(new BorderLayout(12, 0)) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(BG_CARD);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.setColor(BORDER_SUBTLE);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.dispose();
+            }
+        };
+        topBanner.setOpaque(false);
+        topBanner.setBorder(new EmptyBorder(8, 16, 8, 16));
+        topBanner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        topBanner.setPreferredSize(new Dimension(800, 42));
 
-        // Two Column Layout
-        JPanel grid = new JPanel(new GridLayout(1, 2, 14, 0));
+        JLabel statusLbl = new JLabel("● DEX Web Server is ONLINE on port " + DEXConfig.getWebPort());
+        statusLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        statusLbl.setForeground(SUCCESS);
+
+        JButton openWebBtn = new JButton("🌐 Open Web Dashboard");
+        openWebBtn.setFont(FONT_SMALL);
+        openWebBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        openWebBtn.addActionListener(e -> SystemTools.openUrl("http://127.0.0.1:" + DEXConfig.getWebPort()));
+
+        topBanner.add(statusLbl, BorderLayout.WEST);
+        topBanner.add(openWebBtn, BorderLayout.EAST);
+
+        content.add(topBanner);
+        content.add(Box.createVerticalStrut(10));
+
+        // 2. Main Two Column Grid (1 row, 2 columns)
+        JPanel grid = new JPanel(new GridLayout(1, 2, 12, 0));
         grid.setOpaque(false);
 
-        // LEFT COLUMN: PIN Code & Network Details
-        JPanel leftCol = new JPanel();
-        leftCol.setLayout(new BoxLayout(leftCol, BoxLayout.Y_AXIS));
-        leftCol.setOpaque(false);
+        String lanIp = DEXConfig.getLanIp();
+        int port = DEXConfig.getWebPort();
 
-        // Card 1: 6-Digit One-Time PIN
-        JPanel pinCard = createTitledCard("One-Time Pairing PIN");
-        pinCard.setLayout(new BoxLayout(pinCard, BoxLayout.Y_AXIS));
+        // ========== LEFT CARD: Pairing PIN & Network ==========
+        JPanel leftCard = createTitledCard("Device Pairing & Connection");
+        leftCard.setLayout(new BoxLayout(leftCard, BoxLayout.Y_AXIS));
 
-        JLabel pinHint = new JLabel("Enter this 6-digit PIN on your Android phone to authorize pairing:");
-        pinHint.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        JLabel pinHint = new JLabel("Enter this 6-digit PIN on your phone to authorize:");
+        pinHint.setFont(FONT_LABEL);
         pinHint.setForeground(TEXT_SECONDARY);
         pinHint.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        mobilePinLabel = new JLabel(DeviceManager.getActivePin());
-        mobilePinLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
-        mobilePinLabel.setForeground(PRIMARY_MAROON);
-        mobilePinLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mobilePinLabel.setBorder(new EmptyBorder(6, 0, 2, 0));
+        // PIN display + Expiry timer in clean centered row
+        JPanel pinBlock = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
+        pinBlock.setOpaque(false);
 
-        mobilePinExpiryLabel = new JLabel("Expires in: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
+        mobilePinLabel = new JLabel(DeviceManager.getActivePin());
+        mobilePinLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        mobilePinLabel.setForeground(PRIMARY_MAROON);
+
+        mobilePinExpiryLabel = new JLabel("Expires: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
         mobilePinExpiryLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         mobilePinExpiryLabel.setForeground(TEXT_MUTED);
-        mobilePinExpiryLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JPanel pinBtnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 6));
+        pinBlock.add(mobilePinLabel);
+        pinBlock.add(mobilePinExpiryLabel);
+
+        // PIN Action Buttons
+        JPanel pinBtnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
         pinBtnRow.setOpaque(false);
 
         JButton copyPinBtn = new JButton("📋 Copy PIN");
         copyPinBtn.setFont(FONT_SMALL);
+        copyPinBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         copyPinBtn.addActionListener(e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(mobilePinLabel.getText()), null);
             JOptionPane.showMessageDialog(this, "PIN copied: " + mobilePinLabel.getText());
@@ -2372,71 +2610,82 @@ public class DEXDesktopApp extends JFrame {
         genPinBtn.setFont(FONT_SMALL);
         genPinBtn.setBackground(PRIMARY_MAROON);
         genPinBtn.setForeground(Color.WHITE);
+        genPinBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         genPinBtn.addActionListener(e -> {
             String newPin = DeviceManager.generatePairingPin();
             mobilePinLabel.setText(newPin);
-            mobilePinExpiryLabel.setText("Expires in: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
+            mobilePinExpiryLabel.setText("Expires: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
         });
 
         pinBtnRow.add(copyPinBtn);
         pinBtnRow.add(genPinBtn);
 
-        pinCard.add(pinHint);
-        pinCard.add(Box.createVerticalStrut(4));
-        pinCard.add(mobilePinLabel);
-        pinCard.add(mobilePinExpiryLabel);
-        pinCard.add(Box.createVerticalStrut(4));
-        pinCard.add(pinBtnRow);
+        // Horizontal Divider
+        JSeparator sep = new JSeparator();
+        sep.setForeground(BORDER_SUBTLE);
+        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
 
-        leftCol.add(pinCard);
-        leftCol.add(Box.createVerticalStrut(12));
+        // Network Section
+        JLabel netSectionTitle = new JLabel("DEX PC Network Details (Enter in Mobile App):");
+        netSectionTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        netSectionTitle.setForeground(TEXT_PRIMARY);
 
-        // Card 2: Host IP & Port
-        JPanel ipCard = createTitledCard("Network Connection Details");
-        ipCard.setLayout(new BoxLayout(ipCard, BoxLayout.Y_AXIS));
+        JPanel netGrid = new JPanel(new GridLayout(1, 2, 8, 0));
+        netGrid.setOpaque(false);
 
-        String lanIp = DEXConfig.getLanIp();
-        int port = DEXConfig.getWebPort();
-
-        JLabel ipTitle = new JLabel("DEX PC Host IP (Enter this in Mobile App):");
-        ipTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        ipTitle.setForeground(TEXT_PRIMARY);
-
-        JPanel ipDisplayRow = new JPanel(new BorderLayout(8, 0));
-        ipDisplayRow.setOpaque(false);
+        // IP Box
+        JPanel ipBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        ipBox.setOpaque(false);
+        JLabel ipTag = new JLabel("IP: ");
+        ipTag.setFont(FONT_SMALL);
+        ipTag.setForeground(TEXT_SECONDARY);
         mobileHostIpLabel = new JLabel(lanIp);
-        mobileHostIpLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        mobileHostIpLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         mobileHostIpLabel.setForeground(PRIMARY_MAROON);
-        JButton copyIpBtn = new JButton("📋 Copy IP");
+        JButton copyIpBtn = new JButton("📋");
         copyIpBtn.setFont(FONT_SMALL);
+        copyIpBtn.setToolTipText("Copy IP");
+        copyIpBtn.setMargin(new Insets(2, 6, 2, 6));
+        copyIpBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         copyIpBtn.addActionListener(e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(mobileHostIpLabel.getText()), null);
             JOptionPane.showMessageDialog(this, "Host IP copied: " + mobileHostIpLabel.getText());
         });
-        ipDisplayRow.add(mobileHostIpLabel, BorderLayout.CENTER);
-        ipDisplayRow.add(copyIpBtn, BorderLayout.EAST);
+        ipBox.add(ipTag);
+        ipBox.add(mobileHostIpLabel);
+        ipBox.add(copyIpBtn);
 
-        JLabel portTitle = new JLabel("Port Number:");
-        portTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        portTitle.setForeground(TEXT_PRIMARY);
-
-        JPanel portDisplayRow = new JPanel(new BorderLayout(8, 0));
-        portDisplayRow.setOpaque(false);
+        // Port Box
+        JPanel portBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        portBox.setOpaque(false);
+        JLabel portTag = new JLabel("Port: ");
+        portTag.setFont(FONT_SMALL);
+        portTag.setForeground(TEXT_SECONDARY);
         JLabel portValLbl = new JLabel(String.valueOf(port));
-        portValLbl.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        portValLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
         portValLbl.setForeground(PRIMARY_MAROON);
-        JButton copyPortBtn = new JButton("📋 Copy Port");
+        JButton copyPortBtn = new JButton("📋");
         copyPortBtn.setFont(FONT_SMALL);
+        copyPortBtn.setToolTipText("Copy Port");
+        copyPortBtn.setMargin(new Insets(2, 6, 2, 6));
+        copyPortBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         copyPortBtn.addActionListener(e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(String.valueOf(port)), null);
             JOptionPane.showMessageDialog(this, "Port copied: " + port);
         });
-        portDisplayRow.add(portValLbl, BorderLayout.CENTER);
-        portDisplayRow.add(copyPortBtn, BorderLayout.EAST);
+        portBox.add(portTag);
+        portBox.add(portValLbl);
+        portBox.add(copyPortBtn);
 
-        JLabel allIpsLabel = new JLabel("All Detected Network Interfaces:");
-        allIpsLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        allIpsLabel.setForeground(TEXT_MUTED);
+        netGrid.add(ipBox);
+        netGrid.add(portBox);
+
+        // Network Interface Selector
+        JPanel nicRow = new JPanel(new BorderLayout(6, 0));
+        nicRow.setOpaque(false);
+        JLabel nicLbl = new JLabel("Network Interface:");
+        nicLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        nicLbl.setForeground(TEXT_MUTED);
 
         JComboBox<String> ipsCombo = new JComboBox<>(DEXConfig.getDetectedHostIps().toArray(new String[0]));
         ipsCombo.setFont(FONT_SMALL);
@@ -2447,62 +2696,66 @@ public class DEXDesktopApp extends JFrame {
                 mobileHostIpLabel.setText(clean);
             }
         });
+        nicRow.add(nicLbl, BorderLayout.WEST);
+        nicRow.add(ipsCombo, BorderLayout.CENTER);
 
-        ipCard.add(ipTitle);
-        ipCard.add(Box.createVerticalStrut(4));
-        ipCard.add(ipDisplayRow);
-        ipCard.add(Box.createVerticalStrut(8));
-        ipCard.add(portTitle);
-        ipCard.add(Box.createVerticalStrut(4));
-        ipCard.add(portDisplayRow);
-        ipCard.add(Box.createVerticalStrut(8));
-        ipCard.add(allIpsLabel);
-        ipCard.add(Box.createVerticalStrut(2));
-        ipCard.add(ipsCombo);
+        leftCard.add(pinHint);
+        leftCard.add(Box.createVerticalStrut(4));
+        leftCard.add(pinBlock);
+        leftCard.add(Box.createVerticalStrut(4));
+        leftCard.add(pinBtnRow);
+        leftCard.add(Box.createVerticalStrut(8));
+        leftCard.add(sep);
+        leftCard.add(Box.createVerticalStrut(8));
+        leftCard.add(netSectionTitle);
+        leftCard.add(Box.createVerticalStrut(4));
+        leftCard.add(netGrid);
+        leftCard.add(Box.createVerticalStrut(6));
+        leftCard.add(nicRow);
 
-        leftCol.add(ipCard);
-        grid.add(leftCol);
+        grid.add(leftCard);
 
-        // RIGHT COLUMN: Instructions & Paired Devices
-        JPanel rightCol = new JPanel();
-        rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
-        rightCol.setOpaque(false);
+        // ========== RIGHT CARD: Instructions & Authorized Devices ==========
+        JPanel rightCard = createTitledCard("Setup Guide & Devices");
+        rightCard.setLayout(new BoxLayout(rightCard, BoxLayout.Y_AXIS));
 
-        // Card 3: Instructions
-        JPanel instrCard = createTitledCard("How to Connect from Phone");
-        instrCard.setLayout(new BoxLayout(instrCard, BoxLayout.Y_AXIS));
-
-        String htmlInstructions = "<html><body style='width:240px;line-height:1.5;'>"
-            + "<p><b>Step 1:</b> Connect phone to the <b>same Wi-Fi</b> as this PC.</p>"
-            + "<p><b>Step 2:</b> Open <b>DEX-Mobile</b> on Android and tap the <b>Settings</b> tab (bottom right).</p>"
-            + "<p><b>Step 3:</b> Fill in the connection fields:<br>"
-            + "• <b>DEX PC IP:</b> <span style='color:#671A29;'><b>" + lanIp + "</b></span><br>"
-            + "• <b>Port:</b> <span style='color:#671A29;'><b>" + port + "</b></span><br>"
-            + "• <b>PIN:</b> <span style='color:#671A29;'><b>" + DeviceManager.getActivePin() + "</b></span></p>"
-            + "<p><b>Step 4:</b> Tap <b>\"Pair Device\"</b> &rarr; Status becomes green <b>CONNECTED</b>!</p>"
+        // Quick 3-Step Guide (compact)
+        String guideHtml = "<html><body style='line-height:1.45;color:#2D2120;font-size:11px;'>"
+            + "<b>1. Wi-Fi:</b> Connect your phone to the same Wi-Fi as this PC.<br>"
+            + "<b>2. Settings:</b> In DEX-Mobile, enter Host IP & Port.<br>"
+            + "<b>3. Authorize:</b> Enter the 6-digit PIN & tap <b>\"Pair Device\"</b> &rarr; Status becomes green!"
             + "</body></html>";
+        JLabel guideLbl = new JLabel(guideHtml);
+        guideLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        guideLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel instrLbl = new JLabel(htmlInstructions);
-        instrLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        instrCard.add(instrLbl);
-        rightCol.add(instrCard);
-        rightCol.add(Box.createVerticalStrut(12));
+        JSeparator rightSep = new JSeparator();
+        rightSep.setForeground(BORDER_SUBTLE);
+        rightSep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
 
-        // Card 4: Paired Devices
-        JPanel pairedCard = createTitledCard("Authorized Companion Devices");
-        pairedCard.setLayout(new BorderLayout(0, 8));
+        // Authorized Devices section
+        JPanel devicesHeaderRow = new JPanel(new BorderLayout(6, 0));
+        devicesHeaderRow.setOpaque(false);
+        devicesHeaderRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        pairedDevicesModel = new DefaultListModel<>();
-        pairedDevicesList = new JList<>(pairedDevicesModel);
-        pairedDevicesList.setFont(FONT_SMALL);
-        pairedDevicesList.setBackground(BG_CARD_ALT);
-        refreshPairedDevicesList();
+        JLabel devTitle = new JLabel("Authorized Companion Devices");
+        devTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        devTitle.setForeground(TEXT_PRIMARY);
 
-        JPanel pairedBtnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        pairedBtnRow.setOpaque(false);
+        JPanel devBtnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        devBtnRow.setOpaque(false);
+
+        JButton refreshDevBtn = new JButton("🔄 Refresh");
+        refreshDevBtn.setFont(FONT_SMALL);
+        refreshDevBtn.setMargin(new Insets(2, 6, 2, 6));
+        refreshDevBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        refreshDevBtn.addActionListener(e -> refreshPairedDevicesList());
+
         JButton revokeBtn = new JButton("Revoke Selected");
         revokeBtn.setFont(FONT_SMALL);
         revokeBtn.setForeground(ERROR);
+        revokeBtn.setMargin(new Insets(2, 6, 2, 6));
+        revokeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         revokeBtn.addActionListener(e -> {
             int idx = pairedDevicesList.getSelectedIndex();
             java.util.List<DeviceManager.PairedDevice> devs = DeviceManager.getPairedDevices();
@@ -2512,20 +2765,46 @@ public class DEXDesktopApp extends JFrame {
                 JOptionPane.showMessageDialog(this, "Device unlinked.");
             }
         });
-        JButton refreshDevBtn = new JButton("Refresh");
-        refreshDevBtn.setFont(FONT_SMALL);
-        refreshDevBtn.addActionListener(e -> refreshPairedDevicesList());
-        pairedBtnRow.add(refreshDevBtn);
-        pairedBtnRow.add(revokeBtn);
 
-        pairedCard.add(new JScrollPane(pairedDevicesList), BorderLayout.CENTER);
-        pairedCard.add(pairedBtnRow, BorderLayout.SOUTH);
-        rightCol.add(pairedCard);
+        devBtnRow.add(refreshDevBtn);
+        devBtnRow.add(revokeBtn);
 
-        grid.add(rightCol);
+        devicesHeaderRow.add(devTitle, BorderLayout.WEST);
+        devicesHeaderRow.add(devBtnRow, BorderLayout.EAST);
+
+        pairedDevicesModel = new DefaultListModel<>();
+        pairedDevicesList = new JList<>(pairedDevicesModel);
+        pairedDevicesList.setFont(FONT_SMALL);
+        pairedDevicesList.setBackground(BG_CARD_ALT);
+        pairedDevicesList.setVisibleRowCount(3);
+        refreshPairedDevicesList();
+
+        JScrollPane devScroll = new JScrollPane(pairedDevicesList);
+        devScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+        devScroll.setPreferredSize(new Dimension(300, 72));
+        devScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        devScroll.setBorder(BorderFactory.createLineBorder(BORDER_SUBTLE, 1));
+
+        rightCard.add(guideLbl);
+        rightCard.add(Box.createVerticalStrut(8));
+        rightCard.add(rightSep);
+        rightCard.add(Box.createVerticalStrut(8));
+        rightCard.add(devicesHeaderRow);
+        rightCard.add(Box.createVerticalStrut(4));
+        rightCard.add(devScroll);
+
+        grid.add(rightCard);
+
         content.add(grid);
 
-        mobilePanel.add(new JScrollPane(content), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(content);
+        scrollPane.setBorder(null);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        mobilePanel.add(scrollPane, BorderLayout.CENTER);
 
         // 1-second auto-refresh timer for PIN countdown
         mobilePinTimer = new Timer(1000, e -> {
@@ -2535,7 +2814,7 @@ public class DEXDesktopApp extends JFrame {
                 if (mobilePinLabel != null) mobilePinLabel.setText(newPin);
             }
             if (mobilePinExpiryLabel != null) {
-                mobilePinExpiryLabel.setText("Expires in: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
+                mobilePinExpiryLabel.setText("Expires: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
             }
         });
         mobilePinTimer.start();
@@ -2575,19 +2854,19 @@ public class DEXDesktopApp extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 22, 22));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
                 g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1.2f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 22, 22));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
                 g2.dispose();
             }
         };
         card.setOpaque(false);
         card.setBackground(BG_CARD);
-        card.setBorder(new EmptyBorder(16, 20, 18, 20));
+        card.setBorder(new EmptyBorder(12, 16, 12, 16));
 
         JLabel titleLbl = new JLabel(title);
-        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
         titleLbl.setForeground(TEXT_TITLE_MAROON);
         card.add(titleLbl, BorderLayout.NORTH);
         return card;
@@ -2603,7 +2882,7 @@ public class DEXDesktopApp extends JFrame {
                 else if ("youtube".equalsIgnoreCase(action)) WindowsController.openApp("youtube");
                 else if ("file explorer".equalsIgnoreCase(action)) WindowsController.openApp("file explorer");
                 else if ("settings".equalsIgnoreCase(action)) WindowsController.openApp("settings");
-                else if ("cmd".equalsIgnoreCase(action)) Runtime.getRuntime().exec("cmd /c start cmd");
+                else if ("cmd".equalsIgnoreCase(action)) WindowsController.openApp("cmd");
                 else if (action.startsWith("http")) SystemTools.openUrl(action);
             } catch (Exception ex) {
                 System.err.println("[DEX UI] Quick action error: " + ex.getMessage());

@@ -1,6 +1,5 @@
 @echo off
-chcp 65001 >nul
-title DEX — Personal AI Assistant
+title DEX - Personal AI Assistant
 cd /d "%~dp0"
 
 echo [DEX] Checking build artifacts...

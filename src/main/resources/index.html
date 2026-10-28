@@ -10,51 +10,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root, [data-theme="light"] {
-            --bg-base: #FAF4EE;
-            --bg-elevated: #FFFDFB;
-            --bg-surface: #F7EFE8;
-            --bg-surface-hover: #F2E5D8;
-            --border-subtle: #EFE4DA;
-            --border-medium: #E8D9CC;
-            --border-focus: #671A29;
-            --text-primary: #2D2120;
-            --text-secondary: #8E756D;
-            --text-muted: #B8A39C;
-            --accent-cyan: #671A29;
-            --accent-blue: #561422;
-            --accent-purple: #832034;
+            --bg-base: #F7F6F3;
+            --bg-elevated: #FFFFFF;
+            --bg-surface: #EFEEEC;
+            --bg-surface-hover: #E9E9E8;
+            --border-subtle: #E9E9E8;
+            --border-medium: #E3E2DF;
+            --border-focus: #37352F;
+            --text-primary: #37352F;
+            --text-secondary: #787774;
+            --text-muted: #ACABA8;
+            --accent-cyan: #37352F;
+            --accent-blue: #2383E2;
+            --accent-purple: #37352F;
             --accent-green: #34A853;
             --accent-amber: #E68A00;
             --accent-red: #D93025;
-            --user-bubble: #F8E7DF;
+            --user-bubble: #F1F0EF;
             --ai-bubble: #FFFFFF;
-            --shadow-sm: 0 2px 8px rgba(103, 26, 41, 0.04);
-            --shadow-md: 0 8px 24px rgba(103, 26, 41, 0.08);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
             --sidebar-width: 250px;
             --header-height: 58px;
         }
 
         [data-theme="dark"] {
-            --bg-base: #090d16;
-            --bg-elevated: #111726;
-            --bg-surface: #182238;
-            --bg-surface-hover: #1f2c48;
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-medium: rgba(255, 255, 255, 0.16);
-            --border-focus: #38bdf8;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --accent-cyan: #38bdf8;
-            --accent-blue: #3b82f6;
-            --accent-purple: #8b5cf6;
-            --accent-green: #10b981;
-            --accent-amber: #f59e0b;
-            --accent-red: #ef4444;
-            --user-bubble: linear-gradient(135deg, #0284c7, #2563eb);
-            --ai-bubble: #151d30;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-            --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+            --bg-base: #191919;
+            --bg-elevated: #202020;
+            --bg-surface: #262626;
+            --bg-surface-hover: #2F2F2F;
+            --border-subtle: #2F2F2F;
+            --border-medium: #3F3F3F;
+            --border-focus: #FFFFFF;
+            --text-primary: #FFFFFF;
+            --text-secondary: #9B9B9B;
+            --text-muted: #6B6B6B;
+            --accent-cyan: #FFFFFF;
+            --accent-blue: #2383E2;
+            --accent-purple: #FFFFFF;
+            --accent-green: #10B981;
+            --accent-amber: #F59E0B;
+            --accent-red: #EF4444;
+            --user-bubble: #2F2F2F;
+            --ai-bubble: #202020;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -1335,34 +1335,100 @@
                     </div>
 
                     <div class="card">
-                        <div class="card-title">🤖 FreeLLMAPI Connection</div>
+                        <div class="card-title">🤖 AI Provider &amp; Model Configuration</div>
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-title">AI Status</div>
-                                <div class="setting-sub" id="cfgAiStatus">Checking…</div>
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-title">API Endpoint</div>
-                                <div class="setting-sub" id="cfgBaseUrl">http://127.0.0.1:31415/v1</div>
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-title">AI Model</div>
-                                <div class="setting-sub" id="cfgModel">auto</div>
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-title">Update API Key for this Session</div>
-                                <div class="setting-sub">Set runtime key if DEX_API_KEY environment variable is not configured</div>
+                                <div class="setting-title">Active Provider</div>
+                                <div class="setting-sub">Select the AI engine for conversation and reasoning</div>
                             </div>
                             <div class="setting-control">
-                                <input type="password" id="newApiKeyInput" class="text-input" placeholder="Paste FreeLLMAPI key…" style="width: 180px;">
-                                <button class="btn primary" onclick="submitApiKey()">Save Key</button>
+                                <select id="cfgProviderSelect" class="text-input" style="width: 220px;" onchange="onProviderSelectChanged()">
+                                    <option value="FREELLMAPI">FreeLLMAPI (Local)</option>
+                                    <option value="GEMINI">Google Gemini</option>
+                                    <option value="OPENAI">OpenAI GPT</option>
+                                    <option value="CLAUDE">Anthropic Claude</option>
+                                    <option value="GROQ">Groq Llama</option>
+                                    <option value="OPENROUTER">OpenRouter</option>
+                                    <option value="OLLAMA">Ollama (Local)</option>
+                                    <option value="CUSTOM">Custom OpenAI-Compatible</option>
+                                </select>
                             </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Provider Status &amp; Key</div>
+                                <div class="setting-sub" id="cfgProvStatus">Checking provider credentials…</div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">API Base Endpoint</div>
+                                <div class="setting-sub">Base URL for chat completions</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" id="cfgBaseUrlInput" class="text-input" placeholder="http://127.0.0.1:31415/v1" style="width: 260px;">
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Model Name</div>
+                                <div class="setting-sub">Target model identifier</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" id="cfgModelInput" class="text-input" placeholder="auto" style="width: 200px;">
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">API Key</div>
+                                <div class="setting-sub">Stored securely encrypted with AES-256-GCM in data/secrets.enc</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="password" id="cfgApiKeyInput" class="text-input" placeholder="Paste new key (leave empty to keep current)" style="width: 240px;">
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Automatic Fallback</div>
+                                <div class="setting-sub">Seamlessly fail over to secondary provider if primary fails</div>
+                            </div>
+                            <div class="setting-control" style="display: flex; gap: 8px; align-items: center;">
+                                <input type="checkbox" id="cfgFallbackEnabled">
+                                <select id="cfgFallbackSelect" class="text-input" style="width: 180px;">
+                                    <option value="">(None)</option>
+                                    <option value="GEMINI">Google Gemini</option>
+                                    <option value="OPENAI">OpenAI GPT</option>
+                                    <option value="CLAUDE">Anthropic Claude</option>
+                                    <option value="GROQ">Groq Llama</option>
+                                    <option value="OPENROUTER">OpenRouter</option>
+                                    <option value="FREELLMAPI">FreeLLMAPI (Local)</option>
+                                    <option value="OLLAMA">Ollama (Local)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+                            <button class="btn primary" onclick="saveProviderConfig()">Save &amp; Apply Provider</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">👤 User Profile &amp; Personalization</div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Your Name</div>
+                                <div class="setting-sub">Personalized greeting and identity for X</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" id="cfgUserNameInput" class="text-input" placeholder="Enter your name…" style="width: 200px;">
+                                <button class="btn primary" onclick="saveUserProfile()">Save Name</button>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">First-Launch Setup</div>
+                                <div class="setting-sub">Reset your profile to test first-launch welcome experience</div>
+                            </div>
+                            <button class="btn" onclick="resetUserProfile()">Reset Setup</button>
                         </div>
                     </div>
 
@@ -1385,6 +1451,20 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- ── WELCOME / FIRST-LAUNCH MODAL ── -->
+    <div class="modal-overlay" id="welcomeModal">
+        <div class="modal-card">
+            <div class="modal-icon">👋</div>
+            <div class="modal-title">Welcome to DEX</div>
+            <div class="modal-desc">Meet <strong>X</strong>, your personal AI assistant. What name should X call you?</div>
+            <input type="text" id="welcomeUserNameInput" class="text-input" placeholder="Enter your name (e.g. Muhammed Muzain)" style="width: 100%; margin-bottom: 14px;">
+            <div style="display: flex; gap: 8px;">
+                <button class="btn primary" style="flex: 1;" onclick="submitWelcomeName()">Get Started</button>
+                <button class="btn" onclick="skipWelcomeName()">Skip</button>
+            </div>
+        </div>
     </div>
 
     <!-- ── AUTH MODAL (FOR REMOTE USERS) ── -->
@@ -1500,7 +1580,7 @@
         }
 
         function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
             const next = current === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('dex_theme', next);
@@ -1508,7 +1588,7 @@
         }
 
         function initTheme() {
-            const saved = localStorage.getItem('dex_theme') || 'dark';
+            const saved = localStorage.getItem('dex_theme') || 'light';
             document.documentElement.setAttribute('data-theme', saved);
             document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
         }
@@ -1542,19 +1622,36 @@
                     txt.textContent = 'OFFLINE';
                 }
 
-                // Update settings view
-                document.getElementById('cfgAiStatus').textContent = data.hasApiKey ? 'Connected (Online AI Active)' : 'No API Key (Local Windows Tools Active)';
-                document.getElementById('cfgBaseUrl').textContent = data.baseUrl || 'http://127.0.0.1:31415/v1';
-                document.getElementById('cfgModel').textContent = data.model || 'auto';
+                // First-launch check
+                if (data.setupCompleted === false && !localStorage.getItem('dex_welcome_dismissed')) {
+                    const welcomeModal = document.getElementById('welcomeModal');
+                    if (welcomeModal) welcomeModal.classList.add('active');
+                }
+
+                // Update user name in UI
+                if (data.userName) {
+                    const userNameInput = document.getElementById('cfgUserNameInput');
+                    if (userNameInput && !userNameInput.value) {
+                        userNameInput.value = data.userName;
+                    }
+                    const welcomeNameInput = document.getElementById('welcomeUserNameInput');
+                    if (welcomeNameInput && !welcomeNameInput.value) {
+                        welcomeNameInput.value = data.userName;
+                    }
+                }
 
                 if (data.remoteToken) {
                     serverRemoteToken = data.remoteToken;
-                    document.getElementById('tokenDisplayInput').value = serverRemoteToken;
+                    const tokenInput = document.getElementById('tokenDisplayInput');
+                    if (tokenInput) tokenInput.value = serverRemoteToken;
                 }
+
+                fetchProviders();
             } catch (err) {
                 const pill = document.getElementById('backendStatus');
-                pill.className = 'status-pill error';
-                document.getElementById('statusText').textContent = 'OFFLINE';
+                if (pill) pill.className = 'status-pill error';
+                const txt = document.getElementById('statusText');
+                if (txt) txt.textContent = 'OFFLINE';
             }
         }
 
@@ -1565,7 +1662,7 @@
             list.innerHTML = `
                 <div class="welcome-hero" id="welcomeHero">
                     <div class="welcome-avatar">⚡</div>
-                    <h2 class="welcome-title">Hi, I am DEX</h2>
+                    <h2 class="welcome-title">Hi, I am X</h2>
                     <p class="welcome-subtitle">Your personal AI assistant for Windows. I can control applications, execute system tasks, answer questions, and respond to your voice.</p>
                     <div class="prompt-chips">
                         <button class="prompt-chip" onclick="quickSend('Open YouTube')">🎬 Open YouTube</button>
@@ -2124,31 +2221,137 @@
             }
         }
 
-        // ── SETTINGS ──
-        async function submitApiKey() {
-            const input = document.getElementById('newApiKeyInput');
-            const key = input.value.trim();
-            if (!key) {
-                showToast('API key cannot be empty');
-                return;
-            }
+        // ── AI PROVIDERS & PROFILE ──
+        let cachedProviders = [];
+
+        async function fetchProviders() {
             try {
-                const res = await apiFetch('/api/set-key', {
+                const res = await apiFetch('/api/providers');
+                if (!res.ok) return;
+                const data = await res.json();
+                cachedProviders = data.providers || [];
+
+                const provSelect = document.getElementById('cfgProviderSelect');
+                if (provSelect && data.activeProvider) {
+                    provSelect.value = data.activeProvider;
+                }
+
+                const fallbackSelect = document.getElementById('cfgFallbackSelect');
+                if (fallbackSelect && data.fallbackProvider) {
+                    fallbackSelect.value = data.fallbackProvider;
+                }
+
+                const fallbackCheck = document.getElementById('cfgFallbackEnabled');
+                if (fallbackCheck) {
+                    fallbackCheck.checked = !!data.fallbackEnabled;
+                }
+
+                updateProviderDetails();
+            } catch (ignored) {}
+        }
+
+        function onProviderSelectChanged() {
+            updateProviderDetails();
+        }
+
+        function updateProviderDetails() {
+            const provSelect = document.getElementById('cfgProviderSelect');
+            if (!provSelect) return;
+            const currentId = provSelect.value;
+            const match = cachedProviders.find(p => p.id === currentId);
+            if (match) {
+                document.getElementById('cfgBaseUrlInput').value = match.baseUrl || '';
+                document.getElementById('cfgModelInput').value = match.model || '';
+                const statusEl = document.getElementById('cfgProvStatus');
+                if (statusEl) {
+                    const statusText = match.configured ? `Configured (Key: ${match.maskedKey || 'present'})` : 'Not configured (Missing API Key)';
+                    statusEl.textContent = `${match.displayName}: ${statusText}`;
+                    statusEl.style.color = match.configured ? 'var(--accent-green)' : 'var(--text-muted)';
+                }
+            }
+        }
+
+        async function saveProviderConfig() {
+            const provider = document.getElementById('cfgProviderSelect').value;
+            const baseUrl = document.getElementById('cfgBaseUrlInput').value.trim();
+            const model = document.getElementById('cfgModelInput').value.trim();
+            const apiKey = document.getElementById('cfgApiKeyInput').value.trim();
+            const fallbackEnabled = document.getElementById('cfgFallbackEnabled').checked;
+            const fallbackProvider = document.getElementById('cfgFallbackSelect').value;
+
+            const payload = { provider, baseUrl, model, fallbackEnabled, fallbackProvider };
+            if (apiKey) {
+                payload.apiKey = apiKey;
+            }
+
+            try {
+                const res = await apiFetch('/api/providers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key })
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (data.status === 'ok') {
-                    showToast('API key saved! AI Chat enabled.');
-                    input.value = '';
+                    showToast('AI Provider saved successfully!');
+                    document.getElementById('cfgApiKeyInput').value = '';
                     loadStatus();
                 } else {
-                    showToast('Failed: ' + (data.error || 'Unknown error'));
+                    showToast('Failed to save provider: ' + (data.error || 'Unknown error'));
                 }
             } catch (err) {
-                showToast('Error setting key: ' + err.message);
+                showToast('Error saving provider: ' + err.message);
             }
+        }
+
+        async function saveUserProfile() {
+            const name = document.getElementById('cfgUserNameInput').value.trim();
+            saveUserProfileWithName(name);
+        }
+
+        async function saveUserProfileWithName(name) {
+            try {
+                const res = await apiFetch('/api/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userName: name })
+                });
+                const data = await res.json();
+                showToast('Profile name updated: ' + (data.userName || 'Saved'));
+                loadStatus();
+            } catch (err) {
+                showToast('Error updating profile: ' + err.message);
+            }
+        }
+
+        async function resetUserProfile() {
+            if (!confirm('Reset your profile? You will see the first-launch welcome modal again.')) return;
+            try {
+                await apiFetch('/api/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reset' })
+                });
+                localStorage.removeItem('dex_welcome_dismissed');
+                document.getElementById('cfgUserNameInput').value = '';
+                showToast('Profile reset.');
+                loadStatus();
+            } catch (err) {
+                showToast('Error resetting profile: ' + err.message);
+            }
+        }
+
+        function submitWelcomeName() {
+            const name = document.getElementById('welcomeUserNameInput').value.trim();
+            if (name) {
+                saveUserProfileWithName(name);
+            }
+            document.getElementById('welcomeModal').classList.remove('active');
+            localStorage.setItem('dex_welcome_dismissed', 'true');
+        }
+
+        function skipWelcomeName() {
+            document.getElementById('welcomeModal').classList.remove('active');
+            localStorage.setItem('dex_welcome_dismissed', 'true');
         }
 
         async function clearChatHistory() {

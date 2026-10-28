@@ -86,9 +86,13 @@ public class Main {
         System.out.println("               DEX — PERSONAL AI ASSISTANT FOR WINDOWS");
         System.out.println("=======================================================================");
         System.out.println(" Host OS       : " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ")");
-        System.out.println(" Java Runtime  : " + System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")");
-        System.out.println(" AI Provider   : " + com.dex.ai.ProviderManager.getActiveProviderType().getDisplayName());
-        System.out.println(" Model         : " + com.dex.ai.ProviderManager.getActiveProvider().getModel());
+        com.dex.ai.AIProvider activeP = com.dex.ai.ProviderManager.getActiveProvider();
+        System.out.println(" AI Provider   : " + (activeP != null ? activeP.getType().getDisplayName() : com.dex.ai.ProviderManager.getActiveProviderType().getDisplayName()));
+        System.out.println(" Model         : " + (activeP != null ? activeP.getModel() : "N/A"));
+        String profileUser = com.dex.profile.UserProfileManager.hasCustomName()
+                ? com.dex.profile.UserProfileManager.getUserName()
+                : "(Not set / First-time user)";
+        System.out.println(" User Profile  : " + profileUser);
         System.out.println(" Memory File   : data/memory.json (" + loadedMessages + " previous messages loaded)");
         System.out.println(" Workspace     : " + DEXConfig.getWorkspaceRoot());
         System.out.println(" Web Dashboard : " + webStatus);

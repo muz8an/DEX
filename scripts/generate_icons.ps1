@@ -11,10 +11,17 @@ if (-not (Test-Path $targetResourceDir)) {
     New-Item -ItemType Directory -Force -Path $targetResourceDir | Out-Null
 }
 
-$sourceImage = "C:\Users\MUHAMMED MUZAIN\.gemini\antigravity-ide\brain\ef1fdbe9-dd09-4232-b1e1-1e834a7801b5\dex_app_icon_1792769185168.jpg"
+$sourceImage = Join-Path $targetResourceDir "dex_icon.png"
+if (-not (Test-Path $sourceImage)) {
+    $sourceImage = Join-Path $targetResourceDir "assistant_orb.jpg"
+}
+if (-not (Test-Path $sourceImage)) {
+    $legacyPath = "C:\Users\MUHAMMED MUZAIN\.gemini\antigravity-ide\brain\ef1fdbe9-dd09-4232-b1e1-1e834a7801b5\dex_app_icon_1792769185168.jpg"
+    if (Test-Path $legacyPath) { $sourceImage = $legacyPath }
+}
 
 if (-not (Test-Path $sourceImage)) {
-    Write-Error "Source image not found: $sourceImage"
+    Write-Error "Source image not found in assets or resources."
     exit 1
 }
 

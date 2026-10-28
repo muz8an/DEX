@@ -125,7 +125,7 @@ public class SystemTools {
         }
 
         // Validate URL format and prevent command injection
-        if (url.contains(" ") || url.contains("\"") || url.contains("&") || url.contains("|") || url.contains(";")) {
+        if (url.contains(" ") || url.contains("\"") || url.contains("|") || url.contains(";") || url.contains("`") || url.contains("\n") || url.contains("\r")) {
             return "Error: URL contains illegal characters or potential injection tokens.";
         }
 

@@ -79,8 +79,8 @@ public class OpenAICompatibleProvider implements AIProvider {
 
     @Override
     public boolean isConfigured() {
-        if (type == AIProviderType.OLLAMA) {
-            return true; // Local Ollama does not require an API key
+        if (type == AIProviderType.OLLAMA || type == AIProviderType.FREELLMAPI) {
+            return true; // Local providers (Ollama, FreeLLMAPI) do not require an API key to be considered configured
         }
         return apiKey != null && !apiKey.isBlank();
     }

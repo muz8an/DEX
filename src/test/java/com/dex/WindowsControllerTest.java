@@ -267,4 +267,65 @@ public class WindowsControllerTest {
         List<String> storeCmd = WindowsController.buildLaunchCommand("5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App");
         assertEquals("shell:AppsFolder\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App", storeCmd.get(4));
     }
+
+    @Test
+    public void testOpenUrlWithQueryParamsAndAmpersand() {
+        String testUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s";
+        WindowsController.LaunchResult res = WindowsController.executeOpenDefaultBrowser(testUrl);
+        assertTrue(res.isSuccess());
+        assertEquals("open_url", res.getAction());
+        assertFalse(executedCommands.isEmpty());
+        List<String> lastCmd = executedCommands.get(executedCommands.size() - 1);
+        assertTrue(lastCmd.contains("https://www.youtube.com/watch?v=dQw4w9WgXcQ^&t=42s"));
+
+        // Also test SystemTools.openUrl
+        String sysToolResult = com.dex.tools.SystemTools.openUrl(testUrl);
+        assertTrue(sysToolResult.contains("Opened URL in default browser:"));
+        assertTrue(sysToolResult.contains("PID: 12345"));
+    }
+
+    @Test
+    public void testOpenVsCodeInNewWindow() {
+        WindowsController.LaunchResult res = WindowsController.executeOpenVsCode(null, true);
+        assertTrue(res.isSuccess());
+        assertTrue(res.getTarget().contains("New Window"));
+        assertFalse(executedCommands.isEmpty());
+        List<String> lastCmd = executedCommands.get(executedCommands.size() - 1);
+        assertTrue(lastCmd.contains("-n"));
+    }
+
+    @Test
+    public void testOpenVsCodeWithTargetFileAndNewWindow() {
+        WindowsController.LaunchResult res = WindowsController.executeOpenVsCode("test.py", true);
+        assertTrue(res.isSuccess());
+        assertTrue(res.getTarget().contains("New Window"));
+        assertFalse(executedCommands.isEmpty());
+        List<String> lastCmd = executedCommands.get(executedCommands.size() - 1);
+        assertTrue(lastCmd.contains("-n"));
+        assertTrue(lastCmd.stream().anyMatch(arg -> arg.contains("test.py")));
+    }
+
+    @Test
+    public void testExecuteAppLaunchNewWindowAndFileTargeting() {
+        WindowsController.LaunchResult resNewWin = WindowsController.executeAppLaunch("open vs code in a new window");
+        assertTrue(resNewWin.isSuccess());
+        List<String> lastCmd = executedCommands.get(executedCommands.size() - 1);
+        assertTrue(lastCmd.contains("-n"));
+
+        WindowsController.LaunchResult resFile = WindowsController.executeAppLaunch("open test.py in vs code");
+        assertTrue(resFile.isSuccess());
+        lastCmd = executedCommands.get(executedCommands.size() - 1);
+        assertTrue(lastCmd.stream().anyMatch(arg -> arg.contains("test.py")));
+    }
+
+    @Test
+    public void testPlayMusicGenericQuery() {
+        WindowsController.LaunchResult res = WindowsController.executePlayMusic("any music", "youtube");
+        assertTrue(res.isSuccess());
+        assertTrue(res.getTarget().contains("YouTube Music Stream"));
+
+        WindowsController.LaunchResult res2 = WindowsController.executePlayMusic("play music", "youtube");
+        assertTrue(res2.isSuccess());
+        assertTrue(res2.getTarget().contains("YouTube Music Stream"));
+    }
 }

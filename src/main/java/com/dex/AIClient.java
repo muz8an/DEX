@@ -3,6 +3,7 @@ package com.dex;
 import com.dex.ai.*;
 import com.dex.config.DEXConfig;
 import com.dex.memory.MemoryManager;
+import com.dex.profile.UserProfileManager;
 import com.dex.security.SecretStorage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,21 +47,36 @@ public class AIClient {
      * Builds the system instructions injected into AI requests.
      */
     public String getSystemPrompt() {
-        return "You are DEX, an advanced, personal AI assistant for Windows 10 and 11 inspired by JARVIS.\n"
-                + "User: Address the user respectfully (e.g. Sir or Muzain).\n"
+        String userName = UserProfileManager.getUserName();
+        boolean hasName = UserProfileManager.hasCustomName();
+
+        return "You are X, an advanced, personal AI assistant for Windows 10 and 11 inspired by JARVIS.\n"
+                + "Identity: Your name is X. Always introduce yourself as X. When asked 'What is your name?', you must always respond: 'My name is X.' Never claim your name is DEX or anything other than X.\n"
+                + (hasName
+                    ? "User: The user's name is " + userName + ". When asked 'What is my name?', respond: 'Your name is " + userName + ".' Address the user by their name (" + userName + ") or respectfully.\n"
+                    : "User: The user has not provided a name yet. When asked 'What is my name?', explain that you do not know their name yet. Address the user respectfully (e.g. Sir or Friend).\n")
                 + "Tone: Direct, proactive, highly capable, professional, and security-conscious.\n\n"
-                + "Capabilities & Available Tools:\n"
+                + "Strict Rules & Limitations:\n"
+                + "1. Image Generation: You CANNOT generate, create, draw, or render images. Image generation is disabled and not supported in DEX. Never claim you can generate images. You CAN capture desktop screenshots and analyze images if vision is supported.\n"
+                + "2. Available Windows Automation Tools:\n"
                 + ToolManager.getToolsDescription() + "\n"
-                + "Rules for Tool Execution:\n"
-                + "1. When the user requests an action, ALWAYS invoke the appropriate tool using this exact JSON block:\n"
+                + "3. Multi-Step & Coding Tasks Instructions:\n"
+                + "   - If the user asks to write a program, script, or code and open it in VS Code (e.g. 'open vs code in a new window and write a program to add two numbers', 'write code in vs code'):\n"
+                + "     Preferred method: Invoke `save_and_open_code` (format: 'filename:::code_content') to save the code to the workspace AND open it inside Visual Studio Code in a new window immediately!\n"
+                + "     Alternatively:\n"
+                + "     Step 1: Save the code using `save_code` (format: 'filename:::code_content').\n"
+                + "     Step 2: Open VS Code with that file using `open_app` with argument 'vscode -n <filename>' (e.g. 'vscode -n add_numbers.py').\n"
+                + "     CRITICAL: Always make sure the code is saved AND opened inside VS Code so the user sees their code active in the editor!\n"
+                + "   - To open a new window in VS Code without a file, invoke `open_app` with argument 'vscode -n'.\n"
+                + "   - When executing an action, ALWAYS invoke the appropriate tool using this exact JSON block:\n"
                 + "```json\n"
                 + "{\"tool\": \"<tool_name>\", \"argument\": \"<argument_value>\"}\n"
                 + "```\n"
-                + "2. Application & Game Launching: To open ANY application or game (e.g. WhatsApp, Steam, Spotify, Dead as Disco, GTA V, VS Code, Discord, etc.), invoke the `open_app` tool.\n"
-                + "3. Music & Video Playback: To play a song, track, or music (e.g. 'play arz kiya hai', 'play believer on spotify', 'open youtube and play ...'), invoke the `play_music` tool with the song query.\n"
-                + "4. Never claim an action succeeded unless you have executed the tool and received the verified execution result.\n"
-                + "5. Never run destructive shell commands without user confirmation.\n"
-                + "6. Never reveal API keys or secret credentials."
+                + "4. Application & Game Launching: To open ANY application or game (e.g. WhatsApp, Steam, Spotify, Games, VS Code, Discord, etc.), invoke the `open_app` tool.\n"
+                + "5. Music & Video Playback: To play a song, track, or music (e.g. 'play arz kiya hai', 'play any music', 'play believer on spotify', 'open youtube and play ...'), invoke the `play_music` tool with the song query.\n"
+                + "6. Never claim an action succeeded unless you have executed the tool and received the verified execution result.\n"
+                + "7. Never run destructive shell commands without user confirmation.\n"
+                + "8. Never reveal API keys or secret credentials."
                 + memoryManager.getFactsPromptSummary();
     }
 
@@ -96,7 +112,51 @@ public class AIClient {
             return listProvidersSummary();
         }
 
-        // 2. Local deterministic task interception
+        // 2. Identity and Personalization Interceptions (Always active)
+        if (isAskingAssistantName(input)) {
+            String resp = "My name is X.";
+            memoryManager.addMessage("user", input);
+            memoryManager.addMessage("assistant", resp);
+            return resp;
+        }
+
+        if (isAskingWhoAreYou(input)) {
+            String resp = "My name is X, your personal AI assistant.";
+            memoryManager.addMessage("user", input);
+            memoryManager.addMessage("assistant", resp);
+            return resp;
+        }
+
+        if (isAskingUserName(input)) {
+            String resp;
+            if (UserProfileManager.hasCustomName()) {
+                resp = "Your name is " + UserProfileManager.getUserName() + ".";
+            } else {
+                resp = "I don't know your name yet, as you haven't mentioned it. If you tell me what it is or set it in your profile, I will remember it!";
+            }
+            memoryManager.addMessage("user", input);
+            memoryManager.addMessage("assistant", resp);
+            return resp;
+        }
+
+        String introName = parseUserIntroduction(input);
+        if (introName != null) {
+            UserProfileManager.setUserName(introName);
+            String resp = "It's nice to meet you, " + introName + "! I'll remember that. How can I help you today?";
+            memoryManager.addMessage("user", input);
+            memoryManager.addMessage("assistant", resp);
+            return resp;
+        }
+
+        // 3. Image Generation Requests - Explicitly rejected per DEX specifications
+        if (isImageGenerationRequest(input)) {
+            String resp = "I cannot generate images. Image generation is not supported in DEX, but I can help you with text, code, file analysis, desktop screenshots, and system automation.";
+            memoryManager.addMessage("user", input);
+            memoryManager.addMessage("assistant", resp);
+            return resp;
+        }
+
+        // 4. Local deterministic task interception
         if (base64Image == null) {
             String localTaskResult = null;
             try {
@@ -112,15 +172,24 @@ public class AIClient {
             }
         }
 
-        // 3. Check AI Provider availability
+        // 5. Check AI Provider availability
         AIProvider activeProvider = ProviderManager.getActiveProvider();
-        if (activeProvider == null || !activeProvider.isConfigured()) {
+        if (activeProvider == null) {
+            return "X AI Chat is currently offline because no AI provider is configured.\n"
+                    + "Local Windows tools (apps, system info, time, workspace files) are active and fully operational!\n\n"
+                    + "Supported Providers: Google Gemini, OpenAI GPT, Anthropic Claude, Groq, OpenRouter, FreeLLMAPI, Ollama.\n"
+                    + "To configure a key, use the Desktop Application Settings or in PowerShell:\n"
+                    + "  $env:DEX_API_KEY = \"your_key\" (or GEMINI_API_KEY, OPENAI_API_KEY, GROQ_API_KEY)\n"
+                    + "Or type 'set-key <key>' in this console.";
+        }
+
+        if (!activeProvider.isConfigured()) {
             // Check if DEXConfig has a runtime key that can be synced
             if (DEXConfig.hasApiKey()) {
                 activeProvider.setApiKey(DEXConfig.getApiKey());
             } else {
-                return "DEX AI Chat is currently offline because the API key is not configured for "
-                        + (activeProvider != null ? activeProvider.getType().getDisplayName() : "the active provider") + ".\n"
+                return "X AI Chat is currently offline because the API key is not configured for "
+                        + activeProvider.getType().getDisplayName() + ".\n"
                         + "Local Windows tools (apps, system info, time, workspace files) are active and fully operational!\n\n"
                         + "Supported Providers: Google Gemini, OpenAI GPT, Anthropic Claude, Groq, OpenRouter, FreeLLMAPI, Ollama.\n"
                         + "To configure a key, use the Desktop Application Settings or in PowerShell:\n"
@@ -130,7 +199,7 @@ public class AIClient {
         }
 
         if (DEXConfig.isOfflineMode()) {
-            return "DEX is currently running in offline local-only mode. Use local tools or restart to connect to online providers.";
+            return "X is currently running in offline local-only mode. Use local tools or restart to connect to online providers.";
         }
 
         // Check vision requirements
@@ -156,7 +225,7 @@ public class AIClient {
      * Sends conversation to the active provider and handles up to 3 tool execution iterations.
      */
     private String executeChatWithToolLoop(String latestInput, String base64Image, String imageMimeType) throws Exception {
-        int maxToolIterations = 3;
+        int maxToolIterations = 5;
         List<MemoryManager.ChatMessage> sessionContext = new ArrayList<>(
                 memoryManager.getTrimmedHistory(14, 7000)
         );
@@ -172,6 +241,7 @@ public class AIClient {
 
         AIResponse response = ProviderManager.executeInference(reqBuilder.build());
         String currentAssistantReply = response.getContent();
+        String lastExecutionResult = null;
 
         for (int iteration = 0; iteration < maxToolIterations; iteration++) {
             String toolActionJson = extractToolActionJson(currentAssistantReply);
@@ -181,6 +251,7 @@ public class AIClient {
 
             // Execute the proposed tool
             String executionResult = ToolManager.executeJsonAction(toolActionJson);
+            lastExecutionResult = executionResult;
 
             // Feed execution result back into temporary context
             sessionContext.add(new MemoryManager.ChatMessage("assistant", currentAssistantReply));
@@ -197,15 +268,72 @@ public class AIClient {
             currentAssistantReply = response.getContent();
         }
 
-        return currentAssistantReply;
+        return cleanToolJsonFromReply(currentAssistantReply, lastExecutionResult);
     }
 
     /**
-     * Extracts JSON tool invocation block if present in the LLM response.
+     * Removes raw JSON tool invocation blocks from the final response delivered to the user.
+     */
+    public static String cleanToolJsonFromReply(String reply, String lastToolResult) {
+        if (reply == null || reply.isBlank()) {
+            return lastToolResult != null ? "Task executed: " + lastToolResult : "Done!";
+        }
+
+        String cleaned = reply.replaceAll("(?s)```(?:json)?\\s*\\{\\s*\"(?:tool|action|name)\"\\s*:[^`]*\\}\\s*```", "")
+                .replaceAll("(?s)\\{\\s*\"(?:tool|action|name)\"\\s*:[^}]+\\}", "")
+                .trim();
+
+        if (cleaned.isBlank()) {
+            return lastToolResult != null ? "Task completed successfully.\n" + lastToolResult : "Action executed successfully.";
+        }
+        return cleaned;
+    }
+
+    /**
+     * Extracts JSON tool invocation block if present in the LLM response with brace-counting support.
      */
     public static String extractToolActionJson(String response) {
         if (response == null || response.isBlank()) {
             return null;
+        }
+
+        int idx = 0;
+        while (idx < response.length()) {
+            int toolIdx = response.indexOf("\"tool\"", idx);
+            int actionIdx = response.indexOf("\"action\"", idx);
+            int targetIdx = -1;
+            if (toolIdx != -1 && actionIdx != -1) {
+                targetIdx = Math.min(toolIdx, actionIdx);
+            } else if (toolIdx != -1) {
+                targetIdx = toolIdx;
+            } else {
+                targetIdx = actionIdx;
+            }
+
+            if (targetIdx == -1) {
+                break;
+            }
+
+            int startBrace = response.lastIndexOf('{', targetIdx);
+            if (startBrace == -1) {
+                idx = targetIdx + 6;
+                continue;
+            }
+
+            String candidate = extractBalancedJsonObject(response, startBrace);
+            if (candidate != null) {
+                try {
+                    JsonNode parsed = MAPPER.readTree(candidate);
+                    String tool = parsed.has("tool") ? parsed.get("tool").asText() :
+                                 (parsed.has("action") ? parsed.get("action").asText() :
+                                 (parsed.has("name") ? parsed.get("name").asText() : null));
+                    if (tool != null && ToolManager.hasTool(tool)) {
+                        return candidate;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            idx = targetIdx + 6;
         }
 
         Matcher matcher = JSON_TOOL_PATTERN.matcher(response);
@@ -222,6 +350,46 @@ public class AIClient {
             }
         }
 
+        return null;
+    }
+
+    public static String extractBalancedJsonObject(String text, int start) {
+        if (text == null || start < 0 || start >= text.length() || text.charAt(start) != '{') {
+            return null;
+        }
+        int depth = 0;
+        boolean inString = false;
+        boolean escape = false;
+
+        for (int i = start; i < text.length(); i++) {
+            char c = text.charAt(i);
+
+            if (escape) {
+                escape = false;
+                continue;
+            }
+
+            if (c == '\\') {
+                escape = true;
+                continue;
+            }
+
+            if (c == '"') {
+                inString = !inString;
+                continue;
+            }
+
+            if (!inString) {
+                if (c == '{') {
+                    depth++;
+                } else if (c == '}') {
+                    depth--;
+                    if (depth == 0) {
+                        return text.substring(start, i + 1);
+                    }
+                }
+            }
+        }
         return null;
     }
 
@@ -263,10 +431,81 @@ public class AIClient {
     /**
      * Interactive console chat loop for CLI usage.
      */
+    private boolean isAskingAssistantName(String input) {
+        String clean = input.trim().toLowerCase(Locale.ROOT).replaceAll("[\\?\\.!]+$", "").trim();
+        return clean.equals("what is your name")
+                || clean.equals("what's your name")
+                || clean.equals("whats your name")
+                || clean.equals("tell me your name")
+                || clean.equals("what are you called");
+    }
+
+    private boolean isAskingWhoAreYou(String input) {
+        String clean = input.trim().toLowerCase(Locale.ROOT).replaceAll("[\\?\\.!]+$", "").trim();
+        return clean.equals("who are you")
+                || clean.equals("who are u")
+                || clean.equals("what is your identity");
+    }
+
+    private boolean isAskingUserName(String input) {
+        String clean = input.trim().toLowerCase(Locale.ROOT).replaceAll("[\\?\\.!]+$", "").trim();
+        return clean.equals("what is my name")
+                || clean.equals("what's my name")
+                || clean.equals("whats my name")
+                || clean.equals("do you know my name")
+                || clean.equals("tell me my name")
+                || clean.equals("who am i");
+    }
+
+    private String parseUserIntroduction(String input) {
+        Pattern pattern = Pattern.compile("(?i)^(?:my\\s+name\\s+is|call\\s+me|i\\s+am)\\s+([a-zA-Z0-9_\\-\\s]{2,40})$");
+        Matcher m = pattern.matcher(input.trim());
+        if (m.matches()) {
+            String candidate = m.group(1).trim();
+            // Don't mistake queries like "my name is what" or "call me later" for a name
+            String lower = candidate.toLowerCase(Locale.ROOT);
+            if (!lower.equals("what") && !lower.equals("who") && !lower.startsWith("later") && !lower.startsWith("back")) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private boolean isImageGenerationRequest(String input) {
+        String lower = input.trim().toLowerCase(Locale.ROOT);
+        // Preserve screenshot capture tools
+        if (lower.contains("screenshot") || lower.contains("screen capture") || lower.contains("capture screen")) {
+            return false;
+        }
+        return lower.matches(".*\\b(generate|create|draw|make|render|produce)\\b.*\\b(image|picture|photo|artwork|illustration|drawing|portrait|wallpaper)\\b.*")
+                || lower.startsWith("image of ")
+                || lower.startsWith("picture of ");
+    }
+
     public void runConsole() {
+        if (UserProfileManager.isFirstTimeUser()) {
+            System.out.println("=======================================================================");
+            System.out.println("                             WELCOME TO X");
+            System.out.println("=======================================================================");
+            System.out.println("What is your name? (Press Enter to skip): ");
+        }
+
         System.out.println("\nReady for commands or questions. Type 'exit' to quit.\n");
 
         try (Scanner scanner = new Scanner(System.in)) {
+            if (UserProfileManager.isFirstTimeUser()) {
+                System.out.print("> ");
+                if (scanner.hasNextLine()) {
+                    String enteredName = scanner.nextLine().trim();
+                    UserProfileManager.completeSetup(enteredName);
+                    if (!enteredName.isEmpty()) {
+                        System.out.println("Nice to meet you, " + enteredName + "!\n");
+                    } else {
+                        System.out.println("Setup completed.\n");
+                    }
+                }
+            }
+
             while (true) {
                 System.out.print("You: ");
                 if (!scanner.hasNextLine()) {
@@ -287,7 +526,7 @@ public class AIClient {
                     AIProvider active = ProviderManager.getActiveProvider();
                     if (active != null) {
                         ProviderManager.configureProvider(active.getType(), null, null, newKey);
-                        System.out.println("DEX: API key updated securely for " + active.getType().getDisplayName() + ".\n");
+                        System.out.println("X: API key updated securely for " + active.getType().getDisplayName() + ".\n");
                     }
                     continue;
                 }
@@ -296,7 +535,7 @@ public class AIClient {
                     String pName = input.substring(13).trim();
                     AIProviderType t = AIProviderType.fromString(pName);
                     ProviderManager.setActiveProviderType(t);
-                    System.out.println("DEX: Active AI provider switched to " + t.getDisplayName() + ".\n");
+                    System.out.println("X: Active AI provider switched to " + t.getDisplayName() + ".\n");
                     continue;
                 }
 
@@ -306,16 +545,16 @@ public class AIClient {
                         String confirm = scanner.nextLine().trim();
                         if (confirm.equalsIgnoreCase("yes") || confirm.equalsIgnoreCase("y")) {
                             memoryManager.resetMemory(true);
-                            System.out.println("DEX: Memory file reset.\n");
+                            System.out.println("X: Memory file reset.\n");
                         } else {
-                            System.out.println("DEX: Memory reset cancelled.\n");
+                            System.out.println("X: Memory reset cancelled.\n");
                         }
                     }
                     continue;
                 }
 
                 String reply = processMessage(input);
-                System.out.println("\nDEX: " + reply + "\n");
+                System.out.println("\nX: " + reply + "\n");
             }
         } catch (Exception e) {
             System.err.println("Console session ended: " + e.getMessage());

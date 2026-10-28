@@ -4,6 +4,7 @@ import com.dex.config.DEXConfig;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -121,26 +122,33 @@ public class CommandRunner {
 
             Process process = pb.start();
 
-            boolean finished;
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-
-                finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (output.length() < MAX_OUTPUT_CHARS) {
-                        output.append(line).append("\n");
-                    } else if (output.length() == MAX_OUTPUT_CHARS) {
-                        output.append("\n[... Output truncated exceeding 10,000 characters ...]\n");
+            Thread readerThread = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        synchronized (output) {
+                            if (output.length() < MAX_OUTPUT_CHARS) {
+                                output.append(line).append("\n");
+                            } else if (output.length() == MAX_OUTPUT_CHARS) {
+                                output.append("\n[... Output truncated exceeding 10,000 characters ...]\n");
+                            }
+                        }
                     }
+                } catch (IOException ignored) {
                 }
-            }
+            }, "DEX-CommandRunner-Drainer");
+            readerThread.start();
+
+            boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
 
             if (!finished) {
                 process.destroyForcibly();
+                readerThread.interrupt();
                 return "Command timed out after " + timeoutSeconds + " seconds: " + String.join(" ", commandTokens);
             }
 
+            readerThread.join(2000);
             exitCode = process.exitValue();
 
         } catch (Exception e) {

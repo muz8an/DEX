@@ -118,6 +118,15 @@ public class DexClient {
     }
 
     /**
+     * Updates the user's name on DEX PC.
+     */
+    public JSONObject updateProfile(String name) throws Exception {
+        JSONObject payload = new JSONObject();
+        payload.put("userName", name != null ? name.trim() : "");
+        return postRequest("/api/profile", payload);
+    }
+
+    /**
      * Launches an approved Windows application (Notepad, Calculator, Chrome, YouTube, etc.)
      */
     public String launchApp(String appName) throws Exception {

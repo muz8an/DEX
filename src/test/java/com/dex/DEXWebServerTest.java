@@ -55,9 +55,11 @@ public class DEXWebServerTest {
         assertEquals(200, resp.statusCode());
 
         JsonNode root = MAPPER.readTree(resp.body());
-        assertEquals("DEX", root.get("assistant").asText());
+        assertEquals("X", root.get("assistant").asText());
         assertEquals("ONLINE", root.get("status").asText());
         assertTrue(root.has("toolsCount"));
+        assertTrue(root.has("userName"));
+        assertTrue(root.has("setupCompleted"));
     }
 
     @Test
@@ -103,6 +105,27 @@ public class DEXWebServerTest {
         assertEquals(200, resp.statusCode());
         assertTrue(resp.body().contains("DEX AI ASSISTANT"));
         assertTrue(resp.body().contains("<!DOCTYPE html>"));
+    }
+
+    @Test
+    public void testSetKeyEndpoint() throws Exception {
+        String payload = "{\"key\": \"sk-test-sync-key-12345\"}";
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/set-key"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, resp.statusCode());
+
+        JsonNode root = MAPPER.readTree(resp.body());
+        assertEquals("ok", root.get("status").asText());
+        assertEquals("sk-test-sync-key-12345", DEXConfig.getApiKey());
+        com.dex.ai.AIProvider activeP = com.dex.ai.ProviderManager.getActiveProvider();
+        if (activeP != null) {
+            assertEquals("sk-test-sync-key-12345", activeP.getApiKey());
+        }
     }
 
     @Test
@@ -162,5 +185,43 @@ public class DEXWebServerTest {
         HttpResponse<String> revokeResp = client.send(revokeReq, HttpResponse.BodyHandlers.ofString());
         assertEquals(200, revokeResp.statusCode());
         assertFalse(com.dex.security.DeviceManager.isValidDeviceToken(deviceToken));
+    }
+
+    @Test
+    public void testProfileEndpoint() throws Exception {
+        // 1. GET profile
+        HttpRequest getReq = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/profile"))
+                .GET()
+                .build();
+        HttpResponse<String> getResp = client.send(getReq, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, getResp.statusCode());
+        JsonNode getJson = MAPPER.readTree(getResp.body());
+        assertTrue(getJson.has("setupCompleted"));
+
+        // 2. POST update profile name
+        String updatePayload = "{\"userName\": \"Muzain\"}";
+        HttpRequest postReq = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/profile"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(updatePayload))
+                .build();
+        HttpResponse<String> postResp = client.send(postReq, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, postResp.statusCode());
+        JsonNode postJson = MAPPER.readTree(postResp.body());
+        assertEquals("Muzain", postJson.get("userName").asText());
+        assertTrue(postJson.get("setupCompleted").asBoolean());
+
+        // 3. Reset profile
+        String resetPayload = "{\"reset\": true}";
+        HttpRequest resetReq = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:31419/api/profile"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(resetPayload))
+                .build();
+        HttpResponse<String> resetResp = client.send(resetReq, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, resetResp.statusCode());
+        JsonNode resetJson = MAPPER.readTree(resetResp.body());
+        assertFalse(resetJson.get("setupCompleted").asBoolean());
     }
 }

@@ -11,21 +11,31 @@ namespace DEXLauncher {
                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 
                 // 1. Look for dist/desktop/DEX/DEX.exe
-                string distExe = Path.GetFullPath(Path.Combine(baseDir, @"..\dist\desktop\DEX\DEX.exe"));
-                if (File.Exists(distExe)) {
-                    ProcessStartInfo psi = new ProcessStartInfo(distExe);
-                    psi.WorkingDirectory = Path.GetDirectoryName(distExe);
-                    Process.Start(psi);
-                    return;
+                string[] distCandidates = new string[] {
+                    Path.GetFullPath(Path.Combine(baseDir, @"..\dist\desktop\DEX\DEX.exe")),
+                    Path.GetFullPath(Path.Combine(baseDir, @"dist\desktop\DEX\DEX.exe"))
+                };
+                foreach (string distExe in distCandidates) {
+                    if (File.Exists(distExe)) {
+                        ProcessStartInfo psi = new ProcessStartInfo(distExe);
+                        psi.WorkingDirectory = Path.GetDirectoryName(distExe);
+                        Process.Start(psi);
+                        return;
+                    }
                 }
 
                 // 2. Look for target jar with javaw
-                string jarPath = Path.GetFullPath(Path.Combine(baseDir, @"..\target\dex-ai-assistant-1.0.0-jar-with-dependencies.jar"));
-                if (File.Exists(jarPath)) {
-                    ProcessStartInfo psi = new ProcessStartInfo("javaw.exe", "-jar \"" + jarPath + "\" --desktop");
-                    psi.WorkingDirectory = Path.GetFullPath(Path.Combine(baseDir, @".."));
-                    Process.Start(psi);
-                    return;
+                string[] jarCandidates = new string[] {
+                    Path.GetFullPath(Path.Combine(baseDir, @"..\target\dex-ai-assistant-1.0.0-jar-with-dependencies.jar")),
+                    Path.GetFullPath(Path.Combine(baseDir, @"target\dex-ai-assistant-1.0.0-jar-with-dependencies.jar"))
+                };
+                foreach (string jarPath in jarCandidates) {
+                    if (File.Exists(jarPath)) {
+                        ProcessStartInfo psi = new ProcessStartInfo("javaw.exe", "-jar \"" + jarPath + "\" --desktop");
+                        psi.WorkingDirectory = Path.GetDirectoryName(Path.GetDirectoryName(jarPath));
+                        Process.Start(psi);
+                        return;
+                    }
                 }
 
                 // 3. Look for installed Program Files DEX

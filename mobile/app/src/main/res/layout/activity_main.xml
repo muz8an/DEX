@@ -49,11 +49,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
-                        android:text="AI ASSISTANT"
+                        android:text="DEX"
                         android:textColor="@color/text_title_maroon"
-                        android:textSize="17sp"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                        android:letterSpacing="0.06" />
+                        android:letterSpacing="0.08" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -117,8 +117,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Muhammed Muzain"
-                        android:fontFamily="serif"
+                        android:text="@string/user_name"
+                        android:fontFamily="sans-serif"
                         android:textColor="@color/text_title_maroon"
                         android:textSize="26sp"
                         android:textStyle="bold" />
@@ -345,7 +345,7 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="Image"
+                                        android:text="Vision"
                                         android:textColor="@color/text_primary"
                                         android:textSize="15sp"
                                         android:textStyle="bold" />
@@ -353,7 +353,7 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="Create anything"
+                                        android:text="Screen analysis"
                                         android:textColor="@color/text_secondary"
                                         android:textSize="11sp" />
                                 </LinearLayout>
@@ -656,9 +656,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="AI Assistant"
+                        android:text="DEX"
                         android:textColor="@color/text_title_maroon"
-                        android:textSize="17sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -753,11 +753,12 @@
                         android:textSize="15sp" />
 
                     <TextView
+                        android:id="@+id/tvExploreUserName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Muhammed Muzain"
-                        android:fontFamily="serif"
+                        android:text="@string/user_name"
+                        android:fontFamily="sans-serif"
                         android:textColor="@color/text_title_maroon"
                         android:textSize="25sp"
                         android:textStyle="bold" />
@@ -967,7 +968,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Generate an image"
+                                    android:text="Vision Analysis"
                                     android:textColor="@color/text_primary"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
@@ -976,7 +977,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="Turn your ideas into visuals"
+                                    android:text="Analyze screenshots and docs"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="12sp" />
                             </LinearLayout>
@@ -1080,21 +1081,37 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="AI Assistant"
+                        android:text="DEX"
                         android:textColor="@color/text_title_maroon"
-                        android:textSize="17sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/btnChatMenu"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:padding="4dp"
-                    android:src="@drawable/ic_more_vert"
-                    android:contentDescription="Menu" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/btnChatTtsToggle"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="6dp"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_speaker"
+                        android:contentDescription="Voice Output Toggle" />
+
+                    <ImageView
+                        android:id="@+id/btnChatMenu"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_more_vert"
+                        android:contentDescription="Menu" />
+                </LinearLayout>
             </RelativeLayout>
 
             <!-- Scrollable Conversation & Recent Chats -->
@@ -1120,106 +1137,6 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
-                        <!-- User Message Bubble Example -->
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/bg_chat_user"
-                            android:orientation="vertical"
-                            android:paddingHorizontal="16dp"
-                            android:paddingVertical="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="What is Web3?"
-                                android:textColor="@color/text_primary"
-                                android:textSize="15sp" />
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="end"
-                                android:layout_marginTop="4dp"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="09:41 AM"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="11sp" />
-
-                                <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:layout_marginStart="4dp"
-                                    android:src="@drawable/ic_check_double"
-                                    android:contentDescription="Read" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <!-- Assistant Message Bubble Example -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:gravity="top"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:layout_marginTop="4dp"
-                                android:src="@drawable/ic_assistant_logo"
-                                android:contentDescription="Assistant" />
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/bg_chat_assistant"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:lineSpacingExtra="3dp"
-                                    android:text="Web3 is a decentralized internet built on blockchain technology, giving users control over their data, identity, and digital assets.\n\nKey Features of Web3:\n\n• Decentralization\n  No central authority controls the network.\n\n• User Ownership\n  You own your data and assets.\n\n• Blockchain Technology\n  Ensures transparency and security."
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp" />
-
-                                <RelativeLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="10dp">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_alignParentStart="true"
-                                        android:layout_centerVertical="true"
-                                        android:text="09:41 AM"
-                                        android:textColor="@color/text_muted"
-                                        android:textSize="11sp" />
-
-                                    <ImageView
-                                        android:id="@+id/btnCopySample"
-                                        android:layout_width="20dp"
-                                        android:layout_height="20dp"
-                                        android:layout_alignParentEnd="true"
-                                        android:layout_centerVertical="true"
-                                        android:src="@drawable/ic_copy"
-                                        android:contentDescription="Copy" />
-                                </RelativeLayout>
-                            </LinearLayout>
-                        </LinearLayout>
-
                         <!-- Dynamic Live Chat Messages Appended Here -->
                         <TextView
                             android:id="@+id/tvChatLog"
@@ -1231,301 +1148,53 @@
                             android:textSize="14sp"
                             android:visibility="gone" />
                     </LinearLayout>
-
-                    <!-- Recent Chats Section (Matches Screen 3) -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="28dp"
-                        android:layout_marginBottom="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerVertical="true"
-                            android:text="Recent Chats"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/btnRecentSeeAll"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:text="See All"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp" />
-                    </RelativeLayout>
-
-                    <!-- Recent Item 1 -->
-                    <LinearLayout
-                        android:id="@+id/recentChat1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="10dp">
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_circle_icon"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_school"
-                            android:contentDescription="Math" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Study Plan for Maths"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Can you help me with the midpoint..."
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:maxLines="1"
-                                android:ellipsize="end" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="09:15 AM"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Recent Item 2 -->
-                    <LinearLayout
-                        android:id="@+id/recentChat2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="10dp">
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_circle_icon"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_image"
-                            android:contentDescription="Product Image" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Create a Product Image"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Make a cute product image with price..."
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:maxLines="1"
-                                android:ellipsize="end" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Yesterday"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Recent Item 3 -->
-                    <LinearLayout
-                        android:id="@+id/recentChat3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="10dp">
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_circle_icon"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_play"
-                            android:contentDescription="YouTube Tags" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="YouTube Tags"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Give me viral tags for Brawl Stars..."
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:maxLines="1"
-                                android:ellipsize="end" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Yesterday"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Recent Item 4 -->
-                    <LinearLayout
-                        android:id="@+id/recentChat4"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="10dp">
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_circle_icon"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_code"
-                            android:contentDescription="Web App" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Web App Deployment"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="My Vercel deployment shows 404 error..."
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:maxLines="1"
-                                android:ellipsize="end" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="2 days ago"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Recent Item 5 -->
-                    <LinearLayout
-                        android:id="@+id/recentChat5"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingVertical="10dp">
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_circle_icon"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_gamepad"
-                            android:contentDescription="Gaming" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Gaming Setup Help"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="How to build a steering wheel for Xbox..."
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:maxLines="1"
-                                android:ellipsize="end" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="3 days ago"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
                 </LinearLayout>
             </ScrollView>
+
+            <!-- Voice Listening Active Bar (Visible when recording voice) -->
+            <LinearLayout
+                android:id="@+id/layoutVoiceActive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_card_rounded"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/ivVoicePulse"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_mic"
+                    app:tint="@color/primary_maroon"
+                    android:contentDescription="Voice Status" />
+
+                <TextView
+                    android:id="@+id/tvVoiceStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Listening... Speak now"
+                    android:textColor="@color/primary_maroon"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnCancelVoice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tag_inactive"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="Stop"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <!-- Bottom Floating Message Bar (Chat) -->
             <LinearLayout
@@ -1545,11 +1214,13 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@null"
-                    android:hint="Type a message..."
+                    android:hint="Type a message or command..."
                     android:textColor="@color/text_primary"
                     android:textColorHint="@color/text_muted"
                     android:textSize="14sp"
-                    android:inputType="text" />
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:imeOptions="actionSend"
+                    android:maxLines="4" />
 
                 <ImageView
                     android:id="@+id/btnChatMic"
@@ -1614,7 +1285,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
-                            android:text="Settings &amp; Tools"
+                            android:text="DEX Settings &amp; Tools"
                             android:textColor="@color/text_title_maroon"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -1635,10 +1306,70 @@
                         android:textStyle="bold" />
                 </RelativeLayout>
 
-                <!-- DEX Connection & Pairing Card -->
+                <!-- CARD 1: User Profile -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_rounded"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="User Profile"
+                        android:textColor="@color/primary_maroon"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Customize your display name across mobile and desktop"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/etSettingsUserName"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_pill_search"
+                            android:hint="Your Name (e.g. Muhammed Muzain)"
+                            android:paddingHorizontal="14dp"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_muted"
+                            android:textSize="13sp"
+                            android:inputType="textPersonName|textCapWords" />
+
+                        <Button
+                            android:id="@+id/btnSaveUserName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="46dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_tag_active"
+                            android:paddingHorizontal="16dp"
+                            android:text="Save"
+                            android:textColor="@color/text_white"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            style="?android:attr/borderlessButtonStyle" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- CARD 2: DEX Connection & Pairing -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     android:background="@drawable/bg_card_rounded"
                     android:orientation="vertical"
                     android:padding="16dp">
@@ -1710,30 +1441,30 @@
                         android:textSize="13sp"
                         android:inputType="number" />
 
-                    <!-- Action Buttons -->
+                    <!-- Primary Action: Full-width Pair Button -->
+                    <Button
+                        android:id="@+id/btnPair"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_tag_active"
+                        android:text="Pair with PC"
+                        android:textColor="@color/text_white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        style="?android:attr/borderlessButtonStyle" />
+
+                    <!-- Secondary Actions: 2-Button Row (No overlapping) -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/btnPair"
-                            android:layout_width="0dp"
-                            android:layout_height="46dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_tag_active"
-                            android:text="Pair Device"
-                            android:textColor="@color/text_white"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            style="?android:attr/borderlessButtonStyle" />
 
                         <Button
                             android:id="@+id/btnCheckConnection"
                             android:layout_width="0dp"
-                            android:layout_height="46dp"
-                            android:layout_marginStart="8dp"
+                            android:layout_height="44dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_tag_inactive"
                             android:text="Test Ping"
@@ -1743,11 +1474,12 @@
 
                         <Button
                             android:id="@+id/btnUnpair"
-                            android:layout_width="wrap_content"
-                            android:layout_height="46dp"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
                             android:layout_marginStart="8dp"
+                            android:layout_weight="1"
                             android:background="@drawable/bg_tag_inactive"
-                            android:text="Unpair"
+                            android:text="Unpair Device"
                             android:textColor="@color/status_offline"
                             android:textSize="13sp"
                             style="?android:attr/borderlessButtonStyle" />
@@ -1763,7 +1495,7 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <!-- Remote Windows Control Card -->
+                <!-- CARD 3: Remote Windows Control -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -1785,116 +1517,138 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Tap to launch apps on Windows PC"
+                        android:text="Tap any application to launch on your Windows PC"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
-                    <!-- Quick App Grid -->
-                    <GridLayout
+                    <!-- Quick App Grid: 4 clean 2-button rows with zero overlapping -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:columnCount="4">
+                        android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/btnLaunchChrome"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
                             android:background="@drawable/bg_tag_inactive"
                             android:text="Chrome"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             style="?android:attr/borderlessButtonStyle" />
 
                         <Button
                             android:id="@+id/btnLaunchYouTube"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
                             android:background="@drawable/bg_tag_inactive"
                             android:text="YouTube"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             style="?android:attr/borderlessButtonStyle" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/btnLaunchGitHub"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
                             android:background="@drawable/bg_tag_inactive"
                             android:text="GitHub"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             style="?android:attr/borderlessButtonStyle" />
 
                         <Button
                             android:id="@+id/btnLaunchVsCode"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
                             android:background="@drawable/bg_tag_inactive"
                             android:text="VS Code"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
                             style="?android:attr/borderlessButtonStyle" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/btnLaunchNotepad"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
                             android:background="@drawable/bg_tag_inactive"
                             android:text="Notepad"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             style="?android:attr/borderlessButtonStyle" />
 
                         <Button
                             android:id="@+id/btnLaunchCalc"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
                             android:background="@drawable/bg_tag_inactive"
-                            android:text="Calc"
+                            android:text="Calculator"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             style="?android:attr/borderlessButtonStyle" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/btnLaunchExplorer"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
                             android:background="@drawable/bg_tag_inactive"
-                            android:text="Explorer"
+                            android:text="File Explorer"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             style="?android:attr/borderlessButtonStyle" />
 
                         <Button
                             android:id="@+id/btnLaunchSettings"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
-                            android:layout_columnWeight="1"
-                            android:layout_margin="3dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
                             android:background="@drawable/bg_tag_inactive"
                             android:text="Settings"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             style="?android:attr/borderlessButtonStyle" />
-                    </GridLayout>
+                    </LinearLayout>
                 </LinearLayout>
 
-                <!-- Screen Vision Card -->
+                <!-- CARD 4: Screen Vision -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -1948,7 +1702,7 @@
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_tag_active"
-                            android:text="Analyze with AI"
+                            android:text="Analyze Screen"
                             android:textColor="@color/text_white"
                             android:textSize="12sp"
                             android:textStyle="bold"

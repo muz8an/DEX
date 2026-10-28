@@ -60,6 +60,16 @@ public class ProviderManager {
         if (envProvider != null && !envProvider.isBlank()) {
             activeProviderType = AIProviderType.fromString(envProvider);
         }
+
+        // If fallback provider is not set, find the first online provider with a valid key
+        if (fallbackProviderType == null) {
+            for (AIProvider p : PROVIDERS.values()) {
+                if (p.getType() != activeProviderType && p.getType() != AIProviderType.FREELLMAPI && p.getType() != AIProviderType.OLLAMA && p.isConfigured()) {
+                    fallbackProviderType = p.getType();
+                    break;
+                }
+            }
+        }
     }
 
     public static synchronized AIProvider getActiveProvider() {

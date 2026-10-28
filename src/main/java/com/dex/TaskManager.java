@@ -185,9 +185,14 @@ public class TaskManager {
         List<String> result = new ArrayList<>();
         String normalized = input.trim();
 
-        // Avoid splitting queries like "open calculator and add 10+10" incorrectly
-        // If the query contains " and add ", it's a compound app query handled directly
-        if (normalized.toLowerCase(Locale.ROOT).contains(" and add ")) {
+        // Avoid splitting math calculation queries on calculator
+        if (normalized.toLowerCase(Locale.ROOT).matches("(?i).*\\bopen\\s+calculator\\s+and\\s+add\\b.*")) {
+            result.add(normalized);
+            return result;
+        }
+
+        // Do not split cohesive music playback intent
+        if (normalized.toLowerCase(Locale.ROOT).matches("(?i)^(?:can you |could you |please )?(?:open youtube and play|open spotify and play)\\b.*")) {
             result.add(normalized);
             return result;
         }
@@ -211,6 +216,7 @@ public class TaskManager {
                 .replaceAll("^[\\.\\?!,;]+", "")
                 .replaceAll("[\\.\\?!,;]+$", "")
                 .trim();
+        String cleanPhrase = p.replaceAll("[\\.\\?!,;]+$", "").trim();
 
         // 1. Tools discovery
         if (lower.equals("list tools")
@@ -285,29 +291,54 @@ public class TaskManager {
             }
         }
 
-        // 5d. Music & Song Playback Intent (e.g. "play arz kiya hai", "open youtube and play arz kiya hai", "play believer on spotify", "listen to lofi")
-        String cleanPhrase = p.replaceAll("[\\.\\?!,;]+$", "").trim();
-        boolean isMusicIntent = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|listen to|play)\\b").matcher(cleanPhrase).find();
+        // 5d. New Window and VS Code Specific Window Commands
+        if (lower.equals("new window") || lower.equals("a new window")
+                || lower.equals("open a new window") || lower.equals("open new window")
+                || lower.equals("vs code in a new window") || lower.equals("vscode in a new window")
+                || lower.equals("open vs code in a new window") || lower.equals("open vs code in new window")
+                || lower.equals("open vscode in a new window") || lower.equals("open vscode in new window")) {
+            return new TaskStep(stepNumber, "Open VS Code in New Window", "open_app", "vscode -n");
+        }
+
+        // Open specific file in VS Code (e.g., "open test.py in vs code", "test.py in vs code", "open test.py in vscode")
+        Pattern fileInVsCodePattern = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open|view|edit)\\s+([a-zA-Z0-9_\\-\\.\\/\\\\]+\\.[a-zA-Z0-9]+)(?:\\s+(?:in|with)\\s+(?:vscode|vs\\s*code|visual\\s*studio\\s*code|code))?(?:\\s+in\\s+(?:a\\s+)?new\\s+window)?$");
+        Matcher fileInVsCodeMatcher = fileInVsCodePattern.matcher(cleanPhrase);
+        if (fileInVsCodeMatcher.matches()) {
+            String filePath = fileInVsCodeMatcher.group(1).trim();
+            boolean newWin = cleanPhrase.toLowerCase(Locale.ROOT).contains("new window");
+            return new TaskStep(stepNumber, "Open " + filePath + " in VS Code", "open_app", "vscode " + (newWin ? "-n " : "") + filePath);
+        }
+
+        // 5e. Code Generation & Program Writing Intent (e.g. "write a program to add two numbers", "write any program", "write a python script")
+        if (com.dex.tools.ProgramGenerator.isCodeGenerationRequest(cleanPhrase)) {
+            return new TaskStep(stepNumber, "Write Program: " + cleanPhrase, "write_program", cleanPhrase);
+        }
+
+        // 5f. Music & Song Playback Intent (e.g. "play arz kiya hai", "open youtube and play arz kiya hai", "play believer on spotify", "listen to lofi", "play any music", "play music")
+        boolean isMusicIntent = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|listen to|play|stream)\\b").matcher(cleanPhrase).find();
         if (isMusicIntent) {
-            String musicQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|listen to|play)\\s+", "")
+            String musicQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open youtube and play|play on youtube|play on spotify|play song|play music|play track|listen to|play|stream)\\s*", "")
                     .replaceAll("(?i)\\s+(?:for me|please|now)$", "")
                     .trim();
 
-            if (!musicQuery.isBlank()) {
-                // Check if target is actually an installed game (e.g. "play dead as disco", "play gta", "play rdr2", "play forza", "play pubg")
-                WindowsController.ApplicationEntry maybeGame = WindowsController.findApplication(musicQuery);
-                if (maybeGame != null && (maybeGame.getDescription().toLowerCase().contains("game")
-                        || maybeGame.getDescription().toLowerCase().contains("steam")
-                        || maybeGame.getCanonicalName().contains("game")
-                        || isLikelyGame(maybeGame.getCanonicalName()))) {
-                    return new TaskStep(stepNumber, "Launch Game: " + maybeGame.getCanonicalName(), "open_app", maybeGame.getCanonicalName());
-                }
-
-                return new TaskStep(stepNumber, "Play Music: " + musicQuery, "play_music", musicQuery);
+            if (musicQuery.isBlank() || musicQuery.equalsIgnoreCase("music") || musicQuery.equalsIgnoreCase("any music")
+                    || musicQuery.equalsIgnoreCase("some music") || musicQuery.equalsIgnoreCase("a song") || musicQuery.equalsIgnoreCase("songs")) {
+                return new TaskStep(stepNumber, "Play Music Stream", "play_music", "any music");
             }
+
+            // Check if target is actually an installed game (e.g. "play dead as disco", "play gta", "play rdr2", "play forza", "play pubg")
+            WindowsController.ApplicationEntry maybeGame = WindowsController.findApplication(musicQuery);
+            if (maybeGame != null && (maybeGame.getDescription().toLowerCase().contains("game")
+                    || maybeGame.getDescription().toLowerCase().contains("steam")
+                    || maybeGame.getCanonicalName().contains("game")
+                    || isLikelyGame(maybeGame.getCanonicalName()))) {
+                return new TaskStep(stepNumber, "Launch Game: " + maybeGame.getCanonicalName(), "open_app", maybeGame.getCanonicalName());
+            }
+
+            return new TaskStep(stepNumber, "Play Music: " + musicQuery, "play_music", musicQuery);
         }
 
-        // 6. Application & Web Destinations (e.g., "open whatsapp", "open notepad", "go to youtube", "play dead as disco", "open vs code")
+        // 7. Application & Web Destinations (e.g., "open whatsapp", "open notepad", "go to youtube", "play dead as disco", "open vs code")
         boolean hasActionVerb = Pattern.compile("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|play game|go to|browse to|visit|watch)\\b").matcher(cleanPhrase).find();
         if (hasActionVerb) {
             String targetQuery = cleanPhrase.replaceAll("(?i)^(?:can you |could you |please )?(?:open|launch|start|run|play game|go to|browse to|visit|watch)\\s+(?:my\\s+)?", "")

@@ -72,6 +72,7 @@ public class DEXWebServer {
         server.createContext("/api/screenshot", new ScreenshotHandler());
         server.createContext("/api/screenshots/", new ScreenshotFileHandler());
         server.createContext("/api/set-key", new SetKeyHandler());
+        server.createContext("/api/profile", new ProfileHandler());
         server.createContext("/api/memory", new MemoryHandler(aiClient));
         server.createContext("/api/providers", new ProvidersHandler());
         server.createContext("/api/browser/navigate", new BrowserNavigateHandler());
@@ -195,14 +196,20 @@ public class DEXWebServer {
             }
 
             boolean authorized = isAuthorized(exchange);
+            com.dex.ai.AIProvider activeP = com.dex.ai.ProviderManager.getActiveProvider();
             ObjectNode status = MAPPER.createObjectNode();
-            status.put("assistant", "DEX");
+            status.put("assistant", "X");
+            String resolvedUser = com.dex.profile.UserProfileManager.hasCustomName()
+                    ? com.dex.profile.UserProfileManager.getUserName()
+                    : com.dex.profile.UserProfileManager.formatDisplayName(System.getProperty("user.name", "Muhammed Muzain"));
+            status.put("userName", resolvedUser);
+            status.put("setupCompleted", com.dex.profile.UserProfileManager.isSetupCompleted());
             status.put("status", "ONLINE");
-            status.put("hasApiKey", DEXConfig.hasApiKey() || com.dex.ai.ProviderManager.getActiveProvider().isConfigured());
+            status.put("hasApiKey", DEXConfig.hasApiKey() || (activeP != null && activeP.isConfigured()));
             status.put("isOfflineMode", DEXConfig.isOfflineMode());
             status.put("activeProvider", com.dex.ai.ProviderManager.getActiveProviderType().getDisplayName());
-            status.put("model", com.dex.ai.ProviderManager.getActiveProvider().getModel());
-            status.put("baseUrl", com.dex.ai.ProviderManager.getActiveProvider().getBaseUrl());
+            status.put("model", activeP != null ? activeP.getModel() : "");
+            status.put("baseUrl", activeP != null ? activeP.getBaseUrl() : "");
             status.put("workspace", DEXConfig.getWorkspaceRoot().toString());
             status.put("toolsCount", ToolManager.getAllTools().size());
             status.put("remoteAuthEnabled", true);
@@ -533,6 +540,10 @@ public class DEXWebServer {
                 }
 
                 DEXConfig.setRuntimeApiKey(key);
+                com.dex.ai.AIProvider activeP = com.dex.ai.ProviderManager.getActiveProvider();
+                if (activeP != null) {
+                    com.dex.ai.ProviderManager.configureProvider(activeP.getType(), null, null, key);
+                }
                 ObjectNode resp = MAPPER.createObjectNode();
                 resp.put("status", "ok");
                 resp.put("message", "API key set for this session. AI chat is now enabled.");
@@ -541,6 +552,44 @@ public class DEXWebServer {
             } catch (Exception e) {
                 sendJsonResponse(exchange, 500, "{\"error\": \"Failed to set key: " + e.getMessage() + "\"}");
             }
+        }
+    }
+
+    private static class ProfileHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                try {
+                    String body = readRequestBody(exchange);
+                    if (body != null && !body.isBlank()) {
+                        JsonNode json = MAPPER.readTree(body);
+                        boolean isReset = json.path("reset").asBoolean(false)
+                                || "reset".equalsIgnoreCase(json.path("action").asText(""));
+                        if (isReset) {
+                            com.dex.profile.UserProfileManager.resetProfile();
+                        } else {
+                            String name = json.has("userName")
+                                    ? json.path("userName").asText("").trim()
+                                    : json.path("name").asText("").trim();
+                            com.dex.profile.UserProfileManager.completeSetup(name);
+                        }
+                    }
+                } catch (Exception e) {
+                    sendJsonResponse(exchange, 400, "{\"error\": \"Malformed request: " + e.getMessage() + "\"}");
+                    return;
+                }
+            }
+
+            ObjectNode profile = MAPPER.createObjectNode();
+            profile.put("userName", com.dex.profile.UserProfileManager.getUserName());
+            profile.put("setupCompleted", com.dex.profile.UserProfileManager.isSetupCompleted());
+            profile.put("hasCustomName", com.dex.profile.UserProfileManager.hasCustomName());
+            sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(profile));
         }
     }
 

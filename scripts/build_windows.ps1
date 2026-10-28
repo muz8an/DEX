@@ -17,6 +17,12 @@ Write-Host "=================================================================" -
 
 # 1. Compile and Test Maven Project
 Write-Host "`n[Stage 1/5] Compiling Desktop Application & Running Tests..." -ForegroundColor Yellow
+Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -like "*dex-ai-assistant*" } |
+    ForEach-Object {
+        Write-Host "Stopping running DEX process (PID: $($_.ProcessId)) to release file locks..." -ForegroundColor Yellow
+        Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+    }
 $mvnArgs = @("clean", "package")
 if ($SkipTests) {
     $mvnArgs += "-DskipTests"

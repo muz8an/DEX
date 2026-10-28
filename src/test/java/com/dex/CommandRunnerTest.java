@@ -51,4 +51,12 @@ public class CommandRunnerTest {
         assertTrue(gitResult.contains("=== Command Report ==="));
         assertTrue(gitResult.contains("Command: git status"));
     }
+
+    @Test
+    public void testOutputDrainingWithoutDeadlock() {
+        String logResult = CommandRunner.runCommand("git log");
+        assertNotNull(logResult);
+        assertTrue(logResult.contains("=== Command Report ==="));
+        assertTrue(logResult.contains("Command: git log"));
+    }
 }

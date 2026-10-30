@@ -39,24 +39,24 @@ import java.util.List;
  */
 public class DEXDesktopApp extends JFrame {
 
-    // ==================== COLOR SYSTEM (Warm Cream & Burgundy Reference Palette) ====================
-    public static final Color BG_APP              = new Color(0xFA, 0xF4, 0xEE); // Warm cream canvas (#FAF4EE)
-    public static final Color BG_CARD             = new Color(0xFF, 0xFD, 0xFB); // Pure warm white surfaces (#FFFDFB)
-    public static final Color BG_CARD_ALT         = new Color(0xF7, 0xEF, 0xE8); // Soft warm hover / secondary surface
-    public static final Color BG_ELEVATED         = new Color(0xF4, 0xEB, 0xE3); // Elevated elements
-    public static final Color PRIMARY_MAROON      = new Color(0x67, 0x1A, 0x29); // Burgundy accent (#671A29)
-    public static final Color PRIMARY_MAROON_DARK = new Color(0x4F, 0x12, 0x1E); // Deeper burgundy
-    public static final Color PRIMARY_MAROON_LIGHT= new Color(0xF5, 0xE8, 0xEB); // Light burgundy tint
-    public static final Color TEXT_TITLE_MAROON   = new Color(0x56, 0x14, 0x22); // Burgundy heading color (#561422)
-    public static final Color TEXT_PRIMARY        = new Color(0x2D, 0x21, 0x20); // Warm dark text
-    public static final Color TEXT_SECONDARY      = new Color(0x8E, 0x75, 0x6D); // Warm secondary text
-    public static final Color TEXT_MUTED          = new Color(0xB8, 0xA3, 0x9C); // Warm placeholder / muted
-    public static final Color BORDER_SUBTLE       = new Color(0xEF, 0xE4, 0xDA); // Warm subtle borders (#EFE4DA)
-    public static final Color BORDER_PILL         = new Color(0xE8, 0xD9, 0xCC); // Slightly stronger border
-    public static final Color CHAT_USER_BUBBLE    = new Color(0xF8, 0xE7, 0xDF); // User message: warm peach/cream
-    public static final Color CHAT_BOT_BUBBLE     = new Color(0xFF, 0xFD, 0xFB); // Bot: warm white card
-    public static final Color SUCCESS             = new Color(0x34, 0xA8, 0x53);
-    public static final Color ERROR               = new Color(0xD9, 0x30, 0x25);
+    // ==================== COLOR SYSTEM (Efferd Dashboard 3 Zinc Reference Palette) ====================
+    public static final Color BG_APP              = new Color(0xFA, 0xFA, 0xFA); // Zinc-50 canvas (#FAFAFA)
+    public static final Color BG_CARD             = new Color(0xFF, 0xFF, 0xFF); // Pure white surfaces (#FFFFFF)
+    public static final Color BG_CARD_ALT         = new Color(0xF4, 0xF4, 0xF5); // Zinc-100 hover / secondary surface (#F4F4F5)
+    public static final Color BG_ELEVATED         = new Color(0xEE, 0xEE, 0xF0); // Elevated elements
+    public static final Color PRIMARY_MAROON      = new Color(0x09, 0x09, 0x0B); // Zinc-950 high contrast primary (#09090B)
+    public static final Color PRIMARY_MAROON_DARK = new Color(0x27, 0x27, 0x2A); // Zinc-800
+    public static final Color PRIMARY_MAROON_LIGHT= new Color(0xF4, 0xF4, 0xF5); // Zinc-100 tint
+    public static final Color TEXT_TITLE_MAROON   = new Color(0x09, 0x09, 0x0B); // Zinc-950 heading color
+    public static final Color TEXT_PRIMARY        = new Color(0x09, 0x09, 0x0B); // Dark primary text
+    public static final Color TEXT_SECONDARY      = new Color(0x71, 0x71, 0x7A); // Zinc-500 secondary text
+    public static final Color TEXT_MUTED          = new Color(0xA1, 0xA1, 0xAA); // Zinc-400 muted text
+    public static final Color BORDER_SUBTLE       = new Color(0xE4, 0xE4, 0xE7); // Zinc-200 fine border (#E4E4E7)
+    public static final Color BORDER_PILL         = new Color(0xD4, 0xD4, 0xD8); // Zinc-300 border
+    public static final Color CHAT_USER_BUBBLE    = new Color(0x09, 0x09, 0x0B); // User message: high-contrast dark bubble
+    public static final Color CHAT_BOT_BUBBLE     = new Color(0xFF, 0xFF, 0xFF); // Bot: white card
+    public static final Color SUCCESS             = new Color(0x16, 0xA3, 0x4A); // Emerald green (#16A34A)
+    public static final Color ERROR               = new Color(0xDC, 0x26, 0x26); // Crimson red (#DC2626)
 
     // ==================== FONTS ====================
     public static final Font FONT_SERIF_TITLE = getSerifTitleFont();
@@ -606,43 +606,46 @@ public class DEXDesktopApp extends JFrame {
         JPanel page = new JPanel(new BorderLayout(0, 0));
         page.setBackground(BG_APP);
 
-        // Top Search Bar
-        JPanel topSearchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 16));
-        topSearchPanel.setBackground(BG_APP);
+        // Hidden personalization labels (maintained for state synchronization)
+        homeGreetingPrefixLabel = new JLabel("Welcome back,");
+        homeGreetingNameLabel = new JLabel(UserProfileManager.getUserName());
+        homeGreetingSubLabel = new JLabel("All operational systems active");
 
-        JPanel searchCapsule = new JPanel(new BorderLayout(10, 0)) {
+        // ── TOPBAR: Efferd Search Capsule + New Conversation Button ──
+        JPanel topHeader = new JPanel(new BorderLayout(16, 0));
+        topHeader.setBackground(BG_CARD);
+        topHeader.setBorder(BorderFactory.createCompoundBorder(
+            new MatteBorder(0, 0, 1, 0, BORDER_SUBTLE),
+            new EmptyBorder(10, 24, 10, 24)
+        ));
+
+        // Center Search Capsule
+        JPanel searchCapsule = new JPanel(new BorderLayout(8, 0)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
+                g2.setColor(BG_CARD_ALT);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 24, 24));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 10, 10));
                 g2.dispose();
             }
         };
         searchCapsule.setOpaque(false);
-        searchCapsule.setPreferredSize(new Dimension(600, 42));
-        searchCapsule.setBorder(new EmptyBorder(5, 14, 5, 14));
+        searchCapsule.setPreferredSize(new Dimension(380, 36));
+        searchCapsule.setBorder(new EmptyBorder(4, 12, 4, 12));
 
-        JComponent searchIcon = new JComponent() {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                DrawIcons.drawSearch(g2, 0, 0, 18, 18, TEXT_SECONDARY);
-                g2.dispose();
-            }
-        };
-        searchIcon.setPreferredSize(new Dimension(18, 18));
+        JLabel searchIconLabel = new JLabel("🔍");
+        searchIconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 12));
 
         homeSearchInput = new JTextField();
-        homeSearchInput.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        homeSearchInput.setFont(FONT_BODY);
         homeSearchInput.setForeground(TEXT_PRIMARY);
         homeSearchInput.setCaretColor(PRIMARY_MAROON);
         homeSearchInput.setBorder(null);
         homeSearchInput.setOpaque(false);
-        homeSearchInput.putClientProperty("JTextField.placeholderText", "Search anything...");
+        homeSearchInput.putClientProperty("JTextField.placeholderText", "Search conversations or commands (Ctrl+K)...");
         homeSearchInput.addActionListener(e -> {
             String q = homeSearchInput.getText().trim();
             if (!q.isEmpty()) {
@@ -652,219 +655,458 @@ public class DEXDesktopApp extends JFrame {
             }
         });
 
-        searchCapsule.add(searchIcon, BorderLayout.WEST);
+        JLabel kbdBadge = new JLabel("⌘K");
+        kbdBadge.setFont(new Font("Consolas", Font.BOLD, 10));
+        kbdBadge.setForeground(TEXT_MUTED);
+
+        searchCapsule.add(searchIconLabel, BorderLayout.WEST);
         searchCapsule.add(homeSearchInput, BorderLayout.CENTER);
-        topSearchPanel.add(searchCapsule);
+        searchCapsule.add(kbdBadge, BorderLayout.EAST);
 
-        page.add(topSearchPanel, BorderLayout.NORTH);
+        topHeader.add(searchCapsule, BorderLayout.WEST);
 
-        // Center Area: Orb + Greeting + 5 Action Cards
-        JPanel centerBody = new JPanel();
-        centerBody.setLayout(new BoxLayout(centerBody, BoxLayout.Y_AXIS));
-        centerBody.setBackground(BG_APP);
-        centerBody.setBorder(new EmptyBorder(10, 24, 16, 24));
+        // Right actions: Status pill + New Conversation button
+        JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightActions.setOpaque(false);
 
-        // Orb Centerpiece
-        JPanel orbContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        orbContainer.setBackground(BG_APP);
-
-        JComponent orbComponent = new JComponent() {
-            @Override protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-
-                int w = getWidth();
-                int h = getHeight();
-                int cx = w / 2;
-                int cy = h / 2;
-
-                // Orbit Circle (dashed ring in neutral gray — Notion tone)
-                int orbitSize = 186;
-                float[] dash = {4f, 4f};
-                g2.setColor(new Color(0xAC, 0xAB, 0xA8, 80));
-                g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10f, dash, 0f));
-                g2.drawOval(cx - orbitSize/2, cy - orbitSize/2, orbitSize, orbitSize);
-
-                // 4 Orbit Accent Dots (subtle dark)
-                g2.setColor(new Color(0xD3, 0xD2, 0xCF));
-                int dotR = 5;
-                g2.fillOval(cx - dotR/2, cy - orbitSize/2 - dotR/2, dotR, dotR); // top
-                g2.fillOval(cx - dotR/2, cy + orbitSize/2 - dotR/2, dotR, dotR); // bottom
-                g2.fillOval(cx - orbitSize/2 - dotR/2, cy - dotR/2, dotR, dotR); // left
-                g2.fillOval(cx + orbitSize/2 - dotR/2, cy - dotR/2, dotR, dotR); // right
-
-                // 3D Orb Image or neutral gradient fallback
-                int orbSize = 144;
-                if (orbImage != null) {
-                    Shape clip = new Ellipse2D.Float(cx - orbSize/2, cy - orbSize/2, orbSize, orbSize);
-                    g2.setClip(clip);
-                    g2.drawImage(orbImage, cx - orbSize/2, cy - orbSize/2, orbSize, orbSize, null);
-                    g2.setClip(null);
-                } else {
-                    RadialGradientPaint rgp = new RadialGradientPaint(
-                        cx - 20, cy - 20, orbSize/2,
-                        new float[]{0f, 0.6f, 1f},
-                        new Color[]{new Color(0xE0, 0xDF, 0xDC), new Color(0xAC, 0xAB, 0xA8), PRIMARY_MAROON}
-                    );
-                    g2.setPaint(rgp);
-                    g2.fillOval(cx - orbSize/2, cy - orbSize/2, orbSize, orbSize);
-                }
-
-                g2.dispose();
-            }
-        };
-        orbComponent.setPreferredSize(new Dimension(200, 190));
-        orbContainer.add(orbComponent);
-        centerBody.add(orbContainer);
-
-        // Greeting Section
-        JPanel greetingPanel = new JPanel();
-        greetingPanel.setLayout(new BoxLayout(greetingPanel, BoxLayout.Y_AXIS));
-        greetingPanel.setBackground(BG_APP);
-        greetingPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        homeGreetingPrefixLabel = new JLabel(UserProfileManager.hasCustomName() ? "Good to see you," : "Welcome");
-        homeGreetingPrefixLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        homeGreetingPrefixLabel.setForeground(TEXT_SECONDARY);
-        homeGreetingPrefixLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        homeGreetingNameLabel = new JLabel(UserProfileManager.hasCustomName() ? UserProfileManager.getUserName() : "X — Personal AI Assistant");
-        homeGreetingNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        homeGreetingNameLabel.setForeground(TEXT_PRIMARY);
-        homeGreetingNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        homeGreetingSubLabel = new JLabel("How can I help you today?");
-        homeGreetingSubLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        homeGreetingSubLabel.setForeground(TEXT_SECONDARY);
-        homeGreetingSubLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        greetingPanel.add(homeGreetingPrefixLabel);
-        greetingPanel.add(Box.createVerticalStrut(4));
-        greetingPanel.add(homeGreetingNameLabel);
-        greetingPanel.add(Box.createVerticalStrut(6));
-        greetingPanel.add(homeGreetingSubLabel);
-
-        centerBody.add(greetingPanel);
-        centerBody.add(Box.createVerticalStrut(20));
-
-        // 5 Action Cards (Chat, Voice, Vision, File Analysis, Tools)
-        JPanel actionRow = new JPanel(new GridLayout(1, 5, 10, 0));
-        actionRow.setBackground(BG_APP);
-        actionRow.setMaximumSize(new Dimension(720, 122));
-        actionRow.setPreferredSize(new Dimension(720, 122));
-        actionRow.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        actionRow.add(createActionCard("Chat", "Ask anything", "chat", e -> navigateTo(1)));
-        actionRow.add(createActionCard("Voice", "Speak & get insights", "mic", e -> {
-            navigateTo(2);
-            startInAppMic();
-        }));
-        actionRow.add(createActionCard("Vision", "Screen analysis", "image", e -> navigateTo(3)));
-        actionRow.add(createActionCard("File Analysis", "Documents, code, more", "files", e -> navigateTo(4)));
-        actionRow.add(createActionCard("Tools", "Code, math, translate", "wrench", e -> navigateTo(5)));
-
-        centerBody.add(actionRow);
-        page.add(centerBody, BorderLayout.CENTER);
-
-        // Bottom Message Input Dock
-        JPanel bottomDockPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 12));
-        bottomDockPanel.setBackground(BG_APP);
-
-        JPanel dockCapsule = new JPanel(new BorderLayout(10, 0)) {
+        JPanel onlinePill = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(BG_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 24, 24));
-                g2.setColor(BORDER_PILL);
+                g2.setColor(BG_CARD_ALT);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
+                g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 24, 24));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 20, 20));
                 g2.dispose();
             }
         };
-        dockCapsule.setOpaque(false);
-        dockCapsule.setPreferredSize(new Dimension(650, 48));
-        dockCapsule.setBorder(new EmptyBorder(4, 14, 4, 6));
+        onlinePill.setOpaque(false);
+        JLabel dot = new JLabel("●");
+        dot.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        dot.setForeground(SUCCESS);
+        JLabel onlineLbl = new JLabel("ONLINE");
+        onlineLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        onlineLbl.setForeground(TEXT_SECONDARY);
+        onlinePill.add(dot);
+        onlinePill.add(onlineLbl);
 
-        // Plus Attach Button
-        JButton plusBtn = new JButton("+");
-        plusBtn.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        plusBtn.setForeground(TEXT_SECONDARY);
-        plusBtn.setContentAreaFilled(false);
-        plusBtn.setBorderPainted(false);
-        plusBtn.setFocusPainted(false);
-        plusBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        plusBtn.addActionListener(e -> navigateTo(4));
-
-        homeBottomInput = new JTextField();
-        homeBottomInput.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        homeBottomInput.setForeground(TEXT_PRIMARY);
-        homeBottomInput.setCaretColor(PRIMARY_MAROON);
-        homeBottomInput.setBorder(null);
-        homeBottomInput.setOpaque(false);
-        homeBottomInput.putClientProperty("JTextField.placeholderText", "Type a message...");
-        homeBottomInput.addActionListener(e -> sendHomeBottomMessage());
-
-        // Mic Button
-        JButton micBtn = new JButton() {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                DrawIcons.drawNavIcon(g2, "voice", 6, 6, 18, 18, TEXT_SECONDARY);
-                g2.dispose();
-            }
-        };
-        micBtn.setPreferredSize(new Dimension(32, 32));
-        micBtn.setContentAreaFilled(false);
-        micBtn.setBorderPainted(false);
-        micBtn.setFocusPainted(false);
-        micBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        micBtn.addActionListener(e -> {
-            navigateTo(2);
-            startInAppMic();
-        });
-
-        // Maroon Circular Send Button with Paper Airplane
-        JButton sendBtn = new JButton() {
+        JButton newConvoBtn = new JButton("+ New Conversation") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(PRIMARY_MAROON);
-                g2.fillOval(0, 0, getWidth(), getHeight());
-                DrawIcons.drawSendAirplane(g2, (getWidth()-18)/2, (getHeight()-18)/2, 18, 18, Color.WHITE);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                FontMetrics fm = g2.getFontMetrics();
+                int tx = (getWidth() - fm.stringWidth(getText())) / 2;
+                int ty = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(getText(), tx, ty);
                 g2.dispose();
             }
         };
-        sendBtn.setPreferredSize(new Dimension(42, 42));
-        sendBtn.setContentAreaFilled(false);
-        sendBtn.setBorderPainted(false);
-        sendBtn.setFocusPainted(false);
-        sendBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        sendBtn.addActionListener(e -> sendHomeBottomMessage());
+        newConvoBtn.setPreferredSize(new Dimension(150, 36));
+        newConvoBtn.setBorderPainted(false);
+        newConvoBtn.setContentAreaFilled(false);
+        newConvoBtn.setFocusPainted(false);
+        newConvoBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        newConvoBtn.addActionListener(e -> navigateTo(1));
 
-        JPanel dockRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        dockRight.setOpaque(false);
-        dockRight.add(micBtn);
-        dockRight.add(sendBtn);
+        rightActions.add(onlinePill);
+        rightActions.add(newConvoBtn);
+        topHeader.add(rightActions, BorderLayout.EAST);
 
-        dockCapsule.add(plusBtn, BorderLayout.WEST);
-        dockCapsule.add(homeBottomInput, BorderLayout.CENTER);
-        dockCapsule.add(dockRight, BorderLayout.EAST);
+        page.add(topHeader, BorderLayout.NORTH);
 
-        bottomDockPanel.add(dockCapsule);
-        page.add(bottomDockPanel, BorderLayout.SOUTH);
+        // ── SCROLLABLE STAGING VIEWPORT ──
+        JPanel scrollBody = new JPanel();
+        scrollBody.setLayout(new BoxLayout(scrollBody, BoxLayout.Y_AXIS));
+        scrollBody.setBackground(BG_APP);
+        scrollBody.setBorder(new EmptyBorder(24, 28, 28, 28));
+
+        // ── 1. EFFERD 4-CARD KPI METRIC STRIP ──
+        JPanel kpiStrip = new JPanel(new GridLayout(1, 4, 16, 0));
+        kpiStrip.setBackground(BG_APP);
+        kpiStrip.setMaximumSize(new Dimension(1400, 110));
+
+        kpiStrip.add(createEfferdKpiCard("Open queue", "0", "vs yesterday", "0 pending", SUCCESS));
+        kpiStrip.add(createEfferdKpiCard("Active conversations", "1", "vs last week", "+12%", SUCCESS));
+        kpiStrip.add(createEfferdKpiCard("Median first reply", "487ms", "vs target", "-18%", SUCCESS));
+        kpiStrip.add(createEfferdKpiCard("CSAT (30d)", "98.4%", "vs prior 30d", "+4%", SUCCESS));
+
+        scrollBody.add(kpiStrip);
+        scrollBody.add(Box.createVerticalStrut(20));
+
+        // ── 2. MAIN STAGING SPLIT (RECENT CONVERSATIONS TABLE + WORKSPACE ACTIVITY) ──
+        JPanel stagingSplit = new JPanel(new GridBagLayout());
+        stagingSplit.setBackground(BG_APP);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
+
+        // LEFT: Recent Conversations Card
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.65;
+        gbc.insets = new Insets(0, 0, 0, 16);
+
+        JPanel recentCard = createEfferdCardWrapper();
+        recentCard.setLayout(new BorderLayout(0, 12));
+
+        JPanel recentHead = new JPanel(new BorderLayout(0, 2));
+        recentHead.setOpaque(false);
+        JLabel recentTitle = new JLabel("Recent conversations");
+        recentTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        recentTitle.setForeground(TEXT_PRIMARY);
+        JLabel recentSub = new JLabel("Latest 4 threads from your inbox");
+        recentSub.setFont(FONT_SMALL);
+        recentSub.setForeground(TEXT_MUTED);
+        recentHead.add(recentTitle, BorderLayout.NORTH);
+        recentHead.add(recentSub, BorderLayout.SOUTH);
+        recentCard.add(recentHead, BorderLayout.NORTH);
+
+        // Table Rows
+        JPanel tableBody = new JPanel();
+        tableBody.setLayout(new BoxLayout(tableBody, BoxLayout.Y_AXIS));
+        tableBody.setOpaque(false);
+
+        // Header Row
+        JPanel thRow = createEfferdTableRow("CUSTOMER / SESSION", "TOPIC", "CHANNEL", "WAIT", "STATUS", true, null, null);
+        tableBody.add(thRow);
+        tableBody.add(Box.createVerticalStrut(4));
+
+        tableBody.add(createEfferdTableRow("Northwind Labs", "Billing portal access & OCR", "💬 chat", "6 min", "In queue", false, BG_CARD_ALT, TEXT_SECONDARY));
+        tableBody.add(createEfferdTableRow("Blue River Co.", "Windows app launch (VS Code)", "💻 windows", "1 min", "Active", false, new Color(0xDC, 0xFC, 0xE7), SUCCESS));
+        tableBody.add(createEfferdTableRow("Oak Street Studio", "Provider API key rotation & vault", "⚡ api", "12 min", "Snoozed", false, new Color(0xFE, 0xF3, 0xC7), new Color(0xB4, 0x53, 0x09)));
+        tableBody.add(createEfferdTableRow("Harbor Freight LLC", "Android Companion PIN pairing", "📱 mobile", "3 min", "Active", false, new Color(0xDC, 0xFC, 0xE7), SUCCESS));
+
+        recentCard.add(tableBody, BorderLayout.CENTER);
+
+        JButton viewAllBtn = new JButton("View all conversations →");
+        viewAllBtn.setFont(FONT_SMALL);
+        viewAllBtn.setForeground(TEXT_PRIMARY);
+        viewAllBtn.setBorderPainted(false);
+        viewAllBtn.setContentAreaFilled(false);
+        viewAllBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        viewAllBtn.addActionListener(e -> navigateTo(1));
+        recentCard.add(viewAllBtn, BorderLayout.SOUTH);
+
+        stagingSplit.add(recentCard, gbc);
+
+        // RIGHT: Workspace Activity & AI Team
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 0.35;
+        gbc.insets = new Insets(0, 0, 0, 0);
+
+        JPanel rightCol = new JPanel();
+        rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
+        rightCol.setOpaque(false);
+
+        // Workspace Activity Card
+        JPanel activityCard = createEfferdCardWrapper();
+        activityCard.setLayout(new BorderLayout(0, 10));
+
+        JPanel actHead = new JPanel(new BorderLayout(0, 2));
+        actHead.setOpaque(false);
+        JLabel actTitle = new JLabel("Workspace activity");
+        actTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        actTitle.setForeground(TEXT_PRIMARY);
+        JLabel actSub = new JLabel("Operational signals.");
+        actSub.setFont(FONT_SMALL);
+        actSub.setForeground(TEXT_MUTED);
+        actHead.add(actTitle, BorderLayout.WEST);
+        JLabel liveTag = new JLabel("LIVE");
+        liveTag.setFont(new Font("Consolas", Font.BOLD, 10));
+        liveTag.setForeground(TEXT_MUTED);
+        actHead.add(liveTag, BorderLayout.EAST);
+        actHead.add(actSub, BorderLayout.SOUTH);
+        activityCard.add(actHead, BorderLayout.NORTH);
+
+        JPanel signalsList = new JPanel();
+        signalsList.setLayout(new BoxLayout(signalsList, BoxLayout.Y_AXIS));
+        signalsList.setOpaque(false);
+        signalsList.add(createEfferdSignalRow("SLA warning cleared for Oak Street Studio", "12 min ago", SUCCESS));
+        signalsList.add(createEfferdSignalRow("Windows Controller initialized native PID", "28 min ago", new Color(0x25, 0x63, 0xEB)));
+        signalsList.add(createEfferdSignalRow("Macro 'Refund approved' updated in memory", "1 hr ago", new Color(0x7C, 0x3A, 0xED)));
+        signalsList.add(createEfferdSignalRow("Android Companion paired via PIN 849201", "3 hr ago", new Color(0xD9, 0x77, 0x06)));
+        activityCard.add(signalsList, BorderLayout.CENTER);
+
+        rightCol.add(activityCard);
+        rightCol.add(Box.createVerticalStrut(16));
+
+        // On-Duty Models Card
+        JPanel modelsCard = createEfferdCardWrapper();
+        modelsCard.setLayout(new BorderLayout(0, 10));
+        JLabel modTitle = new JLabel("On-Duty AI Engine");
+        modTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        modTitle.setForeground(TEXT_PRIMARY);
+        modelsCard.add(modTitle, BorderLayout.NORTH);
+
+        JPanel modelsList = new JPanel();
+        modelsList.setLayout(new BoxLayout(modelsList, BoxLayout.Y_AXIS));
+        modelsList.setOpaque(false);
+        modelsList.add(createEfferdModelBadgeRow("Gemini 2.5 Flash", "Multimodal reasoning active", "Primary", SUCCESS));
+        modelsList.add(createEfferdModelBadgeRow("Claude 3.5 Sonnet", "Anthropic API ready", "Standby", TEXT_SECONDARY));
+        modelsList.add(createEfferdModelBadgeRow("Ollama Local", "DeepSeek-R1 offline", "Local", SUCCESS));
+        modelsCard.add(modelsList, BorderLayout.CENTER);
+
+        rightCol.add(modelsCard);
+        stagingSplit.add(rightCol, gbc);
+
+        scrollBody.add(stagingSplit);
+        scrollBody.add(Box.createVerticalStrut(20));
+
+        // Bottom Quick Input Dock (satisfies homeBottomInput reference)
+        JPanel bottomDock = new JPanel(new BorderLayout(10, 0)) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(BG_CARD);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+                g2.setColor(BORDER_SUBTLE);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 12, 12));
+                g2.dispose();
+            }
+        };
+        bottomDock.setOpaque(false);
+        bottomDock.setBorder(new EmptyBorder(8, 14, 8, 14));
+        bottomDock.setMaximumSize(new Dimension(1400, 48));
+
+        homeBottomInput = new JTextField();
+        homeBottomInput.setFont(FONT_BODY);
+        homeBottomInput.setForeground(TEXT_PRIMARY);
+        homeBottomInput.setBorder(null);
+        homeBottomInput.setOpaque(false);
+        homeBottomInput.putClientProperty("JTextField.placeholderText", "Ask DEX or command Windows (e.g. 'Open VS Code', 'Take screenshot')...");
+        homeBottomInput.addActionListener(e -> {
+            String msg = homeBottomInput.getText().trim();
+            if (!msg.isEmpty()) {
+                homeBottomInput.setText("");
+                navigateTo(1);
+                dispatchPromptToChat(msg);
+            }
+        });
+
+        JButton dockSendBtn = new JButton("Execute") {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(PRIMARY_MAROON);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                FontMetrics fm = g2.getFontMetrics();
+                int tx = (getWidth() - fm.stringWidth(getText())) / 2;
+                int ty = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(getText(), tx, ty);
+                g2.dispose();
+            }
+        };
+        dockSendBtn.setPreferredSize(new Dimension(75, 30));
+        dockSendBtn.setBorderPainted(false);
+        dockSendBtn.setContentAreaFilled(false);
+        dockSendBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        dockSendBtn.addActionListener(e -> {
+            String msg = homeBottomInput.getText().trim();
+            if (!msg.isEmpty()) {
+                homeBottomInput.setText("");
+                navigateTo(1);
+                dispatchPromptToChat(msg);
+            }
+        });
+
+        bottomDock.add(homeBottomInput, BorderLayout.CENTER);
+        bottomDock.add(dockSendBtn, BorderLayout.EAST);
+        scrollBody.add(bottomDock);
+
+        JScrollPane scrollPane = new JScrollPane(scrollBody);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(14);
+        scrollPane.getViewport().setBackground(BG_APP);
+        page.add(scrollPane, BorderLayout.CENTER);
 
         return page;
     }
 
-    private void sendHomeBottomMessage() {
-        String msg = homeBottomInput.getText().trim();
-        if (msg.isEmpty()) return;
-        homeBottomInput.setText("");
-        navigateTo(1);
-        dispatchPromptToChat(msg);
+    private JPanel createEfferdCardWrapper() {
+        JPanel card = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(BG_CARD);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(BORDER_SUBTLE);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 10, 10));
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(16, 18, 16, 18));
+        return card;
+    }
+
+    private JPanel createEfferdKpiCard(String title, String val, String sub1, String sub2, Color sub2Color) {
+        JPanel card = new JPanel(new BorderLayout(0, 4)) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(BG_CARD);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(BORDER_SUBTLE);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 10, 10));
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(14, 16, 14, 16));
+
+        JLabel titleLbl = new JLabel(title);
+        titleLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        titleLbl.setForeground(TEXT_SECONDARY);
+
+        JLabel valLbl = new JLabel(val);
+        valLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        valLbl.setForeground(TEXT_PRIMARY);
+
+        JPanel subRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        subRow.setOpaque(false);
+        JLabel s1 = new JLabel(sub1);
+        s1.setFont(FONT_SMALL);
+        s1.setForeground(TEXT_MUTED);
+        JLabel s2 = new JLabel(sub2);
+        s2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        s2.setForeground(sub2Color);
+        subRow.add(s1);
+        subRow.add(s2);
+
+        card.add(titleLbl, BorderLayout.NORTH);
+        card.add(valLbl, BorderLayout.CENTER);
+        card.add(subRow, BorderLayout.SOUTH);
+        return card;
+    }
+
+    private JPanel createEfferdTableRow(String customer, String topic, String channel, String wait, String status, boolean isHeader, Color badgeBg, Color badgeFg) {
+        JPanel row = new JPanel(new GridLayout(1, 5, 10, 0));
+        row.setOpaque(false);
+        row.setBorder(new EmptyBorder(8, 6, 8, 6));
+
+        JLabel cLbl = new JLabel(customer);
+        cLbl.setFont(isHeader ? new Font("Segoe UI", Font.BOLD, 11) : FONT_BOLD);
+        cLbl.setForeground(isHeader ? TEXT_MUTED : TEXT_PRIMARY);
+
+        JLabel tLbl = new JLabel(topic);
+        tLbl.setFont(isHeader ? new Font("Segoe UI", Font.BOLD, 11) : FONT_BODY);
+        tLbl.setForeground(isHeader ? TEXT_MUTED : TEXT_SECONDARY);
+
+        JLabel chLbl = new JLabel(channel);
+        chLbl.setFont(isHeader ? new Font("Segoe UI", Font.BOLD, 11) : FONT_BODY);
+        chLbl.setForeground(isHeader ? TEXT_MUTED : TEXT_SECONDARY);
+
+        JLabel wLbl = new JLabel(wait);
+        wLbl.setFont(isHeader ? new Font("Segoe UI", Font.BOLD, 11) : FONT_SMALL);
+        wLbl.setForeground(isHeader ? TEXT_MUTED : TEXT_MUTED);
+
+        row.add(cLbl);
+        row.add(tLbl);
+        row.add(chLbl);
+        row.add(wLbl);
+
+        if (isHeader) {
+            JLabel sLbl = new JLabel(status);
+            sLbl.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            sLbl.setForeground(TEXT_MUTED);
+            row.add(sLbl);
+        } else {
+            JPanel badgeWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            badgeWrap.setOpaque(false);
+            JPanel badge = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 2)) {
+                @Override protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(badgeBg != null ? badgeBg : BG_CARD_ALT);
+                    g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                    g2.dispose();
+                }
+            };
+            badge.setOpaque(false);
+            JLabel stLbl = new JLabel(status);
+            stLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+            stLbl.setForeground(badgeFg != null ? badgeFg : TEXT_SECONDARY);
+            badge.add(stLbl);
+            badgeWrap.add(badge);
+            row.add(badgeWrap);
+        }
+
+        row.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        row.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                if (!isHeader) navigateTo(1);
+            }
+        });
+        return row;
+    }
+
+    private JPanel createEfferdSignalRow(String text, String time, Color dotColor) {
+        JPanel row = new JPanel(new BorderLayout(8, 0));
+        row.setOpaque(false);
+        row.setBorder(new EmptyBorder(6, 0, 6, 0));
+
+        JPanel dot = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(dotColor);
+                g2.fillOval(2, 6, 7, 7);
+                g2.dispose();
+            }
+        };
+        dot.setPreferredSize(new Dimension(14, 18));
+        dot.setOpaque(false);
+
+        JPanel textWrap = new JPanel(new BorderLayout(0, 1));
+        textWrap.setOpaque(false);
+        JLabel title = new JLabel(text);
+        title.setFont(FONT_BODY);
+        title.setForeground(TEXT_PRIMARY);
+        JLabel timeLbl = new JLabel(time);
+        timeLbl.setFont(FONT_SMALL);
+        timeLbl.setForeground(TEXT_MUTED);
+        textWrap.add(title, BorderLayout.NORTH);
+        textWrap.add(timeLbl, BorderLayout.SOUTH);
+
+        row.add(dot, BorderLayout.WEST);
+        row.add(textWrap, BorderLayout.CENTER);
+        return row;
+    }
+
+    private JPanel createEfferdModelBadgeRow(String name, String sub, String badge, Color badgeColor) {
+        JPanel row = new JPanel(new BorderLayout(8, 0));
+        row.setOpaque(false);
+        row.setBorder(new EmptyBorder(6, 4, 6, 4));
+
+        JPanel left = new JPanel(new BorderLayout(0, 1));
+        left.setOpaque(false);
+        JLabel nameLbl = new JLabel(name);
+        nameLbl.setFont(FONT_BOLD);
+        nameLbl.setForeground(TEXT_PRIMARY);
+        JLabel subLbl = new JLabel(sub);
+        subLbl.setFont(FONT_SMALL);
+        subLbl.setForeground(TEXT_MUTED);
+        left.add(nameLbl, BorderLayout.NORTH);
+        left.add(subLbl, BorderLayout.SOUTH);
+
+        JLabel badgeLbl = new JLabel(badge);
+        badgeLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        badgeLbl.setForeground(badgeColor);
+
+        row.add(left, BorderLayout.CENTER);
+        row.add(badgeLbl, BorderLayout.EAST);
+        return row;
     }
 
     private JPanel createActionCard(String title, String desc, String iconType, ActionListener listener) {

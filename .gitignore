@@ -57,3 +57,7 @@ desktop.ini
 !assets/*.apk
 !assets/*.txt
 
+
+# Vercel
+.vercel/
+.agents/

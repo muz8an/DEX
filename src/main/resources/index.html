@@ -9,50 +9,50 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root, [data-theme="light"] {
-            --bg-base: #FAF4EE;
-            --bg-elevated: #FFFDFB;
-            --bg-surface: #F7EFE8;
-            --bg-surface-hover: #F4EBE3;
-            --border-subtle: #EFE4DA;
-            --border-medium: #E8D9CC;
-            --border-focus: #671A29;
-            --text-primary: #2D2120;
-            --text-secondary: #8E756D;
-            --text-muted: #B8A39C;
-            --accent-cyan: #671A29;
-            --accent-blue: #671A29;
-            --accent-purple: #561422;
-            --accent-green: #34A853;
-            --accent-amber: #E68A00;
-            --accent-red: #D93025;
-            --user-bubble: #F8E7DF;
-            --ai-bubble: #FFFDFB;
-            --shadow-sm: 0 1px 3px rgba(103, 26, 41, 0.04);
-            --shadow-md: 0 4px 12px rgba(103, 26, 41, 0.06);
+                :root, [data-theme="light"] {
+            --bg-base: #FAFAFA;
+            --bg-elevated: #FFFFFF;
+            --bg-surface: #F4F4F5;
+            --bg-surface-hover: #E4E4E7;
+            --border-subtle: #E4E4E7;
+            --border-medium: #D4D4D8;
+            --border-focus: #09090B;
+            --text-primary: #09090B;
+            --text-secondary: #71717A;
+            --text-muted: #A1A1AA;
+            --accent-cyan: #09090B;
+            --accent-blue: #2563EB;
+            --accent-purple: #7C3AED;
+            --accent-green: #16A34A;
+            --accent-amber: #D97706;
+            --accent-red: #DC2626;
+            --user-bubble: #09090B;
+            --ai-bubble: #FFFFFF;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
             --sidebar-width: 250px;
-            --header-height: 58px;
+            --header-height: 56px;
         }
 
         [data-theme="dark"] {
-            --bg-base: #191919;
-            --bg-elevated: #202020;
-            --bg-surface: #262626;
-            --bg-surface-hover: #2F2F2F;
-            --border-subtle: #2F2F2F;
-            --border-medium: #3F3F3F;
-            --border-focus: #FFFFFF;
-            --text-primary: #FFFFFF;
-            --text-secondary: #9B9B9B;
-            --text-muted: #6B6B6B;
-            --accent-cyan: #FFFFFF;
-            --accent-blue: #2383E2;
-            --accent-purple: #FFFFFF;
-            --accent-green: #10B981;
+            --bg-base: #09090B;
+            --bg-elevated: #18181B;
+            --bg-surface: #27272A;
+            --bg-surface-hover: #3F3F46;
+            --border-subtle: #27272A;
+            --border-medium: #3F3F46;
+            --border-focus: #FAFAFA;
+            --text-primary: #FAFAFA;
+            --text-secondary: #A1A1AA;
+            --text-muted: #71717A;
+            --accent-cyan: #FAFAFA;
+            --accent-blue: #3B82F6;
+            --accent-purple: #A855F7;
+            --accent-green: #22C55E;
             --accent-amber: #F59E0B;
             --accent-red: #EF4444;
-            --user-bubble: #2F2F2F;
-            --ai-bubble: #202020;
+            --user-bubble: #27272A;
+            --ai-bubble: #18181B;
             --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
             --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
@@ -1041,6 +1041,189 @@
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
+    
+        /* ── EFFERD DASHBOARD 3 STYLES ── */
+        .efferd-brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .efferd-brand-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--text-primary);
+            color: var(--bg-elevated);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .efferd-search-capsule {
+            width: 380px;
+            max-width: 45%;
+            height: 36px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .efferd-search-capsule:focus-within {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 1px var(--border-focus);
+        }
+        .efferd-search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        .efferd-search-input::placeholder { color: var(--text-muted); }
+        .kbd-badge {
+            font-size: 10px;
+            font-family: monospace;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--bg-surface-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            line-height: 1;
+        }
+        .efferd-primary-btn {
+            height: 36px;
+            padding: 0 14px;
+            background: var(--text-primary);
+            color: var(--bg-elevated);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.05s;
+        }
+        .efferd-primary-btn:hover { opacity: 0.9; }
+        .efferd-primary-btn:active { transform: scale(0.98); }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 10px 14px 4px;
+        }
+
+        .efferd-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .efferd-kpi-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .efferd-kpi-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .efferd-kpi-val {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+        .efferd-kpi-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .efferd-staging-grid {
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .efferd-staging-grid { grid-template-columns: 1fr; }
+            .efferd-search-capsule { display: none; }
+        }
+        .efferd-box-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .efferd-box-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .efferd-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .efferd-table th {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+        }
+        .efferd-table td {
+            font-size: 13px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+        }
+        .efferd-table tr:hover td { background: var(--bg-surface-hover); }
+        .efferd-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .efferd-badge-active { background: rgba(22, 163, 74, 0.15); color: var(--accent-green); }
+        .efferd-badge-queue { background: transparent; border: 1px solid var(--border-medium); color: var(--text-secondary); }
+        .efferd-badge-snoozed { background: rgba(217, 119, 6, 0.15); color: var(--accent-amber); }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -1049,13 +1232,18 @@
     <header>
         <div class="header-brand">
             <button class="menu-btn" id="menuToggle" onclick="toggleSidebar()" title="Toggle Menu">☰</button>
-            <div class="logo-wrap">
-                <div class="logo-icon">D</div>
+            <div class="efferd-brand-badge">
+                <div class="efferd-brand-icon">D</div>
                 <div class="logo-text">
-                    DEX <span>ASSISTANT</span>
-                    <span class="logo-badge">AI</span>
+                    DEX AI ASSISTANT <span>/ Workspace</span>
                 </div>
             </div>
+        </div>
+
+        <div class="efferd-search-capsule" onclick="focusGlobalSearch()">
+            <span style="font-size: 14px; color: var(--text-muted)">🔍</span>
+            <input type="text" id="globalSearchInput" class="efferd-search-input" placeholder="Search conversations or commands..." onkeydown="handleGlobalSearch(event)">
+            <kbd class="kbd-badge">⌘K</kbd>
         </div>
 
         <div class="header-status">
@@ -1063,6 +1251,9 @@
                 <div class="status-dot"></div>
                 <span id="statusText">ONLINE</span>
             </div>
+            <button class="efferd-primary-btn" onclick="newChat()">
+                <span>＋</span> New Conversation
+            </button>
             <div class="header-actions">
                 <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
                 <button class="icon-btn" onclick="showPage('settings')" title="Settings">⚙️</button>
@@ -1078,39 +1269,208 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-top">
-                <button class="new-chat-btn" onclick="newChat()">
-                    <span>＋</span> New Chat
+                <button class="new-chat-btn efferd-primary-btn" style="width: 100%; justify-content: center;" onclick="newChat()">
+                    <span>＋</span> New Conversation
                 </button>
             </div>
             <nav class="sidebar-nav">
-                <button class="nav-item active" id="nav-chat" onclick="showPage('chat')">
-                    <span class="nav-icon">💬</span> Chat
+                <div class="sidebar-section-title">Overview</div>
+                <button class="nav-item active" id="nav-overview" onclick="showPage('overview')">
+                    <span class="nav-icon">📊</span> Today
+                </button>
+                <button class="nav-item" id="nav-tasks" onclick="showPage('tasks')">
+                    <span class="nav-icon">📋</span> Queue
+                </button>
+
+                <div class="sidebar-section-title">Inbox</div>
+                <button class="nav-item" id="nav-chat" onclick="showPage('chat')">
+                    <span class="nav-icon">💬</span> Conversations
                 </button>
                 <button class="nav-item" id="nav-voice" onclick="showPage('voice')">
                     <span class="nav-icon">🎙️</span> Voice Mode
                 </button>
+
+                <div class="sidebar-section-title">Workspace</div>
                 <button class="nav-item" id="nav-tools" onclick="showPage('tools')">
-                    <span class="nav-icon">🛠️</span> Tools Explorer
+                    <span class="nav-icon">🛠️</span> Channels & Tools
                 </button>
-                <button class="nav-item" id="nav-tasks" onclick="showPage('tasks')">
-                    <span class="nav-icon">📋</span> Task History
-                </button>
+
+                <div class="sidebar-section-title">Organization</div>
                 <button class="nav-item" id="nav-remote" onclick="showPage('remote')">
-                    <span class="nav-icon">📱</span> Phone Remote Control
+                    <span class="nav-icon">📱</span> Phone Remote
                 </button>
                 <button class="nav-item" id="nav-settings" onclick="showPage('settings')">
-                    <span class="nav-icon">⚙️</span> Settings
+                    <span class="nav-icon">⚙️</span> Settings & Vault
                 </button>
             </nav>
             <div class="sidebar-footer">
-                DEX Personal Assistant v1.0.0
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>● All systems active</span>
+                    <span>Port 8080</span>
+                </div>
             </div>
         </aside>
 
         <!-- Content Area -->
         <main class="content-area">
+                        <!-- ── 0. EFFERD DASHBOARD 3 OVERVIEW PAGE ── -->
+            <div class="page active" id="page-overview">
+                <div class="page-scrollable" style="max-width: 1200px;">
+                    <!-- Efferd 4-Card KPI Strip -->
+                    <div class="efferd-kpi-grid">
+                        <div class="efferd-kpi-card">
+                            <span class="efferd-kpi-title">Open queue</span>
+                            <span class="efferd-kpi-val" id="webKpiQueue">0</span>
+                            <div class="efferd-kpi-sub">
+                                <span>vs yesterday</span>
+                                <span style="color: var(--accent-green); font-weight: 500;">0 pending</span>
+                            </div>
+                        </div>
+
+                        <div class="efferd-kpi-card">
+                            <span class="efferd-kpi-title">Active conversations</span>
+                            <span class="efferd-kpi-val" id="webKpiConvo">1</span>
+                            <div class="efferd-kpi-sub">
+                                <span style="color: var(--accent-green); font-weight: 500;">+12%</span>
+                                <span>vs last week</span>
+                            </div>
+                        </div>
+
+                        <div class="efferd-kpi-card">
+                            <span class="efferd-kpi-title">Median first reply</span>
+                            <span class="efferd-kpi-val">487ms</span>
+                            <div class="efferd-kpi-sub">
+                                <span style="color: var(--accent-green); font-weight: 500;">-18%</span>
+                                <span>vs target (&lt; 2s)</span>
+                            </div>
+                        </div>
+
+                        <div class="efferd-kpi-card">
+                            <span class="efferd-kpi-title">CSAT (30d)</span>
+                            <span class="efferd-kpi-val">98.4%</span>
+                            <div class="efferd-kpi-sub">
+                                <span style="color: var(--accent-green); font-weight: 500;">+4%</span>
+                                <span>vs prior 30d</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Staging Split -->
+                    <div class="efferd-staging-grid">
+                        <!-- Recent Conversations Table -->
+                        <div class="efferd-box-card">
+                            <div class="efferd-box-header">
+                                <div>
+                                    <h3 style="font-size: 14px; font-weight: 600;">Recent conversations</h3>
+                                    <p style="font-size: 12px; color: var(--text-secondary);">Latest threads from your inbox</p>
+                                </div>
+                                <button onclick="showPage('chat')" style="background:none; border:none; color:var(--text-secondary); font-size:12px; cursor:pointer; font-weight:500;">View All &rarr;</button>
+                            </div>
+                            <table class="efferd-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer / Session</th>
+                                        <th>Topic</th>
+                                        <th>Channel</th>
+                                        <th>Wait</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr onclick="showPage('chat')" style="cursor: pointer;">
+                                        <td style="font-weight: 500;">Northwind Labs</td>
+                                        <td style="color: var(--text-secondary);">Billing portal access & OCR</td>
+                                        <td>💬 chat</td>
+                                        <td style="color: var(--text-muted); font-size: 12px;">6 min</td>
+                                        <td><span class="efferd-badge efferd-badge-queue">In queue</span></td>
+                                    </tr>
+                                    <tr onclick="showPage('chat')" style="cursor: pointer;">
+                                        <td style="font-weight: 500;">Blue River Co.</td>
+                                        <td style="color: var(--text-secondary);">Windows app launch (VS Code)</td>
+                                        <td>💻 windows</td>
+                                        <td style="color: var(--text-muted); font-size: 12px;">1 min</td>
+                                        <td><span class="efferd-badge efferd-badge-active">Active</span></td>
+                                    </tr>
+                                    <tr onclick="showPage('chat')" style="cursor: pointer;">
+                                        <td style="font-weight: 500;">Oak Street Studio</td>
+                                        <td style="color: var(--text-secondary);">Provider API key rotation & vault</td>
+                                        <td>⚡ api</td>
+                                        <td style="color: var(--text-muted); font-size: 12px;">12 min</td>
+                                        <td><span class="efferd-badge efferd-badge-snoozed">Snoozed</span></td>
+                                    </tr>
+                                    <tr onclick="showPage('chat')" style="cursor: pointer;">
+                                        <td style="font-weight: 500;">Harbor Freight LLC</td>
+                                        <td style="color: var(--text-secondary);">Android Companion PIN pairing</td>
+                                        <td>📱 mobile</td>
+                                        <td style="color: var(--text-muted); font-size: 12px;">3 min</td>
+                                        <td><span class="efferd-badge efferd-badge-active">Active</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div style="padding: 12px; text-align: center; border-top: 1px solid var(--border-subtle);">
+                                <button onclick="showPage('chat')" style="background:none; border:none; color: var(--text-primary); font-size:12px; cursor:pointer; font-weight:600;">View all conversations &rarr;</button>
+                            </div>
+                        </div>
+
+                        <!-- Right: Workspace Activity & AI Team -->
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="efferd-box-card" style="padding: 18px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <div>
+                                        <h3 style="font-size: 14px; font-weight: 600;">Workspace activity</h3>
+                                        <p style="font-size: 12px; color: var(--text-secondary);">Operational signals.</p>
+                                    </div>
+                                    <span style="font-size: 10px; font-family: monospace; color: var(--text-muted);">LIVE</span>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                        <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); margin-top: 4px;"></span>
+                                        <div>
+                                            <div style="font-size: 12px; font-weight: 500;">SLA warning cleared for Oak Street Studio</div>
+                                            <div style="font-size: 11px; color: var(--text-muted);">12 min ago</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                        <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-blue); margin-top: 4px;"></span>
+                                        <div>
+                                            <div style="font-size: 12px; font-weight: 500;">Windows Controller initialized native process</div>
+                                            <div style="font-size: 11px; color: var(--text-muted);">28 min ago</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                        <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-purple); margin-top: 4px;"></span>
+                                        <div>
+                                            <div style="font-size: 12px; font-weight: 500;">Macro 'Refund approved' updated in memory</div>
+                                            <div style="font-size: 11px; color: var(--text-muted);">1 hr ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="efferd-box-card" style="padding: 18px;">
+                                <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">On-Duty AI Engine</h3>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 6px; background: var(--bg-surface);">
+                                        <div style="font-size: 12px; font-weight: 500;">Gemini 2.5 Flash</div>
+                                        <span class="efferd-badge efferd-badge-active">Primary</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 6px; background: var(--bg-surface);">
+                                        <div style="font-size: 12px; font-weight: 500;">Claude 3.5 Sonnet</div>
+                                        <span class="efferd-badge efferd-badge-queue">Standby</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 6px; background: var(--bg-surface);">
+                                        <div style="font-size: 12px; font-weight: 500;">Ollama Local (DeepSeek)</div>
+                                        <span class="efferd-badge efferd-badge-active">Local</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ── 1. CHAT PAGE ── -->
-            <div class="page active" id="page-chat">
+            <div class="page" id="page-chat">
                 <div class="chat-container">
                     <div class="messages-list" id="messagesList">
                         <div class="welcome-hero" id="welcomeHero">
@@ -1548,6 +1908,30 @@
         }
 
         // ── NAVIGATION ──
+        
+        function focusGlobalSearch() {
+            const input = document.getElementById('globalSearchInput');
+            if (input) input.focus();
+        }
+
+        function handleGlobalSearch(e) {
+            if (e.key === 'Enter') {
+                const q = e.target.value.trim();
+                if (q) {
+                    e.target.value = '';
+                    showPage('chat');
+                    quickSend(q);
+                }
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                focusGlobalSearch();
+            }
+        });
+
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));

@@ -37,7 +37,12 @@ jobs:
       - name: Install WiX Toolset
         run: |
           choco install wixtoolset -y
-          echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $env:GITHUB_PATH
+          $wixBin = Get-ChildItem -Path "C:\Program Files (x86)\WiX Toolset*\bin" -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+          if ($wixBin) {
+            echo "$wixBin" >> $env:GITHUB_PATH
+          } else {
+            echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $env:GITHUB_PATH
+          }
 
       - name: Compile and Test Desktop Application
         run: mvn clean test -DtrimStackTrace=false
@@ -64,7 +69,6 @@ jobs:
       - name: Package Windows Executable & Installer via jpackage
         shell: powershell
         run: |
-          & .\scripts\generate_icons.ps1
           & .\scripts\build_windows.ps1 -SkipTests
 
       - name: Verify Windows Artifacts

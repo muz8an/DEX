@@ -102,7 +102,8 @@ Write-Host "[Stage 3/5] Standalone executable created at $distDesktop\DEX\DEX.ex
 Write-Host "`n[Stage 4/5] Packaging Windows Installer (DEX-Setup.exe)..." -ForegroundColor Yellow
 $wixCandidates = @(
     "$env:WIX\bin",
-    "$env:ProgramFiles(x86)\WiX Toolset v3.11\bin",
+    "C:\Program Files (x86)\WiX Toolset v3.14\bin",
+    "C:\Program Files\WiX Toolset v3.14\bin",
     "C:\Program Files (x86)\WiX Toolset v3.11\bin",
     "C:\Program Files\WiX Toolset v3.11\bin",
     "$env:LOCALAPPDATA\WiX",
@@ -114,11 +115,23 @@ if (-not $candleCmd) {
         if ($cand -and (Test-Path "$cand\candle.exe")) {
             $env:PATH = "$cand;$env:PATH"
             Write-Host "WiX Toolset detected at: $cand" -ForegroundColor Green
+            $candleCmd = Get-Command candle -ErrorAction SilentlyContinue
             break
         }
     }
+}
+if (-not $candleCmd) {
+    $foundCandle = Get-ChildItem -Path "C:\Program Files (x86)" -Filter "candle.exe" -Recurse -Depth 4 -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($foundCandle) {
+        $env:PATH = "$($foundCandle.DirectoryName);$env:PATH"
+        Write-Host "WiX Toolset discovered at: $($foundCandle.DirectoryName)" -ForegroundColor Green
+        $candleCmd = Get-Command candle -ErrorAction SilentlyContinue
+    }
+}
+if ($candleCmd) {
+    Write-Host "WiX Toolset active: $($candleCmd.Source)" -ForegroundColor Green
 } else {
-    Write-Host "WiX Toolset already detected in PATH: $($candleCmd.Source)" -ForegroundColor Green
+    Write-Warning "WiX candle.exe not found on PATH or standard candidate directories."
 }
 
 $distInstaller = "$workspaceRoot\dist\installer"

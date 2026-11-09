@@ -25,7 +25,9 @@ if (-not (Test-Path $sourceImage)) {
     exit 1
 }
 
-$img = [System.Drawing.Image]::FromFile($sourceImage)
+$fileBytes = [System.IO.File]::ReadAllBytes($sourceImage)
+$msIn = New-Object System.IO.MemoryStream(,$fileBytes)
+$img = [System.Drawing.Image]::FromStream($msIn)
 
 # 1. 512x512 PNG
 $b512 = New-Object System.Drawing.Bitmap 512, 512
@@ -36,7 +38,9 @@ $g512.DrawImage($img, 0, 0, 512, 512)
 $pngAssetPath = Join-Path $targetIconsDir "dex.png"
 $pngResourcePath = Join-Path $targetResourceDir "dex_icon.png"
 $b512.Save($pngAssetPath, [System.Drawing.Imaging.ImageFormat]::Png)
-$b512.Save($pngResourcePath, [System.Drawing.Imaging.ImageFormat]::Png)
+if ($sourceImage -ne $pngResourcePath) {
+    $b512.Save($pngResourcePath, [System.Drawing.Imaging.ImageFormat]::Png)
+}
 $g512.Dispose()
 $b512.Dispose()
 
@@ -73,5 +77,6 @@ $fs.Close()
 $g256.Dispose()
 $b256.Dispose()
 $img.Dispose()
+$msIn.Dispose()
 
 Write-Output "Generated icons successfully: $pngAssetPath, $icoAssetPath, $pngResourcePath"

@@ -14,10 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MemoryManagerTest {
 
     @Test
-    public void testLoadExistingMemoryFile() {
-        MemoryManager manager = new MemoryManager();
-        // data/memory.json exists in workspace and contains previous conversations
-        assertTrue(manager.size() > 0, "Should have loaded messages from existing data/memory.json");
+    public void testLoadExistingMemoryFile(@TempDir Path tempDir) throws IOException {
+        Path tempMemory = tempDir.resolve("memory.json");
+        String sampleJson = "[{\"role\":\"user\",\"content\":\"Hello DEX\"}]";
+        Files.writeString(tempMemory, sampleJson);
+
+        MemoryManager manager = new MemoryManager(tempMemory);
+        assertTrue(manager.size() > 0, "Should have loaded messages from existing memory.json");
     }
 
     @Test

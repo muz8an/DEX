@@ -35,10 +35,19 @@ jobs:
           cache: 'maven'
 
       - name: Install WiX Toolset
-        run: choco install wixtoolset -y
+        run: |
+          choco install wixtoolset -y
+          echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $env:GITHUB_PATH
 
       - name: Compile and Test Desktop Application
         run: mvn clean test
+
+      - name: Upload Maven Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-test-reports
+          path: target/surefire-reports/
 
       - name: Package Windows Fat JAR
         run: mvn package -DskipTests
@@ -75,8 +84,6 @@ jobs:
   build-android:
     name: Build Android Companion APK
     runs-on: ubuntu-latest
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -87,6 +94,14 @@ jobs:
           distribution: 'microsoft'
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: mobile
+
       - name: Fix line endings and grant execute permission for gradlew
         run: |
           sed -i 's/\r$//' mobile/gradlew
@@ -95,6 +110,13 @@ jobs:
       - name: Run Android Unit Tests
         working-directory: mobile
         run: ./gradlew test --no-daemon
+
+      - name: Upload Android Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports
+          path: mobile/app/build/reports/tests/
 
       - name: Build Android Debug APK
         working-directory: mobile

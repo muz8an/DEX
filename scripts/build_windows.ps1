@@ -43,15 +43,33 @@ Write-Host "[Stage 2/5] Icons validated." -ForegroundColor Green
 
 # 3. Create Standalone Executable (App-Image) via jpackage
 Write-Host "`n[Stage 3/5] Packaging Standalone Application Image via jpackage..." -ForegroundColor Yellow
-$jpackageExe = "C:\Program Files\Java\jdk-27\bin\jpackage.exe"
-if (-not (Test-Path $jpackageExe)) {
+$jpackageExe = $null
+if ($env:JAVA_HOME -and (Test-Path "$env:JAVA_HOME\bin\jpackage.exe")) {
+    $jpackageExe = "$env:JAVA_HOME\bin\jpackage.exe"
+}
+if (-not $jpackageExe) {
     $found = (Get-Command jpackage -ErrorAction SilentlyContinue)
     if ($found) { $jpackageExe = $found.Source }
-    else {
-        Write-Error "JDK jpackage tool not found. Please install JDK 17+ or set JAVA_HOME."
-        exit 1
+}
+if (-not $jpackageExe) {
+    $candidates = @(
+        "C:\Program Files\Java\jdk-27\bin\jpackage.exe",
+        "C:\Program Files\Java\jdk-21\bin\jpackage.exe",
+        "C:\Program Files\Java\jdk-17\bin\jpackage.exe",
+        "C:\Program Files\Microsoft\jdk-17.0.12.7-hotspot\bin\jpackage.exe"
+    )
+    foreach ($cand in $candidates) {
+        if (Test-Path $cand) {
+            $jpackageExe = $cand
+            break
+        }
     }
 }
+if (-not $jpackageExe) {
+    Write-Error "JDK jpackage tool not found. Please install JDK 17+ or set JAVA_HOME."
+    exit 1
+}
+Write-Host "Using jpackage at: $jpackageExe" -ForegroundColor Green
 
 $inputDir = "$workspaceRoot\target\package-input"
 New-Item -ItemType Directory -Force -Path $inputDir | Out-Null
@@ -83,16 +101,24 @@ Write-Host "[Stage 3/5] Standalone executable created at $distDesktop\DEX\DEX.ex
 # 4. Create Windows EXE Installer via jpackage and WiX
 Write-Host "`n[Stage 4/5] Packaging Windows Installer (DEX-Setup.exe)..." -ForegroundColor Yellow
 $wixCandidates = @(
-    "$env:LOCALAPPDATA\WiX",
+    "$env:WIX\bin",
+    "$env:ProgramFiles(x86)\WiX Toolset v3.11\bin",
     "C:\Program Files (x86)\WiX Toolset v3.11\bin",
-    "C:\Program Files\WiX Toolset v3.11\bin"
+    "C:\Program Files\WiX Toolset v3.11\bin",
+    "$env:LOCALAPPDATA\WiX",
+    "$env:ChocolateyInstall\bin"
 )
-foreach ($cand in $wixCandidates) {
-    if (Test-Path "$cand\candle.exe") {
-        $env:PATH = "$cand;$env:PATH"
-        Write-Host "WiX Toolset detected at: $cand" -ForegroundColor Green
-        break
+$candleCmd = Get-Command candle -ErrorAction SilentlyContinue
+if (-not $candleCmd) {
+    foreach ($cand in $wixCandidates) {
+        if ($cand -and (Test-Path "$cand\candle.exe")) {
+            $env:PATH = "$cand;$env:PATH"
+            Write-Host "WiX Toolset detected at: $cand" -ForegroundColor Green
+            break
+        }
     }
+} else {
+    Write-Host "WiX Toolset already detected in PATH: $($candleCmd.Source)" -ForegroundColor Green
 }
 
 $distInstaller = "$workspaceRoot\dist\installer"

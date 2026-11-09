@@ -61,3 +61,4 @@ desktop.ini
 # Vercel
 .vercel/
 .agents/
+.vercel

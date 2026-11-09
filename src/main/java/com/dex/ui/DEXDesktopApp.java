@@ -16,6 +16,7 @@ import com.dex.security.SecretStorage;
 import com.dex.tools.SystemTools;
 import com.dex.voice.VoiceController;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -39,24 +40,24 @@ import java.util.List;
  */
 public class DEXDesktopApp extends JFrame {
 
-    // ==================== COLOR SYSTEM (Efferd Dashboard 3 Zinc Reference Palette) ====================
-    public static final Color BG_APP              = new Color(0xFA, 0xFA, 0xFA); // Zinc-50 canvas (#FAFAFA)
-    public static final Color BG_CARD             = new Color(0xFF, 0xFF, 0xFF); // Pure white surfaces (#FFFFFF)
-    public static final Color BG_CARD_ALT         = new Color(0xF4, 0xF4, 0xF5); // Zinc-100 hover / secondary surface (#F4F4F5)
-    public static final Color BG_ELEVATED         = new Color(0xEE, 0xEE, 0xF0); // Elevated elements
-    public static final Color PRIMARY_MAROON      = new Color(0x09, 0x09, 0x0B); // Zinc-950 high contrast primary (#09090B)
-    public static final Color PRIMARY_MAROON_DARK = new Color(0x27, 0x27, 0x2A); // Zinc-800
-    public static final Color PRIMARY_MAROON_LIGHT= new Color(0xF4, 0xF4, 0xF5); // Zinc-100 tint
-    public static final Color TEXT_TITLE_MAROON   = new Color(0x09, 0x09, 0x0B); // Zinc-950 heading color
-    public static final Color TEXT_PRIMARY        = new Color(0x09, 0x09, 0x0B); // Dark primary text
-    public static final Color TEXT_SECONDARY      = new Color(0x71, 0x71, 0x7A); // Zinc-500 secondary text
-    public static final Color TEXT_MUTED          = new Color(0xA1, 0xA1, 0xAA); // Zinc-400 muted text
-    public static final Color BORDER_SUBTLE       = new Color(0xE4, 0xE4, 0xE7); // Zinc-200 fine border (#E4E4E7)
-    public static final Color BORDER_PILL         = new Color(0xD4, 0xD4, 0xD8); // Zinc-300 border
-    public static final Color CHAT_USER_BUBBLE    = new Color(0x09, 0x09, 0x0B); // User message: high-contrast dark bubble
-    public static final Color CHAT_BOT_BUBBLE     = new Color(0xFF, 0xFF, 0xFF); // Bot: white card
-    public static final Color SUCCESS             = new Color(0x16, 0xA3, 0x4A); // Emerald green (#16A34A)
-    public static final Color ERROR               = new Color(0xDC, 0x26, 0x26); // Crimson red (#DC2626)
+    // ==================== COLOR SYSTEM (Notion Pure Black & White Palette) ====================
+    public static final Color BG_APP              = new Color(0x12, 0x12, 0x12); // Deep Notion matte black (#121212)
+    public static final Color BG_CARD             = new Color(0x1A, 0x1A, 0x1A); // Pure dark card surfaces (#1A1A1A)
+    public static final Color BG_CARD_ALT         = new Color(0x22, 0x22, 0x22); // Input / elevated surface (#222222)
+    public static final Color BG_ELEVATED         = new Color(0x28, 0x28, 0x28); // Hover surface (#282828)
+    public static final Color PRIMARY_MAROON      = new Color(0xFF, 0xFF, 0xFF); // High-contrast pure white (#FFFFFF)
+    public static final Color PRIMARY_MAROON_DARK = new Color(0xEE, 0xEE, 0xEE); // White hover (#EEEEEE)
+    public static final Color PRIMARY_MAROON_LIGHT= new Color(0x22, 0x22, 0x22); // Dark pill bg
+    public static final Color TEXT_TITLE_MAROON   = new Color(0xFF, 0xFF, 0xFF); // White heading
+    public static final Color TEXT_PRIMARY        = new Color(0xFF, 0xFF, 0xFF); // Pure white text (#FFFFFF)
+    public static final Color TEXT_SECONDARY      = new Color(0xA0, 0xA0, 0xA0); // Neutral grey secondary (#A0A0A0)
+    public static final Color TEXT_MUTED          = new Color(0x70, 0x70, 0x70); // Muted grey (#707070)
+    public static final Color BORDER_SUBTLE       = new Color(0x2A, 0x2A, 0x2A); // Subtle monochrome border (#2A2A2A)
+    public static final Color BORDER_PILL         = new Color(0x38, 0x38, 0x38); // Stronger border (#383838)
+    public static final Color CHAT_USER_BUBBLE    = new Color(0x25, 0x25, 0x25); // User message bubble
+    public static final Color CHAT_BOT_BUBBLE     = new Color(0x1A, 0x1A, 0x1A); // Bot message card
+    public static final Color SUCCESS             = new Color(0xFF, 0xFF, 0xFF); // Monochrome white indicator
+    public static final Color ERROR               = new Color(0xD0, 0xD0, 0xD0); // Monochrome light gray alert // Crimson red (#DC2626)
 
     // ==================== FONTS ====================
     public static final Font FONT_SERIF_TITLE = getSerifTitleFont();
@@ -153,6 +154,8 @@ public class DEXDesktopApp extends JFrame {
 
     // Asset Cache
     private BufferedImage orbImage;
+    private BufferedImage logoAvatarImage;
+    private BufferedImage logoWhiteImage;
 
     public DEXDesktopApp(AIClient aiClient) {
         this.aiClient = aiClient;
@@ -171,18 +174,30 @@ public class DEXDesktopApp extends JFrame {
         } catch (Exception e) {
             System.err.println("[DEX UI] Could not load /assistant_orb.jpg: " + e.getMessage());
         }
+        try {
+            InputStream isLogo = getClass().getResourceAsStream("/dex_avatar_circle.png");
+            if (isLogo != null) {
+                logoAvatarImage = ImageIO.read(isLogo);
+            }
+            InputStream isWhite = getClass().getResourceAsStream("/dex_logo_white.png");
+            if (isWhite != null) {
+                logoWhiteImage = ImageIO.read(isWhite);
+            }
+        } catch (Exception e) {
+            System.err.println("[DEX UI] Could not load official logo assets: " + e.getMessage());
+        }
     }
 
     private void initLookAndFeel() {
         try {
-            FlatLightLaf.setup();
+            FlatDarkLaf.setup();
             UIManager.put("Panel.background", BG_APP);
             UIManager.put("Viewport.background", BG_APP);
             UIManager.put("ScrollPane.background", BG_APP);
             UIManager.put("Component.arc", 6);   // Notion uses subtle 4-6px radius
             UIManager.put("Button.arc", 6);
             UIManager.put("TextComponent.arc", 6);
-            UIManager.put("ScrollBar.thumb", new Color(0xD3, 0xD2, 0xCF));
+            UIManager.put("ScrollBar.thumb", new Color(0x38, 0x38, 0x38));
             UIManager.put("ScrollBar.track", BG_APP);
             UIManager.put("ScrollBar.width", 5);
             UIManager.put("RootPane.titleBarBackground", BG_APP);
@@ -444,7 +459,11 @@ public class DEXDesktopApp extends JFrame {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                DrawIcons.drawRosetteLogo(g2, 0, 0, 24, 24, PRIMARY_MAROON);
+                if (logoWhiteImage != null) {
+                    g2.drawImage(logoWhiteImage, 0, 0, 24, 24, null);
+                } else {
+                    DrawIcons.drawRosetteLogo(g2, 0, 0, 24, 24, PRIMARY_MAROON);
+                }
                 g2.dispose();
             }
         };
@@ -606,46 +625,143 @@ public class DEXDesktopApp extends JFrame {
         JPanel page = new JPanel(new BorderLayout(0, 0));
         page.setBackground(BG_APP);
 
-        // Hidden personalization labels (maintained for state synchronization)
+        // State labels maintained for user profile synchronization
         homeGreetingPrefixLabel = new JLabel("Welcome back,");
         homeGreetingNameLabel = new JLabel(UserProfileManager.getUserName());
         homeGreetingSubLabel = new JLabel("All operational systems active");
 
-        // ── TOPBAR: Efferd Search Capsule + New Conversation Button ──
+        // ── TOPBAR: Subtle Breadcrumb & Status ──
         JPanel topHeader = new JPanel(new BorderLayout(16, 0));
-        topHeader.setBackground(BG_CARD);
-        topHeader.setBorder(BorderFactory.createCompoundBorder(
-            new MatteBorder(0, 0, 1, 0, BORDER_SUBTLE),
-            new EmptyBorder(10, 24, 10, 24)
-        ));
+        topHeader.setBackground(BG_APP);
+        topHeader.setBorder(new EmptyBorder(12, 28, 0, 28));
 
-        // Center Search Capsule
-        JPanel searchCapsule = new JPanel(new BorderLayout(8, 0)) {
+        JPanel brandBadge = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        brandBadge.setOpaque(false);
+        JLabel brandName = new JLabel("DEX  /  Workspace");
+        brandName.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        brandName.setForeground(TEXT_MUTED);
+        brandBadge.add(brandName);
+        topHeader.add(brandBadge, BorderLayout.WEST);
+
+        JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightActions.setOpaque(false);
+
+        JPanel onlinePill = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(BG_CARD_ALT);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(BG_CARD);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 16, 16));
                 g2.setColor(BORDER_SUBTLE);
                 g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 10, 10));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 16, 16));
                 g2.dispose();
             }
         };
-        searchCapsule.setOpaque(false);
-        searchCapsule.setPreferredSize(new Dimension(380, 36));
-        searchCapsule.setBorder(new EmptyBorder(4, 12, 4, 12));
+        onlinePill.setOpaque(false);
+        JLabel dot = new JLabel("●");
+        dot.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        dot.setForeground(Color.WHITE);
+        JLabel onlineLbl = new JLabel("ONLINE");
+        onlineLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        onlineLbl.setForeground(TEXT_SECONDARY);
+        onlinePill.add(dot);
+        onlinePill.add(onlineLbl);
+        rightActions.add(onlinePill);
 
-        JLabel searchIconLabel = new JLabel("🔍");
-        searchIconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 12));
+        topHeader.add(rightActions, BorderLayout.EAST);
+        page.add(topHeader, BorderLayout.NORTH);
 
+        // ── CENTER VIEWPORT: NOTION AI HERO ──
+        JPanel scrollContainer = new JPanel();
+        scrollContainer.setLayout(new BoxLayout(scrollContainer, BoxLayout.Y_AXIS));
+        scrollContainer.setBackground(BG_APP);
+        scrollContainer.setBorder(new EmptyBorder(30, 24, 40, 24));
+
+        JPanel heroPanel = new JPanel();
+        heroPanel.setLayout(new BoxLayout(heroPanel, BoxLayout.Y_AXIS));
+        heroPanel.setOpaque(false);
+        heroPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        heroPanel.setMaximumSize(new Dimension(760, 680));
+
+        // 1. Official DEX Logo Avatar Circle (Matches Image 1)
+        JPanel avatarRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        avatarRow.setOpaque(false);
+
+        JComponent avatarComponent = new JComponent() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+                int d = Math.min(getWidth(), getHeight()) - 4;
+                int x = (getWidth() - d) / 2;
+                int y = (getHeight() - d) / 2;
+
+                // Circular background
+                g2.setColor(new Color(0x1F, 0x1F, 0x1F));
+                g2.fillOval(x, y, d, d);
+
+                // Subtle outline
+                g2.setColor(new Color(0x38, 0x38, 0x38));
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.drawOval(x, y, d, d);
+
+                // Render official DEX logo
+                if (logoAvatarImage != null) {
+                    g2.setClip(new Ellipse2D.Float(x, y, d, d));
+                    g2.drawImage(logoAvatarImage, x, y, d, d, null);
+                } else if (logoWhiteImage != null) {
+                    int pad = d / 5;
+                    g2.drawImage(logoWhiteImage, x + pad, y + pad, d - 2 * pad, d - 2 * pad, null);
+                } else {
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 26));
+                    FontMetrics fm = g2.getFontMetrics();
+                    g2.drawString("DEX", (getWidth() - fm.stringWidth("DEX")) / 2, (getHeight() - fm.getHeight()) / 2 + fm.getAscent());
+                }
+                g2.dispose();
+            }
+        };
+        avatarComponent.setPreferredSize(new Dimension(86, 86));
+        avatarRow.add(avatarComponent);
+        heroPanel.add(avatarRow);
+        heroPanel.add(Box.createVerticalStrut(18));
+
+        // 2. Heading: "How can I help you today?" (Exact text from Image 1)
+        JLabel titleLabel = new JLabel("How can I help you today?");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        heroPanel.add(titleLabel);
+        heroPanel.add(Box.createVerticalStrut(24));
+
+        // 3. Notion AI Command Capsule (Centerpiece Box)
+        JPanel capsuleBox = new JPanel(new BorderLayout(0, 10)) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0x1E, 0x1E, 0x1E));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 18, 18));
+                g2.setColor(new Color(0x33, 0x33, 0x33));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 18, 18));
+                g2.dispose();
+            }
+        };
+        capsuleBox.setOpaque(false);
+        capsuleBox.setBorder(new EmptyBorder(14, 18, 12, 18));
+        capsuleBox.setMaximumSize(new Dimension(720, 140));
+        capsuleBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Text input area
         homeSearchInput = new JTextField();
-        homeSearchInput.setFont(FONT_BODY);
-        homeSearchInput.setForeground(TEXT_PRIMARY);
-        homeSearchInput.setCaretColor(PRIMARY_MAROON);
+        homeSearchInput.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        homeSearchInput.setForeground(Color.WHITE);
+        homeSearchInput.setCaretColor(Color.WHITE);
         homeSearchInput.setBorder(null);
         homeSearchInput.setOpaque(false);
-        homeSearchInput.putClientProperty("JTextField.placeholderText", "Search conversations or commands (Ctrl+K)...");
+        homeSearchInput.putClientProperty("JTextField.placeholderText", "Ask DEX anything...");
         homeSearchInput.addActionListener(e -> {
             String q = homeSearchInput.getText().trim();
             if (!q.isEmpty()) {
@@ -654,50 +770,21 @@ public class DEXDesktopApp extends JFrame {
                 dispatchPromptToChat(q);
             }
         });
+        capsuleBox.add(homeSearchInput, BorderLayout.NORTH);
 
-        JLabel kbdBadge = new JLabel("⌘K");
-        kbdBadge.setFont(new Font("Consolas", Font.BOLD, 10));
-        kbdBadge.setForeground(TEXT_MUTED);
+        // Middle action row: "＋ Review for me" | "Auto" pill + circular send button
+        JPanel midActionRow = new JPanel(new BorderLayout(0, 0));
+        midActionRow.setOpaque(false);
 
-        searchCapsule.add(searchIconLabel, BorderLayout.WEST);
-        searchCapsule.add(homeSearchInput, BorderLayout.CENTER);
-        searchCapsule.add(kbdBadge, BorderLayout.EAST);
-
-        topHeader.add(searchCapsule, BorderLayout.WEST);
-
-        // Right actions: Status pill + New Conversation button
-        JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        rightActions.setOpaque(false);
-
-        JPanel onlinePill = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4)) {
+        JButton reviewPill = new JButton("＋  Review for me") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(BG_CARD_ALT);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
-                g2.setColor(BORDER_SUBTLE);
-                g2.setStroke(new BasicStroke(1f));
-                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 20, 20));
-                g2.dispose();
-            }
-        };
-        onlinePill.setOpaque(false);
-        JLabel dot = new JLabel("●");
-        dot.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        dot.setForeground(SUCCESS);
-        JLabel onlineLbl = new JLabel("ONLINE");
-        onlineLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        onlineLbl.setForeground(TEXT_SECONDARY);
-        onlinePill.add(dot);
-        onlinePill.add(onlineLbl);
-
-        JButton newConvoBtn = new JButton("+ New Conversation") {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(PRIMARY_MAROON);
+                g2.setColor(new Color(0x28, 0x28, 0x28));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-                g2.setColor(Color.WHITE);
+                g2.setColor(new Color(0x3E, 0x3E, 0x3E));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 8, 8));
+                g2.setColor(new Color(0xC0, 0xC0, 0xC0));
                 g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
                 FontMetrics fm = g2.getFontMetrics();
                 int tx = (getWidth() - fm.stringWidth(getText())) / 2;
@@ -706,223 +793,133 @@ public class DEXDesktopApp extends JFrame {
                 g2.dispose();
             }
         };
-        newConvoBtn.setPreferredSize(new Dimension(150, 36));
-        newConvoBtn.setBorderPainted(false);
-        newConvoBtn.setContentAreaFilled(false);
-        newConvoBtn.setFocusPainted(false);
-        newConvoBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        newConvoBtn.addActionListener(e -> navigateTo(1));
+        reviewPill.setPreferredSize(new Dimension(135, 28));
+        reviewPill.setBorderPainted(false);
+        reviewPill.setContentAreaFilled(false);
+        reviewPill.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        reviewPill.addActionListener(e -> {
+            navigateTo(1);
+            dispatchPromptToChat("Review active workspace files and system state");
+        });
+        midActionRow.add(reviewPill, BorderLayout.WEST);
 
-        rightActions.add(onlinePill);
-        rightActions.add(newConvoBtn);
-        topHeader.add(rightActions, BorderLayout.EAST);
+        JPanel rightControls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        rightControls.setOpaque(false);
 
-        page.add(topHeader, BorderLayout.NORTH);
+        JLabel autoBadge = new JLabel("Auto ▾");
+        autoBadge.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        autoBadge.setForeground(TEXT_MUTED);
+        rightControls.add(autoBadge);
 
-        // ── SCROLLABLE STAGING VIEWPORT ──
-        JPanel scrollBody = new JPanel();
-        scrollBody.setLayout(new BoxLayout(scrollBody, BoxLayout.Y_AXIS));
-        scrollBody.setBackground(BG_APP);
-        scrollBody.setBorder(new EmptyBorder(24, 28, 28, 28));
-
-        // ── 1. EFFERD 4-CARD KPI METRIC STRIP ──
-        JPanel kpiStrip = new JPanel(new GridLayout(1, 4, 16, 0));
-        kpiStrip.setBackground(BG_APP);
-        kpiStrip.setMaximumSize(new Dimension(1400, 110));
-
-        kpiStrip.add(createEfferdKpiCard("Open queue", "0", "vs yesterday", "0 pending", SUCCESS));
-        kpiStrip.add(createEfferdKpiCard("Active conversations", "1", "vs last week", "+12%", SUCCESS));
-        kpiStrip.add(createEfferdKpiCard("Median first reply", "487ms", "vs target", "-18%", SUCCESS));
-        kpiStrip.add(createEfferdKpiCard("CSAT (30d)", "98.4%", "vs prior 30d", "+4%", SUCCESS));
-
-        scrollBody.add(kpiStrip);
-        scrollBody.add(Box.createVerticalStrut(20));
-
-        // ── 2. MAIN STAGING SPLIT (RECENT CONVERSATIONS TABLE + WORKSPACE ACTIVITY) ──
-        JPanel stagingSplit = new JPanel(new GridBagLayout());
-        stagingSplit.setBackground(BG_APP);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weighty = 1.0;
-
-        // LEFT: Recent Conversations Card
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0.65;
-        gbc.insets = new Insets(0, 0, 0, 16);
-
-        JPanel recentCard = createEfferdCardWrapper();
-        recentCard.setLayout(new BorderLayout(0, 12));
-
-        JPanel recentHead = new JPanel(new BorderLayout(0, 2));
-        recentHead.setOpaque(false);
-        JLabel recentTitle = new JLabel("Recent conversations");
-        recentTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        recentTitle.setForeground(TEXT_PRIMARY);
-        JLabel recentSub = new JLabel("Latest 4 threads from your inbox");
-        recentSub.setFont(FONT_SMALL);
-        recentSub.setForeground(TEXT_MUTED);
-        recentHead.add(recentTitle, BorderLayout.NORTH);
-        recentHead.add(recentSub, BorderLayout.SOUTH);
-        recentCard.add(recentHead, BorderLayout.NORTH);
-
-        // Table Rows
-        JPanel tableBody = new JPanel();
-        tableBody.setLayout(new BoxLayout(tableBody, BoxLayout.Y_AXIS));
-        tableBody.setOpaque(false);
-
-        // Header Row
-        JPanel thRow = createEfferdTableRow("CUSTOMER / SESSION", "TOPIC", "CHANNEL", "WAIT", "STATUS", true, null, null);
-        tableBody.add(thRow);
-        tableBody.add(Box.createVerticalStrut(4));
-
-        tableBody.add(createEfferdTableRow("Northwind Labs", "Billing portal access & OCR", "💬 chat", "6 min", "In queue", false, BG_CARD_ALT, TEXT_SECONDARY));
-        tableBody.add(createEfferdTableRow("Blue River Co.", "Windows app launch (VS Code)", "💻 windows", "1 min", "Active", false, new Color(0xDC, 0xFC, 0xE7), SUCCESS));
-        tableBody.add(createEfferdTableRow("Oak Street Studio", "Provider API key rotation & vault", "⚡ api", "12 min", "Snoozed", false, new Color(0xFE, 0xF3, 0xC7), new Color(0xB4, 0x53, 0x09)));
-        tableBody.add(createEfferdTableRow("Harbor Freight LLC", "Android Companion PIN pairing", "📱 mobile", "3 min", "Active", false, new Color(0xDC, 0xFC, 0xE7), SUCCESS));
-
-        recentCard.add(tableBody, BorderLayout.CENTER);
-
-        JButton viewAllBtn = new JButton("View all conversations →");
-        viewAllBtn.setFont(FONT_SMALL);
-        viewAllBtn.setForeground(TEXT_PRIMARY);
-        viewAllBtn.setBorderPainted(false);
-        viewAllBtn.setContentAreaFilled(false);
-        viewAllBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        viewAllBtn.addActionListener(e -> navigateTo(1));
-        recentCard.add(viewAllBtn, BorderLayout.SOUTH);
-
-        stagingSplit.add(recentCard, gbc);
-
-        // RIGHT: Workspace Activity & AI Team
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 0.35;
-        gbc.insets = new Insets(0, 0, 0, 0);
-
-        JPanel rightCol = new JPanel();
-        rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
-        rightCol.setOpaque(false);
-
-        // Workspace Activity Card
-        JPanel activityCard = createEfferdCardWrapper();
-        activityCard.setLayout(new BorderLayout(0, 10));
-
-        JPanel actHead = new JPanel(new BorderLayout(0, 2));
-        actHead.setOpaque(false);
-        JLabel actTitle = new JLabel("Workspace activity");
-        actTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        actTitle.setForeground(TEXT_PRIMARY);
-        JLabel actSub = new JLabel("Operational signals.");
-        actSub.setFont(FONT_SMALL);
-        actSub.setForeground(TEXT_MUTED);
-        actHead.add(actTitle, BorderLayout.WEST);
-        JLabel liveTag = new JLabel("LIVE");
-        liveTag.setFont(new Font("Consolas", Font.BOLD, 10));
-        liveTag.setForeground(TEXT_MUTED);
-        actHead.add(liveTag, BorderLayout.EAST);
-        actHead.add(actSub, BorderLayout.SOUTH);
-        activityCard.add(actHead, BorderLayout.NORTH);
-
-        JPanel signalsList = new JPanel();
-        signalsList.setLayout(new BoxLayout(signalsList, BoxLayout.Y_AXIS));
-        signalsList.setOpaque(false);
-        signalsList.add(createEfferdSignalRow("SLA warning cleared for Oak Street Studio", "12 min ago", SUCCESS));
-        signalsList.add(createEfferdSignalRow("Windows Controller initialized native PID", "28 min ago", new Color(0x25, 0x63, 0xEB)));
-        signalsList.add(createEfferdSignalRow("Macro 'Refund approved' updated in memory", "1 hr ago", new Color(0x7C, 0x3A, 0xED)));
-        signalsList.add(createEfferdSignalRow("Android Companion paired via PIN 849201", "3 hr ago", new Color(0xD9, 0x77, 0x06)));
-        activityCard.add(signalsList, BorderLayout.CENTER);
-
-        rightCol.add(activityCard);
-        rightCol.add(Box.createVerticalStrut(16));
-
-        // On-Duty Models Card
-        JPanel modelsCard = createEfferdCardWrapper();
-        modelsCard.setLayout(new BorderLayout(0, 10));
-        JLabel modTitle = new JLabel("On-Duty AI Engine");
-        modTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        modTitle.setForeground(TEXT_PRIMARY);
-        modelsCard.add(modTitle, BorderLayout.NORTH);
-
-        JPanel modelsList = new JPanel();
-        modelsList.setLayout(new BoxLayout(modelsList, BoxLayout.Y_AXIS));
-        modelsList.setOpaque(false);
-        modelsList.add(createEfferdModelBadgeRow("Gemini 2.5 Flash", "Multimodal reasoning active", "Primary", SUCCESS));
-        modelsList.add(createEfferdModelBadgeRow("Claude 3.5 Sonnet", "Anthropic API ready", "Standby", TEXT_SECONDARY));
-        modelsList.add(createEfferdModelBadgeRow("Ollama Local", "DeepSeek-R1 offline", "Local", SUCCESS));
-        modelsCard.add(modelsList, BorderLayout.CENTER);
-
-        rightCol.add(modelsCard);
-        stagingSplit.add(rightCol, gbc);
-
-        scrollBody.add(stagingSplit);
-        scrollBody.add(Box.createVerticalStrut(20));
-
-        // Bottom Quick Input Dock (satisfies homeBottomInput reference)
-        JPanel bottomDock = new JPanel(new BorderLayout(10, 0)) {
+        JButton sendArrowBtn = new JButton("↑") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(BG_CARD);
+                g2.setColor(Color.WHITE);
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                g2.setColor(Color.BLACK);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 15));
+                FontMetrics fm = g2.getFontMetrics();
+                int tx = (getWidth() - fm.stringWidth("↑")) / 2;
+                int ty = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString("↑", tx, ty);
+                g2.dispose();
+            }
+        };
+        sendArrowBtn.setPreferredSize(new Dimension(28, 28));
+        sendArrowBtn.setBorderPainted(false);
+        sendArrowBtn.setContentAreaFilled(false);
+        sendArrowBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        sendArrowBtn.addActionListener(e -> {
+            String q = homeSearchInput.getText().trim();
+            if (!q.isEmpty()) {
+                homeSearchInput.setText("");
+                navigateTo(1);
+                dispatchPromptToChat(q);
+            }
+        });
+        rightControls.add(sendArrowBtn);
+        midActionRow.add(rightControls, BorderLayout.EAST);
+        capsuleBox.add(midActionRow, BorderLayout.CENTER);
+
+        // Bottom strip inside capsule: "Get better answers from your apps"
+        JPanel bottomAppStrip = new JPanel(new BorderLayout(8, 0));
+        bottomAppStrip.setOpaque(false);
+        bottomAppStrip.setBorder(new MatteBorder(1, 0, 0, 0, new Color(0x2B, 0x2B, 0x2B)));
+
+        JLabel appsLbl = new JLabel("Get better answers from your apps   🪟 ✨ 💻 📸 ⚡ 📁 📱");
+        appsLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        appsLbl.setForeground(new Color(0x78, 0x78, 0x78));
+        bottomAppStrip.add(appsLbl, BorderLayout.WEST);
+
+        capsuleBox.add(bottomAppStrip, BorderLayout.SOUTH);
+        heroPanel.add(capsuleBox);
+        heroPanel.add(Box.createVerticalStrut(20));
+
+        // 4. Quick Suggestion Action Chips (Exact pills from Image 1)
+        JPanel chipRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        chipRow.setOpaque(false);
+        chipRow.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        chipRow.add(createNotionChip("⊞  Create Slides", "Create presentation slides summarizing active workspace"));
+        chipRow.add(createNotionChip("▦  Spreadsheets", "Generate clean data analysis and spreadsheet tables"));
+        chipRow.add(createNotionChip("🔍  Research", "Research and summarize key system intelligence"));
+        chipRow.add(createNotionChip("✳  Visualize", "Visualize active Windows processes and workflows"));
+
+        heroPanel.add(chipRow);
+        heroPanel.add(Box.createVerticalStrut(28));
+
+        // Hidden bottom dock input for compatibility
+        homeBottomInput = new JTextField();
+        homeBottomInput.setVisible(false);
+
+        // 5. Minimalist Recent Tasks / Activity in Monochrome
+        JPanel recentCard = new JPanel(new BorderLayout(0, 8)) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0x18, 0x18, 0x18));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-                g2.setColor(BORDER_SUBTLE);
+                g2.setColor(new Color(0x27, 0x27, 0x27));
                 g2.setStroke(new BasicStroke(1f));
                 g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 12, 12));
                 g2.dispose();
             }
         };
-        bottomDock.setOpaque(false);
-        bottomDock.setBorder(new EmptyBorder(8, 14, 8, 14));
-        bottomDock.setMaximumSize(new Dimension(1400, 48));
+        recentCard.setOpaque(false);
+        recentCard.setBorder(new EmptyBorder(12, 16, 12, 16));
+        recentCard.setMaximumSize(new Dimension(720, 140));
+        recentCard.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        homeBottomInput = new JTextField();
-        homeBottomInput.setFont(FONT_BODY);
-        homeBottomInput.setForeground(TEXT_PRIMARY);
-        homeBottomInput.setBorder(null);
-        homeBottomInput.setOpaque(false);
-        homeBottomInput.putClientProperty("JTextField.placeholderText", "Ask DEX or command Windows (e.g. 'Open VS Code', 'Take screenshot')...");
-        homeBottomInput.addActionListener(e -> {
-            String msg = homeBottomInput.getText().trim();
-            if (!msg.isEmpty()) {
-                homeBottomInput.setText("");
-                navigateTo(1);
-                dispatchPromptToChat(msg);
-            }
-        });
+        JPanel recentHead = new JPanel(new BorderLayout(0, 0));
+        recentHead.setOpaque(false);
+        JLabel recentTitle = new JLabel("RECENT SYSTEM TASKS");
+        recentTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        recentTitle.setForeground(TEXT_MUTED);
+        JButton viewAll = new JButton("View Conversations →");
+        viewAll.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        viewAll.setForeground(Color.WHITE);
+        viewAll.setBorderPainted(false);
+        viewAll.setContentAreaFilled(false);
+        viewAll.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        viewAll.addActionListener(e -> navigateTo(1));
+        recentHead.add(recentTitle, BorderLayout.WEST);
+        recentHead.add(viewAll, BorderLayout.EAST);
+        recentCard.add(recentHead, BorderLayout.NORTH);
 
-        JButton dockSendBtn = new JButton("Execute") {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(PRIMARY_MAROON);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
-                FontMetrics fm = g2.getFontMetrics();
-                int tx = (getWidth() - fm.stringWidth(getText())) / 2;
-                int ty = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                g2.drawString(getText(), tx, ty);
-                g2.dispose();
-            }
-        };
-        dockSendBtn.setPreferredSize(new Dimension(75, 30));
-        dockSendBtn.setBorderPainted(false);
-        dockSendBtn.setContentAreaFilled(false);
-        dockSendBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        dockSendBtn.addActionListener(e -> {
-            String msg = homeBottomInput.getText().trim();
-            if (!msg.isEmpty()) {
-                homeBottomInput.setText("");
-                navigateTo(1);
-                dispatchPromptToChat(msg);
-            }
-        });
+        JPanel recentRows = new JPanel();
+        recentRows.setLayout(new BoxLayout(recentRows, BoxLayout.Y_AXIS));
+        recentRows.setOpaque(false);
+        recentRows.add(createNotionRecentRow("💻 Windows Controller process active", "READY"));
+        recentRows.add(createNotionRecentRow("📸 Screen Vision OCR pipeline ready", "STANDBY"));
+        recentRows.add(createNotionRecentRow("📱 Android Companion LAN PIN pairing active", "ONLINE"));
+        recentCard.add(recentRows, BorderLayout.CENTER);
 
-        bottomDock.add(homeBottomInput, BorderLayout.CENTER);
-        bottomDock.add(dockSendBtn, BorderLayout.EAST);
-        scrollBody.add(bottomDock);
+        heroPanel.add(recentCard);
 
-        JScrollPane scrollPane = new JScrollPane(scrollBody);
+        scrollContainer.add(heroPanel);
+
+        JScrollPane scrollPane = new JScrollPane(scrollContainer);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(14);
         scrollPane.getViewport().setBackground(BG_APP);
@@ -931,7 +928,75 @@ public class DEXDesktopApp extends JFrame {
         return page;
     }
 
-    private JPanel createEfferdCardWrapper() {
+    private JButton createNotionChip(String title, String prompt) {
+        JButton btn = new JButton(title) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0x1B, 0x1B, 0x1B));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 18, 18));
+                g2.setColor(new Color(0x2D, 0x2D, 0x2D));
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 18, 18));
+                g2.setColor(new Color(0xCC, 0xCC, 0xCC));
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                FontMetrics fm = g2.getFontMetrics();
+                int tx = (getWidth() - fm.stringWidth(getText())) / 2;
+                int ty = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(getText(), tx, ty);
+                g2.dispose();
+            }
+        };
+        btn.setPreferredSize(new Dimension(145, 34));
+        btn.setBorderPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addActionListener(e -> {
+            navigateTo(1);
+            dispatchPromptToChat(prompt);
+        });
+        return btn;
+    }
+
+    private JPanel createNotionRecentRow(String title, String badge) {
+        JPanel row = new JPanel(new BorderLayout(8, 0));
+        row.setOpaque(false);
+        row.setBorder(new EmptyBorder(5, 0, 5, 0));
+        row.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JLabel tLbl = new JLabel(title);
+        tLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tLbl.setForeground(new Color(0xDD, 0xDD, 0xDD));
+
+        JLabel bLbl = new JLabel(badge) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0x25, 0x25, 0x25));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 6, 6));
+                g2.setColor(new Color(0x33, 0x33, 0x33));
+                g2.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 6, 6));
+                g2.setColor(new Color(0xA0, 0xA0, 0xA0));
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
+                FontMetrics fm = g2.getFontMetrics();
+                int tx = (getWidth() - fm.stringWidth(getText())) / 2;
+                int ty = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(getText(), tx, ty);
+                g2.dispose();
+            }
+        };
+        bLbl.setPreferredSize(new Dimension(58, 20));
+
+        row.add(tLbl, BorderLayout.CENTER);
+        row.add(bLbl, BorderLayout.EAST);
+        row.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                navigateTo(1);
+            }
+        });
+        return row;
+    }
+private JPanel createEfferdCardWrapper() {
         JPanel card = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();

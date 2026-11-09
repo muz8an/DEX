@@ -82,9 +82,17 @@ Write-Host "[Stage 3/5] Standalone executable created at $distDesktop\DEX\DEX.ex
 
 # 4. Create Windows EXE Installer via jpackage and WiX
 Write-Host "`n[Stage 4/5] Packaging Windows Installer (DEX-Setup.exe)..." -ForegroundColor Yellow
-$wixDir = "$env:LOCALAPPDATA\WiX"
-if (Test-Path "$wixDir\candle.exe") {
-    $env:PATH = "$wixDir;$env:PATH"
+$wixCandidates = @(
+    "$env:LOCALAPPDATA\WiX",
+    "C:\Program Files (x86)\WiX Toolset v3.11\bin",
+    "C:\Program Files\WiX Toolset v3.11\bin"
+)
+foreach ($cand in $wixCandidates) {
+    if (Test-Path "$cand\candle.exe") {
+        $env:PATH = "$cand;$env:PATH"
+        Write-Host "WiX Toolset detected at: $cand" -ForegroundColor Green
+        break
+    }
 }
 
 $distInstaller = "$workspaceRoot\dist\installer"

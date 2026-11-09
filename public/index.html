@@ -3268,7 +3268,7 @@
                     document.getElementById('cfgApiKeyInput').value = '';
                     const statusEl = document.getElementById('cfgProvStatus');
                     if (statusEl) {
-                        statusEl.textContent = ${provider}: Configured (Key: );
+                        statusEl.textContent = provider + ': Configured (Key active)';
                         statusEl.style.color = 'var(--accent-green)';
                     }
                     loadStatus();
@@ -3282,7 +3282,7 @@
                     document.getElementById('cfgApiKeyInput').value = '';
                     const statusEl = document.getElementById('cfgProvStatus');
                     if (statusEl) {
-                        statusEl.textContent = ${provider}: Configured (Local Key);
+                        statusEl.textContent = provider + ': Configured (Local Key)';
                         statusEl.style.color = 'var(--accent-green)';
                     }
                 } else {

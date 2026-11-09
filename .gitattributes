@@ -1,3 +1,4 @@
 # Ensure gradlew and shell scripts always have Unix LF line endings
 mobile/gradlew text eol=lf
 *.sh text eol=lf
+

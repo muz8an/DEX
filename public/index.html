@@ -526,6 +526,131 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
 
+        /* ── NOTION ACTION CARD ── */
+        .notion-action-card {
+            margin-top: 12px;
+            background: #141416;
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            animation: fadeInCard 0.2s ease-out;
+        }
+        @keyframes fadeInCard {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .action-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .action-card-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-card-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #202024;
+            color: #a1a1aa;
+            border: 1px solid #2e2e34;
+        }
+        .action-card-url {
+            font-size: 11px;
+            color: #71717a;
+            font-family: 'JetBrains Mono', monospace;
+            word-break: break-all;
+        }
+        .action-card-btn-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+        .notion-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            color: #000000 !important;
+            text-decoration: none !important;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 6px;
+            border: 1px solid #ffffff;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 6px rgba(255,255,255,0.15);
+        }
+        .notion-action-btn:hover {
+            background: #e4e4e7;
+            border-color: #e4e4e7;
+            transform: translateY(-1px);
+        }
+        .notion-action-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #1e1e22;
+            color: #e4e4e7 !important;
+            text-decoration: none !important;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #2e2e34;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .notion-action-btn-secondary:hover {
+            background: #27272c;
+            color: #ffffff !important;
+        }
+        .action-card-hint {
+            font-size: 10.5px;
+            color: #71717a;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .notion-quick-chips {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .notion-quick-chip {
+            background: #18181b;
+            border: 1px solid #27272a;
+            color: #e4e4e7;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .notion-quick-chip:hover {
+            background: #27272a;
+            color: #ffffff;
+            border-color: #3f3f46;
+        }
+
         /* Typing indicator */
         .typing-bubble {
             display: none;
@@ -2655,6 +2780,277 @@
             }
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        const CLIENT_APP_MAP = {
+            'youtube': { label: 'YouTube', url: 'https://www.youtube.com', web: 'https://www.youtube.com' },
+            'yt': { label: 'YouTube', url: 'https://www.youtube.com', web: 'https://www.youtube.com' },
+            'google': { label: 'Google Search', url: 'https://www.google.com', web: 'https://www.google.com' },
+            'github': { label: 'GitHub', url: 'https://github.com', web: 'https://github.com' },
+            'chatgpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
+            'gpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
+            'notion': { label: 'Notion', url: 'https://www.notion.so', web: 'https://www.notion.so' },
+            'spotify': { label: 'Spotify', url: 'https://open.spotify.com', protocol: 'spotify:', web: 'https://open.spotify.com' },
+            'whatsapp': { label: 'WhatsApp', url: 'https://web.whatsapp.com', protocol: 'whatsapp:', web: 'https://web.whatsapp.com' },
+            'calculator': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator' },
+            'calc': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator' },
+            'notepad': { label: 'Notepad', url: 'https://notepad.js.org', protocol: 'notepad:', web: 'https://notepad.js.org' },
+            'settings': { label: 'Windows Settings', url: 'ms-settings:', protocol: 'ms-settings:', web: null },
+            'camera': { label: 'Camera', url: 'microsoft.windows.camera:', protocol: 'microsoft.windows.camera:', web: null },
+            'clock': { label: 'Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is' },
+            'alarm': { label: 'Alarms & Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is' },
+            'paint': { label: 'Paint', url: 'ms-paint:', protocol: 'ms-paint:', web: 'https://jspaint.app' },
+            'maps': { label: 'Google Maps', url: 'https://www.google.com/maps', web: 'https://www.google.com/maps' },
+            'mail': { label: 'Gmail', url: 'https://mail.google.com', protocol: 'mailto:', web: 'https://mail.google.com' },
+            'gmail': { label: 'Gmail', url: 'https://mail.google.com', web: 'https://mail.google.com' },
+            'calendar': { label: 'Google Calendar', url: 'https://calendar.google.com', web: 'https://calendar.google.com' },
+            'reddit': { label: 'Reddit', url: 'https://www.reddit.com', web: 'https://www.reddit.com' },
+            'twitter': { label: 'X (Twitter)', url: 'https://x.com', web: 'https://x.com' },
+            'x': { label: 'X (Twitter)', url: 'https://x.com', web: 'https://x.com' },
+            'linkedin': { label: 'LinkedIn', url: 'https://www.linkedin.com', web: 'https://www.linkedin.com' },
+            'netflix': { label: 'Netflix', url: 'https://www.netflix.com', web: 'https://www.netflix.com' },
+            'twitch': { label: 'Twitch', url: 'https://www.twitch.tv', web: 'https://www.twitch.tv' },
+            'amazon': { label: 'Amazon', url: 'https://www.amazon.com', web: 'https://www.amazon.com' },
+            'vscode': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
+            'vs code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
+            'code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
+            'discord': { label: 'Discord', url: 'https://discord.com/app', protocol: 'discord:', web: 'https://discord.com/app' },
+            'telegram': { label: 'Telegram', url: 'https://web.telegram.org', protocol: 'tg:', web: 'https://web.telegram.org' },
+            'steam': { label: 'Steam', url: 'https://store.steampowered.com', protocol: 'steam:', web: 'https://store.steampowered.com' },
+            'music': { label: 'YouTube Music', url: 'https://music.youtube.com', web: 'https://music.youtube.com' },
+            'wikipedia': { label: 'Wikipedia', url: 'https://www.wikipedia.org', web: 'https://www.wikipedia.org' }
+        };
+
+        function resolveClientAction(rawText) {
+            if (!rawText) return null;
+            const text = rawText.trim();
+            const lower = text.toLowerCase();
+
+            // Ignore tool inspection commands
+            if (/^(?:run\s+)?tool:\s*/i.test(lower) || lower === 'open_app' || lower === 'open_url') {
+                return null;
+            }
+
+            // Match play
+            const playMatch = lower.match(/(?:^play|\bplay(?:ing)?\b)\s+"?([^".?!\n]+)"?/i);
+            if (playMatch) {
+                const query = playMatch[1].replace(/^(?:the\s+)?(?:song|music|track|video)\s+/i, '').trim();
+                return {
+                    type: 'play',
+                    target: query,
+                    label: `Play "${query}" on YouTube`,
+                    url: `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            // Match search
+            const searchMatch = lower.match(/(?:^search(?:\s+for)?|^google|\bsearch(?:ing)?(?: the web for)?\b)\s+"?([^".?!\n]+)"?/i);
+            if (searchMatch) {
+                const query = searchMatch[1].trim();
+                return {
+                    type: 'search',
+                    target: query,
+                    label: `Google Search: "${query}"`,
+                    url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            // Match open / launch / start / visit
+            let target = null;
+            const launchCmdMatch = text.match(/\[DEX Action\] Dispatched launch command for:\s*"([^"]+)"/i);
+            if (launchCmdMatch) {
+                target = launchCmdMatch[1].trim();
+            } else {
+                const openMatch = lower.match(/(?:^open|^launch|^start|^run|^go to|^visit)\s+([^.?!\n]+)/i);
+                if (openMatch) {
+                    target = openMatch[1].trim();
+                } else {
+                    const politeMatch = lower.match(/(?:please\s+|can you\s+|could you\s+)?(?:open|launch|start|visit|go to)\s+([^,.?!\n]+)/i);
+                    if (politeMatch) {
+                        target = politeMatch[1].trim();
+                    }
+                }
+            }
+
+            if (!target) return null;
+            target = target.replace(/^(the|my)\s+/i, '').replace(/[.?!]+$/, '').trim();
+            const targetLower = target.toLowerCase();
+
+            if (/^https?:\/\//i.test(target)) {
+                let hostname = target;
+                try { hostname = new URL(target).hostname; } catch (e) {}
+                return {
+                    type: 'open',
+                    target,
+                    label: hostname || 'External Website',
+                    url: target,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            if (/^[a-zA-Z0-9-]+\.(?:com|org|net|io|ai|co|app|dev|edu|gov|xyz|me)(?:\/[^\s]*)?$/i.test(target)) {
+                return {
+                    type: 'open',
+                    target,
+                    label: target,
+                    url: 'https://' + target,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            if (CLIENT_APP_MAP[targetLower]) {
+                const item = CLIENT_APP_MAP[targetLower];
+                return {
+                    type: 'open',
+                    target,
+                    label: item.label,
+                    url: item.url,
+                    protocol: item.protocol || null,
+                    web: item.web || item.url,
+                    isWeb: Boolean(item.web)
+                };
+            }
+
+            for (const [key, item] of Object.entries(CLIENT_APP_MAP)) {
+                if (targetLower.includes(key)) {
+                    return {
+                        type: 'open',
+                        target,
+                        label: item.label,
+                        url: item.url,
+                        protocol: item.protocol || null,
+                        web: item.web || item.url,
+                        isWeb: Boolean(item.web)
+                    };
+                }
+            }
+
+            return {
+                type: 'open',
+                target,
+                label: target.charAt(0).toUpperCase() + target.slice(1),
+                url: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
+                protocol: null,
+                web: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
+                isWeb: true
+            };
+        }
+
+        function executeClientAction(action) {
+            if (!action) return;
+
+            // 1. Direct window.open for URLs
+            if (action.url) {
+                try {
+                    const win = window.open(action.url, '_blank');
+                    if (win) {
+                        try { win.focus(); } catch (e) {}
+                    }
+                } catch (e) {
+                    console.warn('Browser popup blocked:', e);
+                }
+            }
+
+            // 2. Protocol handling
+            if (action.protocol) {
+                try {
+                    const ifr = document.createElement('iframe');
+                    ifr.style.display = 'none';
+                    ifr.src = action.protocol;
+                    document.body.appendChild(ifr);
+                    setTimeout(() => { try { ifr.remove(); } catch (e) {} }, 3000);
+                } catch (e) {
+                    console.warn('Protocol handler dispatch failed:', e);
+                }
+            }
+
+            // 3. Desktop agent bridge for local Windows automation
+            if (window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
+                const cmd = action.protocol ? action.protocol : ('open ' + (action.target || action.label));
+                fetch('http://127.0.0.1:8080/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: cmd })
+                }).catch(() => {
+                    // Silently ignore if native DEX desktop agent is not running
+                });
+            }
+        }
+
+        function createActionCardElement(action) {
+            const card = document.createElement('div');
+            card.className = 'notion-action-card';
+
+            const badgeText = action.type === 'play' ? 'PLAYBACK' : (action.type === 'search' ? 'SEARCH' : 'APPLICATION');
+
+            card.innerHTML = `
+                <div class="action-card-top">
+                    <div class="action-card-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        <span>${escapeHtml(action.label)}</span>
+                    </div>
+                    <span class="action-card-badge">${badgeText}</span>
+                </div>
+                ${action.url ? `<div class="action-card-url">${escapeHtml(action.url)}</div>` : ''}
+                <div class="action-card-btn-row">
+                    ${action.url ? `
+                        <a href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer" class="notion-action-btn" onclick="showToast('Opening ${escapeHtml(action.label)}…')">
+                            <span>Open ${escapeHtml(action.label)}</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+                        </a>
+                    ` : ''}
+                    ${action.protocol ? `
+                        <button type="button" class="notion-action-btn-secondary" onclick="window.location.href='${escapeHtml(action.protocol)}'; showToast('Launching native app…')">
+                            <span>Launch App (${escapeHtml(action.protocol)})</span>
+                        </button>
+                    ` : ''}
+                    ${action.web && action.protocol && action.url !== action.web ? `
+                        <a href="${escapeHtml(action.web)}" target="_blank" rel="noopener noreferrer" class="notion-action-btn-secondary">
+                            <span>Open Web Version ↗</span>
+                        </a>
+                    ` : ''}
+                </div>
+                <div class="action-card-hint">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span>Click button above to launch directly if browser blocked popup.</span>
+                </div>
+            `;
+            return card;
+        }
+
+        function createQuickChipsElement() {
+            const wrap = document.createElement('div');
+            wrap.className = 'notion-quick-chips';
+            const apps = ['YouTube', 'Calculator', 'Spotify', 'GitHub', 'VS Code', 'Google'];
+            apps.forEach(app => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'notion-quick-chip';
+                chip.textContent = '↗ Open ' + app;
+                chip.onclick = () => {
+                    const input = document.getElementById('chatInput');
+                    input.value = 'open ' + app.toLowerCase();
+                    submitMessage();
+                };
+                wrap.appendChild(chip);
+            });
+            return wrap;
+        }
+
         async function submitMessage() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
@@ -2680,7 +3076,7 @@
 
                 const data = await res.json();
                 const reply = data.reply || 'No response received.';
-                appendMessage('assistant', reply);
+                appendMessage('assistant', reply, data.action);
 
                 // Handle speech synthesis if enabled or in voice mode
                 if (isVoiceModeActive || autoSpeakReplies) {
@@ -2698,7 +3094,7 @@
             }
         }
 
-        function appendMessage(role, text) {
+        function appendMessage(role, text, action = null) {
             const list = document.getElementById('messagesList');
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
@@ -2713,7 +3109,8 @@
 
             if (role === 'assistant') {
                 bubble.innerHTML = formatMarkdown(text);
-                // Check for screenshot pattern
+
+                // Screenshot pattern
                 const screenshotMatch = text.match(/screenshots[\/\\]([a-zA-Z0-9_-]+\.png)/);
                 if (screenshotMatch) {
                     const filename = screenshotMatch[1];
@@ -2723,6 +3120,19 @@
                     img.alt = 'Screenshot';
                     img.onclick = () => window.open(img.src, '_blank');
                     bubble.appendChild(img);
+                }
+
+                // If action wasn't explicitly passed, detect from text
+                if (!action) {
+                    action = resolveClientAction(text);
+                }
+
+                // If action exists, execute and render Notion Action Card
+                if (action) {
+                    executeClientAction(action);
+                    bubble.appendChild(createActionCardElement(action));
+                } else if (text.includes('DEX Tool [open_app]') || text.includes('open_app')) {
+                    bubble.appendChild(createQuickChipsElement());
                 }
             } else {
                 bubble.textContent = text;
@@ -2929,7 +3339,7 @@
                 });
                 const data = await res.json();
                 const reply = data.reply || 'Task complete.';
-                appendMessage('assistant', reply);
+                appendMessage('assistant', reply, data.action);
                 speakText(reply, () => {
                     if (isVoiceModeActive) {
                         startSpeechRecognition();
@@ -3084,7 +3494,7 @@
                 const data = await res.json();
                 showPage('chat');
                 appendMessage('user', 'Run tool: ' + toolName);
-                appendMessage('assistant', data.reply || 'Execution complete.');
+                appendMessage('assistant', data.reply || 'Execution complete.', data.action);
             } catch (err) {
                 showToast('Execution error: ' + err.message);
             }

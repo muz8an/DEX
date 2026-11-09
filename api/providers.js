@@ -1,7 +1,7 @@
 let inMemoryProvider = {
   activeProvider: 'GEMINI',
   apiKey: process.env.GEMINI_API_KEY || '',
-  model: 'gemini-2.5-flash',
+  model: 'gemini-2.0-flash',
   baseUrl: 'https://generativelanguage.googleapis.com',
   fallbackEnabled: true,
   fallbackProvider: 'CLAUDE'
@@ -76,11 +76,11 @@ module.exports = async (req, res) => {
     providers: [
       {
         id: 'GEMINI',
-        name: 'Google Gemini 2.5 Flash',
+        name: 'Google Gemini 2.0 Flash',
         status: isConfigured ? 'ONLINE' : 'STANDBY',
         configured: isConfigured,
         maskedKey: maskKey(currentKey),
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         baseUrl: 'https://generativelanguage.googleapis.com'
       },
       {

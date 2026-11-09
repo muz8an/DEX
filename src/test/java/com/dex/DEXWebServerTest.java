@@ -23,6 +23,7 @@ public class DEXWebServerTest {
 
     private DEXWebServer server;
     private HttpClient client;
+    private String baseUrl;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @BeforeEach
@@ -31,9 +32,10 @@ public class DEXWebServerTest {
         MemoryManager memory = new MemoryManager(tempMemory);
         AIClient aiClient = new AIClient(memory);
 
-        // Start server on an open test port
-        server = new DEXWebServer(aiClient, "127.0.0.1", 31419);
+        // Start server on an open dynamic port (0 = OS allocated)
+        server = new DEXWebServer(aiClient, "127.0.0.1", 0);
         server.start();
+        baseUrl = "http://127.0.0.1:" + server.getPort();
         client = HttpClient.newHttpClient();
     }
 
@@ -47,7 +49,7 @@ public class DEXWebServerTest {
     @Test
     public void testStatusEndpoint() throws Exception {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/status"))
+                .uri(URI.create(baseUrl + "/api/status"))
                 .GET()
                 .build();
 
@@ -65,7 +67,7 @@ public class DEXWebServerTest {
     @Test
     public void testToolsEndpoint() throws Exception {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/tools"))
+                .uri(URI.create(baseUrl + "/api/tools"))
                 .GET()
                 .build();
 
@@ -81,7 +83,7 @@ public class DEXWebServerTest {
     public void testChatEndpointWithLocalCommand() throws Exception {
         String payload = "{\"message\": \"what time is it\"}";
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/chat"))
+                .uri(URI.create(baseUrl + "/api/chat"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .build();
@@ -97,7 +99,7 @@ public class DEXWebServerTest {
     @Test
     public void testDashboardHtmlEndpoint() throws Exception {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/"))
+                .uri(URI.create(baseUrl + "/"))
                 .GET()
                 .build();
 
@@ -111,7 +113,7 @@ public class DEXWebServerTest {
     public void testSetKeyEndpoint() throws Exception {
         String payload = "{\"key\": \"sk-test-sync-key-12345\"}";
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/set-key"))
+                .uri(URI.create(baseUrl + "/api/set-key"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .build();
@@ -136,7 +138,7 @@ public class DEXWebServerTest {
         // 1. Pair device with valid PIN
         String pairPayload = "{\"deviceName\": \"Test Mobile Device\", \"pin\": \"" + pin + "\"}";
         HttpRequest pairReq = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/pair"))
+                .uri(URI.create(baseUrl + "/api/pair"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(pairPayload))
                 .build();
@@ -154,7 +156,7 @@ public class DEXWebServerTest {
         // 2. Pair device with invalid PIN should fail 401
         String badPayload = "{\"deviceName\": \"Bad Phone\", \"pin\": \"999999\"}";
         HttpRequest badReq = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/pair"))
+                .uri(URI.create(baseUrl + "/api/pair"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(badPayload))
                 .build();
@@ -164,7 +166,7 @@ public class DEXWebServerTest {
 
         // 3. List devices
         HttpRequest listReq = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/devices"))
+                .uri(URI.create(baseUrl + "/api/devices"))
                 .GET()
                 .build();
 
@@ -177,7 +179,7 @@ public class DEXWebServerTest {
         // 4. Revoke device
         String revokePayload = "{\"deviceId\": \"" + deviceId + "\"}";
         HttpRequest revokeReq = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/devices/revoke"))
+                .uri(URI.create(baseUrl + "/api/devices/revoke"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(revokePayload))
                 .build();
@@ -191,7 +193,7 @@ public class DEXWebServerTest {
     public void testProfileEndpoint() throws Exception {
         // 1. GET profile
         HttpRequest getReq = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/profile"))
+                .uri(URI.create(baseUrl + "/api/profile"))
                 .GET()
                 .build();
         HttpResponse<String> getResp = client.send(getReq, HttpResponse.BodyHandlers.ofString());
@@ -202,7 +204,7 @@ public class DEXWebServerTest {
         // 2. POST update profile name
         String updatePayload = "{\"userName\": \"Muzain\"}";
         HttpRequest postReq = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/profile"))
+                .uri(URI.create(baseUrl + "/api/profile"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(updatePayload))
                 .build();
@@ -215,7 +217,7 @@ public class DEXWebServerTest {
         // 3. Reset profile
         String resetPayload = "{\"reset\": true}";
         HttpRequest resetReq = HttpRequest.newBuilder()
-                .uri(URI.create("http://127.0.0.1:31419/api/profile"))
+                .uri(URI.create(baseUrl + "/api/profile"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(resetPayload))
                 .build();

@@ -40,7 +40,16 @@ jobs:
           echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $env:GITHUB_PATH
 
       - name: Compile and Test Desktop Application
-        run: mvn clean test
+        run: mvn clean test -DtrimStackTrace=false
+
+      - name: Print Failing Test Results
+        if: failure()
+        shell: powershell
+        run: |
+          Get-ChildItem -Path target/surefire-reports/*.txt | ForEach-Object {
+            Write-Host "=================== $($_.Name) ==================="
+            Get-Content $_.FullName
+          }
 
       - name: Upload Maven Test Reports on Failure
         if: failure()
@@ -84,6 +93,8 @@ jobs:
   build-android:
     name: Build Android Companion APK
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -94,13 +105,14 @@ jobs:
           distribution: 'microsoft'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Configure Android SDK Tools
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: mobile
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Fix line endings and grant execute permission for gradlew
         run: |
@@ -109,7 +121,12 @@ jobs:
 
       - name: Run Android Unit Tests
         working-directory: mobile
-        run: ./gradlew test --no-daemon
+        run: ./gradlew test --stacktrace --no-daemon
+
+      - name: Print Android Test Failure
+        if: failure()
+        run: |
+          find mobile/app/build/reports -name "*.txt" -o -name "*.xml" | xargs head -n 100 || true
 
       - name: Upload Android Test Reports on Failure
         if: failure()
@@ -120,7 +137,7 @@ jobs:
 
       - name: Build Android Debug APK
         working-directory: mobile
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Stage Android APK to assets/
         run: |

@@ -2315,6 +2315,20 @@
                     </div>
 
                     <div class="card">
+                        <div class="card-title">💻 Laptop Remote Bridge</div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Target Laptop Endpoint</div>
+                                <div class="setting-sub">IP address and port of your Windows laptop (e.g. for Wi-Fi or Tailscale).</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" class="text-input" id="laptopHostInput" placeholder="http://192.168.1.15:31416" style="font-family: 'JetBrains Mono', monospace; width: 230px;">
+                                <button class="btn" onclick="saveLaptopHost()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
                         <div class="card-title">📖 Step-by-Step Android Setup (Tailscale)</div>
                         <div class="remote-step-row">
                             <div class="step-bubble">1</div>
@@ -2527,8 +2541,7 @@
             if (window.innerWidth <= 768) {
                 closeSidebar();
             }
-            if (urlParams.has('token')) {
-                showToast('📱 DEX Remote Control Connected!');
+            if (urlParams.has('token') || isMobileOrRemoteClient()) {
                 const rCenter = document.getElementById('mobileRemoteCenter');
                 if (rCenter) rCenter.style.display = 'block';
             }
@@ -2537,6 +2550,7 @@
             loadStatus();
             initTheme();
             fetchNetworkInfo();
+            initLaptopRemotePoller();
             // Auto refresh status every 15s
             setInterval(loadStatus, 15000);
         });
@@ -2950,10 +2964,71 @@
             };
         }
 
+        function isMobileOrRemoteClient() {
+            const isTouchMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isNarrow = window.innerWidth <= 768;
+            const isRemoteUrl = window.location.search.includes('token') || Boolean(authToken) || Boolean(localStorage.getItem('dex_remote_token'));
+            return isTouchMobile || isNarrow || isRemoteUrl;
+        }
+
+        async function dispatchToLaptop(action) {
+            if (!action) return;
+            const cmd = action.protocol ? action.protocol : ('open ' + (action.target || action.label));
+
+            const endpoints = [];
+            const savedHost = localStorage.getItem('dex_laptop_host');
+            if (savedHost) {
+                endpoints.push(savedHost.replace(/\/+$/, ''));
+            }
+            if (!window.location.hostname.includes('vercel.app') && !window.location.hostname.includes('dex.ai')) {
+                endpoints.push(window.location.origin);
+            }
+            endpoints.push('http://127.0.0.1:31416');
+            endpoints.push('http://127.0.0.1:8080');
+
+            // Enqueue to cloud relay queue
+            const cloudQueueUrl = window.location.hostname.includes('vercel.app')
+                ? '/api/remote-queue'
+                : 'https://dex-phi-bay.vercel.app/api/remote-queue';
+
+            try {
+                fetch(cloudQueueUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd, action: action, source: 'mobile' })
+                }).catch(() => {});
+            } catch (e) {}
+
+            // Send to candidate local/network endpoints in parallel
+            for (const ep of endpoints) {
+                try {
+                    fetch(ep + '/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + (authToken || localStorage.getItem('dex_remote_token') || 'dex_web_live_pin_849201')
+                        },
+                        body: JSON.stringify({ message: cmd, source: 'mobile' })
+                    }).catch(() => {});
+                } catch (e) {}
+            }
+        }
+
         function executeClientAction(action) {
             if (!action) return;
 
-            // 1. Direct window.open for URLs
+            const isRemote = isMobileOrRemoteClient();
+
+            // When user is on mobile/remote, do NOT open the URL in the mobile browser!
+            // YouTube / apps must open ON THE LAPTOP.
+            if (isRemote) {
+                console.log('[DEX Remote] Mobile remote control active: dispatching action to Laptop display.');
+                showToast('💻 Dispatched to Laptop: ' + action.label);
+                dispatchToLaptop(action);
+                return;
+            }
+
+            // Running locally on Laptop / Desktop:
             if (action.url) {
                 try {
                     const win = window.open(action.url, '_blank');
@@ -2965,7 +3040,6 @@
                 }
             }
 
-            // 2. Protocol handling
             if (action.protocol) {
                 try {
                     const ifr = document.createElement('iframe');
@@ -2973,30 +3047,48 @@
                     ifr.src = action.protocol;
                     document.body.appendChild(ifr);
                     setTimeout(() => { try { ifr.remove(); } catch (e) {} }, 3000);
-                } catch (e) {
-                    console.warn('Protocol handler dispatch failed:', e);
-                }
+                } catch (e) {}
             }
 
-            // 3. Desktop agent bridge for local Windows automation
-            if (window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
-                const cmd = action.protocol ? action.protocol : ('open ' + (action.target || action.label));
-                fetch('http://127.0.0.1:8080/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: cmd })
-                }).catch(() => {
-                    // Silently ignore if native DEX desktop agent is not running
-                });
-            }
+            dispatchToLaptop(action);
         }
 
         function createActionCardElement(action) {
             const card = document.createElement('div');
             card.className = 'notion-action-card';
 
-            const badgeText = action.type === 'play' ? 'PLAYBACK' : (action.type === 'search' ? 'SEARCH' : 'APPLICATION');
+            const isRemote = isMobileOrRemoteClient();
 
+            if (isRemote) {
+                // Mobile Remote Control View: Confirms execution on Laptop
+                card.innerHTML = `
+                    <div class="action-card-top">
+                        <div class="action-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            <span>${escapeHtml(action.label)}</span>
+                        </div>
+                        <span class="action-card-badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);">LAPTOP 💻</span>
+                    </div>
+                    <div class="action-card-url" style="color: #10B981; font-weight: 500;">✓ Dispatched to Windows Laptop screen</div>
+                    <div class="action-card-btn-row">
+                        <button type="button" class="notion-action-btn" onclick="dispatchToLaptop(CLIENT_APP_MAP['${escapeHtml(action.target || action.label).toLowerCase()}'] || { target: '${escapeHtml(action.target || action.label)}', label: '${escapeHtml(action.label)}' }); showToast('Re-dispatched to Laptop 💻…');">
+                            <span>💻 Re-run on Laptop</span>
+                        </button>
+                        ${action.url ? `
+                            <a href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer" class="notion-action-btn-secondary" style="font-size: 11px;">
+                                <span>📱 Open on this phone instead</span>
+                            </a>
+                        ` : ''}
+                    </div>
+                    <div class="action-card-hint">
+                        <span>Executed on your laptop. Tap "Open on this phone" only if you also want it on mobile.</span>
+                    </div>
+                `;
+                return card;
+            }
+
+            // Desktop Laptop View:
+            const badgeText = action.type === 'play' ? 'PLAYBACK' : (action.type === 'search' ? 'SEARCH' : 'APPLICATION');
             card.innerHTML = `
                 <div class="action-card-top">
                     <div class="action-card-title">
@@ -3068,10 +3160,17 @@
             try {
                 const savedApiKey = localStorage.getItem('dex_api_key') || '';
                 const savedProvider = localStorage.getItem('dex_active_provider') || 'GEMINI';
+                const isRemote = isMobileOrRemoteClient();
                 const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, apiKey: savedApiKey, provider: savedProvider })
+                    body: JSON.stringify({
+                        message: text,
+                        apiKey: savedApiKey,
+                        provider: savedProvider,
+                        isMobile: isRemote,
+                        source: isRemote ? 'mobile' : 'desktop'
+                    })
                 });
 
                 const data = await res.json();
@@ -3332,10 +3431,17 @@
             try {
                 const savedApiKey = localStorage.getItem('dex_api_key') || '';
                 const savedProvider = localStorage.getItem('dex_active_provider') || 'GEMINI';
+                const isRemote = isMobileOrRemoteClient();
                 const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, apiKey: savedApiKey, provider: savedProvider })
+                    body: JSON.stringify({
+                        message: text,
+                        apiKey: savedApiKey,
+                        provider: savedProvider,
+                        isMobile: isRemote,
+                        source: isRemote ? 'mobile' : 'desktop'
+                    })
                 });
                 const data = await res.json();
                 const reply = data.reply || 'Task complete.';
@@ -3561,12 +3667,59 @@
                 detectedRemoteUrl = phoneUrl;
                 document.getElementById('remoteUrlDisplay').textContent = phoneUrl;
                 renderQRCode(phoneUrl);
+                localStorage.setItem('dex_laptop_host', phoneUrl.split('/?')[0]);
+                const hostInp = document.getElementById('laptopHostInput');
+                if (hostInp) hostInp.value = localStorage.getItem('dex_laptop_host') || '';
             } catch (err) {
                 const fallbackUrl = window.location.origin + '/?token=' + (serverRemoteToken || authToken);
                 detectedRemoteUrl = fallbackUrl;
                 document.getElementById('remoteUrlDisplay').textContent = fallbackUrl;
                 renderQRCode(fallbackUrl);
+                const hostInp = document.getElementById('laptopHostInput');
+                if (hostInp) hostInp.value = localStorage.getItem('dex_laptop_host') || '';
             }
+        }
+
+        // ── LAPTOP REMOTE COMMAND POLLER (Executes mobile commands on laptop screen) ──
+        let remotePollerActive = false;
+        function initLaptopRemotePoller() {
+            if (isMobileOrRemoteClient() || remotePollerActive) return;
+            remotePollerActive = true;
+
+            const pollUrl = window.location.hostname.includes('vercel.app')
+                ? '/api/remote-queue'
+                : 'https://dex-phi-bay.vercel.app/api/remote-queue';
+
+            setInterval(async () => {
+                try {
+                    const res = await fetch(pollUrl);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data && data.commands && data.commands.length > 0) {
+                        for (const cmd of data.commands) {
+                            fetch(pollUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ackId: cmd.id })
+                            }).catch(() => {});
+
+                            console.log('[DEX Remote] Received mobile command for laptop:', cmd);
+                            showToast('📱 Remote Command from Phone: ' + (cmd.action?.label || cmd.command));
+
+                            if (cmd.action) {
+                                if (cmd.action.url) {
+                                    window.open(cmd.action.url, '_blank');
+                                }
+                                fetch('http://127.0.0.1:31416/api/chat', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ message: cmd.command })
+                                }).catch(() => {});
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }, 2000);
         }
 
         // Lightweight pure JS SVG QR generator
@@ -3598,6 +3751,21 @@
             } else {
                 inp.type = 'password';
                 btn.textContent = 'Show';
+            }
+        }
+
+        function saveLaptopHost() {
+            const inp = document.getElementById('laptopHostInput');
+            if (!inp) return;
+            const host = inp.value.trim();
+            if (host) {
+                let norm = host;
+                if (!norm.startsWith('http://') && !norm.startsWith('https://')) norm = 'http://' + norm;
+                localStorage.setItem('dex_laptop_host', norm);
+                showToast('✓ Laptop Bridge endpoint saved: ' + norm);
+            } else {
+                localStorage.removeItem('dex_laptop_host');
+                showToast('Laptop Bridge endpoint cleared.');
             }
         }
 

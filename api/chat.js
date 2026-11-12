@@ -259,6 +259,12 @@ module.exports = async (req, res) => {
 
   // Pre-resolve any open / search / play action
   const action = resolveAction(message);
+  if (action) {
+    try {
+      const { enqueueCommand } = require('./remote-queue.js');
+      enqueueCommand(message, action, body.source || (body.isMobile ? 'mobile' : 'chat'));
+    } catch (e) {}
+  }
 
   // 1. If user provided a real Gemini API key, try calling Google Gemini
   if (apiKey && apiKey.startsWith('AIza')) {
@@ -281,11 +287,11 @@ module.exports = async (req, res) => {
 
   if (action) {
     if (action.type === 'play') {
-      reply = `[DEX Action] Playing "${action.target}" on YouTube. Dispatched to browser controller.`;
+      reply = `[DEX Action] Playing "${action.target}" on YouTube. Dispatched to Windows Laptop display.`;
     } else if (action.type === 'search') {
-      reply = `[DEX Action] Searching the web for "${action.target}". Opening results.`;
+      reply = `[DEX Action] Searching the web for "${action.target}". Opening results on Laptop display.`;
     } else {
-      reply = `[DEX Action] Dispatched launch command for: "${action.label}". Executing via browser and Windows Automation Controller.`;
+      reply = `[DEX Action] Dispatched launch command for: "${action.label}". Executing on Windows Laptop.`;
     }
   } else if (lower === 'open_app' || lower === 'run tool: open_app') {
     reply = `DEX Tool [open_app]: Ready to launch applications and web platforms. Try saying: "open youtube", "open calculator", "open spotify", or "open github".`;

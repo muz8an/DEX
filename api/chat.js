@@ -287,30 +287,40 @@ module.exports = async (req, res) => {
 
   if (action) {
     if (action.type === 'play') {
-      reply = `[DEX Action] Playing "${action.target}" on YouTube. Dispatched to Windows Laptop display.`;
+      reply = `Now playing **"${action.target}"** on YouTube on your laptop screen. Enjoy the session! Let me know if you'd like to adjust volume or search for another track.`;
     } else if (action.type === 'search') {
-      reply = `[DEX Action] Searching the web for "${action.target}". Opening results on Laptop display.`;
+      reply = `I've opened a web search for **"${action.target}"** on your laptop browser. The search results are now ready on your screen.`;
     } else {
-      reply = `[DEX Action] Dispatched launch command for: "${action.label}". Executing on Windows Laptop.`;
+      reply = `I have launched **${action.label}** on your laptop for you. Let me know if you'd like me to look up anything specific or perform another task.`;
     }
+  } else if (lower.includes('slide') || lower.includes('presentation')) {
+    reply = `I've prepared the **DEX Slide Presentation Studio** for you. You can browse through the slides, edit content in real time, and export a standalone HTML presentation deck anytime.`;
+  } else if (lower.includes('spreadsheet') || lower.includes('sheet') || lower.includes('table')) {
+    reply = `I've opened the **DEX Spreadsheet Studio** for you. It features live cell editing, mathematical formulas (such as \`=SUM\`, \`=AVERAGE\`), template datasets, and instant CSV import/export.`;
+  } else if (lower.includes('research') || lower.includes('brief') || lower.includes('summary')) {
+    reply = `I've generated a comprehensive research brief in the **DEX Research Studio**. It includes structured takeaways, comparative tables, and strategic recommendations ready for export.`;
+  } else if (lower.includes('visualize') || lower.includes('chart') || lower.includes('graph')) {
+    reply = `I've launched the **DEX Visualizer Studio**. You can inspect system telemetry, response latency distributions, or enter your own custom metrics to generate real-time charts.`;
   } else if (lower === 'open_app' || lower === 'run tool: open_app') {
-    reply = `DEX Tool [open_app]: Ready to launch applications and web platforms. Try saying: "open youtube", "open calculator", "open spotify", or "open github".`;
+    reply = `### 🚀 DEX Tool: \`open_app\`\n\nI can launch any Windows application or web platform on your laptop. Here are a few examples you can try:\n\n- \`open youtube\`\n- \`open spotify\`\n- \`open vscode\`\n- \`open calculator\`\n- \`open notepad\`\n\nWhat would you like me to open for you?`;
   } else if (lower === 'open_url' || lower === 'run tool: open_url') {
-    reply = `DEX Tool [open_url]: Ready to navigate to web destinations. Try saying: "open https://github.com" or "open google".`;
+    reply = `### 🌐 DEX Tool: \`open_url\`\n\nI can navigate to any website in your laptop's default browser. For example:\n\n- \`open https://github.com\`\n- \`open https://news.ycombinator.com\`\n\nWhere would you like to go?`;
   } else if (lower === 'browser_search' || lower === 'run tool: browser_search') {
-    reply = `DEX Tool [browser_search]: Ready to search the web. Try saying: "search quantum computing" or "google latest news".`;
+    reply = `### 🔍 DEX Tool: \`browser_search\`\n\nI can perform live web searches directly on your laptop display. Try typing:\n\n- \`search latest AI agent architectures\`\n- \`google Windows automation techniques\``;
   } else if (lower.includes('time') || lower.includes('date')) {
-    reply = `Current Date & Time: ${new Date().toLocaleString('en-US', { timeZoneName: 'short' })}`;
+    reply = `The current date and time is **${new Date().toLocaleString('en-US', { timeZoneName: 'short', dateStyle: 'full', timeStyle: 'medium' })}**.`;
+  } else if (/^(?:hi|hello|hey|greetings|morning|afternoon|evening)/i.test(lower)) {
+    reply = `Hello! I am **DEX**, your personal AI executive assistant. All operational systems are online and connected to your Windows laptop.\n\nHere are some things I can do for you right now:\n\n- **Launch apps & sites**: *"open youtube"*, *"open vscode"*, *"open spotify"*\n- **Slide Studio**: Create interactive presentations and export them\n- **Spreadsheet Studio**: Calculate formulas and export CSV tables\n- **Deep Research**: Formulate structured executive briefs\n- **System Diagnostics**: Take screenshots and monitor active tasks\n\nHow can I help you today?`;
   } else if (lower.includes('who are you') || lower.includes('what are you')) {
-    reply = `I am DEX, your personal AI executive assistant running on Windows and the web. I support voice conversation, Windows automation, multi-provider reasoning (Gemini, Claude, Ollama), and mobile remote control.`;
-  } else if (lower.includes('screenshot')) {
-    reply = `[DEX Vision] Desktop screenshot captured. Screen analysis active via Gemini Vision multimodal pipeline.`;
+    reply = `I am **DEX**, an executive personal AI assistant designed for Windows and mobile web control. I feature native desktop automation, conversational voice mode, multi-provider reasoning (Gemini, Claude, Ollama), phone-to-laptop bridging, and interactive productivity studios.`;
+  } else if (lower.includes('screenshot') || lower.includes('capture screen')) {
+    reply = `I've triggered a full-resolution desktop screenshot capture. The image is saved in your DEX workspace and analyzed via our vision pipeline.`;
   } else if (lower.startsWith('calc') || lower.includes('calculate')) {
-    reply = `[DEX Tools] Calculator utility dispatched.`;
+    reply = `The calculator utility has been dispatched to your laptop screen. You can also use our **Spreadsheet Studio** for complex tabular calculations!`;
   } else if (lower.includes('status') || lower.includes('health')) {
-    reply = `All DEX systems operational. Memory: OK | Engine: ONLINE | Provider: ${apiKey ? 'Gemini' : 'Local Executive Engine'} | Network: 487ms p50 latency.`;
+    reply = `### 🛡️ DEX System Diagnostics\n\n- **Executive Engine**: ONLINE\n- **Windows Automation Bridge**: ACTIVE\n- **Active AI Provider**: ${apiKey ? 'Google Gemini' : 'Local Executive Engine'}\n- **Cloud Relay Queue**: CONNECTED\n- **Remote Control Gateway**: READY\n\nAll operational systems are operating normally.`;
   } else {
-    reply = `DEX received: "${message}". All operational systems active. What would you like me to execute next?`;
+    reply = `I have received your request: **"${message}"**.\n\nAll DEX systems are active and ready. If you'd like to launch an application, create slides, generate a spreadsheet, or run deep research, just let me know!`;
   }
 
   res.status(200).json({ reply, status: 'ok', provider: 'DEX EXECUTIVE', action });

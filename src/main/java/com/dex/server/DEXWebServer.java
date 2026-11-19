@@ -38,6 +38,8 @@ public class DEXWebServer {
     private final String host;
     private final int port;
     private HttpServer server;
+    private volatile boolean relayRunning = false;
+    private Thread relayThread;
 
     public DEXWebServer(AIClient aiClient) {
         this(aiClient, DEXConfig.getWebHost(), DEXConfig.getWebPort());
@@ -87,9 +89,87 @@ public class DEXWebServer {
 
         server.start();
         System.out.println("[DEX] Web Dashboard started at http://" + host + ":" + port);
+
+        // Start background Cloud Relay worker for mobile-to-laptop execution
+        if (this.port != 0 && !"true".equalsIgnoreCase(System.getProperty("dex.test.mode"))) {
+            startCloudRelay();
+        }
+    }
+
+    private void startCloudRelay() {
+        relayRunning = true;
+        relayThread = new Thread(() -> {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                    .connectTimeout(java.time.Duration.ofSeconds(4))
+                    .build();
+            String relayUrl = System.getenv("DEX_CLOUD_RELAY_URL");
+            if (relayUrl == null || relayUrl.isBlank()) {
+                relayUrl = "https://dex-phi-bay.vercel.app/api/remote-queue";
+            }
+            while (relayRunning) {
+                try {
+                    Thread.sleep(1500);
+                    if (!relayRunning) break;
+                    java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                            .uri(java.net.URI.create(relayUrl))
+                            .timeout(java.time.Duration.ofSeconds(4))
+                            .header("Accept", "application/json")
+                            .GET()
+                            .build();
+                    java.net.http.HttpResponse<String> resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+                    if (resp.statusCode() == 200 && resp.body() != null && !resp.body().isBlank()) {
+                        JsonNode root = MAPPER.readTree(resp.body());
+                        JsonNode cmds = root.get("commands");
+                        if (cmds != null && cmds.isArray()) {
+                            for (JsonNode cmd : cmds) {
+                                int cmdId = cmd.has("id") ? cmd.get("id").asInt() : 0;
+                                String command = cmd.has("command") ? cmd.get("command").asText() : "";
+                                JsonNode act = cmd.get("action");
+                                String url = (act != null && act.has("url")) ? act.get("url").asText() : null;
+                                String target = (act != null && act.has("target")) ? act.get("target").asText() : command;
+
+                                System.out.println("[DEX CloudRelay] Executing phone command on Windows: " + command);
+
+                                // Execute natively on Windows
+                                if (url != null && !url.isBlank()) {
+                                    com.dex.WindowsController.openDefaultBrowser(url);
+                                } else if (target != null && !target.isBlank()) {
+                                    com.dex.WindowsController.openApp(target);
+                                } else if (!command.isBlank()) {
+                                    com.dex.WindowsController.openApp(command);
+                                }
+
+                                // Send ACK back to clear queue
+                                if (cmdId > 0) {
+                                    String ackJson = "{\"ackId\":" + cmdId + "}";
+                                    java.net.http.HttpRequest ackReq = java.net.http.HttpRequest.newBuilder()
+                                            .uri(java.net.URI.create(relayUrl))
+                                            .header("Content-Type", "application/json")
+                                            .timeout(java.time.Duration.ofSeconds(4))
+                                            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(ackJson))
+                                            .build();
+                                    client.send(ackReq, java.net.http.HttpResponse.BodyHandlers.discarding());
+                                }
+                            }
+                        }
+                    }
+                } catch (InterruptedException ie) {
+                    break;
+                } catch (Exception ignored) {
+                    // Transient network timeout or offline
+                }
+            }
+        }, "DEX-CloudRelayWorker");
+        relayThread.setDaemon(true);
+        relayThread.start();
     }
 
     public synchronized void stop() {
+        relayRunning = false;
+        if (relayThread != null) {
+            relayThread.interrupt();
+            relayThread = null;
+        }
         if (server != null) {
             server.stop(0);
             server = null;
@@ -276,10 +356,77 @@ public class DEXWebServer {
             ArrayNode array = MAPPER.createArrayNode();
             for (ToolManager.ToolDefinition tool : ToolManager.getAllTools()) {
                 ObjectNode node = array.addObject();
-                node.put("name", tool.getName());
+                String name = tool.getName();
+                node.put("name", name);
                 node.put("description", tool.getDescription());
                 node.put("parameters", tool.getParameterDescription());
                 node.put("sensitive", tool.isSensitive());
+
+                switch (name) {
+                    case "open_app":
+                        node.put("icon", "🚀");
+                        node.put("symbol", "EXE");
+                        node.put("category", "System Automation");
+                        node.put("accent", "#3B82F6");
+                        node.put("example", "open youtube");
+                        break;
+                    case "open_url":
+                        node.put("icon", "🌐");
+                        node.put("symbol", "URL");
+                        node.put("category", "Web Navigation");
+                        node.put("accent", "#10B981");
+                        node.put("example", "open https://github.com");
+                        break;
+                    case "take_screenshot":
+                        node.put("icon", "📸");
+                        node.put("symbol", "VIS");
+                        node.put("category", "Multimodal Vision");
+                        node.put("accent", "#8B5CF6");
+                        node.put("example", "take screenshot");
+                        break;
+                    case "run_command":
+                        node.put("icon", "⚡");
+                        node.put("symbol", "CMD");
+                        node.put("category", "Shell Execution");
+                        node.put("accent", "#F59E0B");
+                        node.put("example", "dir");
+                        break;
+                    case "read_file":
+                        node.put("icon", "📄");
+                        node.put("symbol", "IO");
+                        node.put("category", "File Systems");
+                        node.put("accent", "#06B6D4");
+                        node.put("example", "read pom.xml");
+                        break;
+                    case "write_file":
+                        node.put("icon", "✍️");
+                        node.put("symbol", "WRI");
+                        node.put("category", "File Systems");
+                        node.put("accent", "#EC4899");
+                        node.put("example", "write notes.txt");
+                        break;
+                    case "list_files":
+                        node.put("icon", "📂");
+                        node.put("symbol", "DIR");
+                        node.put("category", "File Systems");
+                        node.put("accent", "#6366F1");
+                        node.put("example", "list files");
+                        break;
+                    case "speak_text":
+                        node.put("icon", "🎙️");
+                        node.put("symbol", "TTS");
+                        node.put("category", "Voice Synthesis");
+                        node.put("accent", "#14B8A6");
+                        node.put("example", "speak Hello Muzain");
+                        break;
+                    default:
+                        node.put("icon", "⚡");
+                        node.put("symbol", "SYS");
+                        node.put("category", "System Utility");
+                        node.put("accent", "#FFFFFF");
+                        node.put("example", name);
+                        break;
+                }
             }
 
             sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(array));

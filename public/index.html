@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0A0A">
     <title>DEX AI ASSISTANT</title>
     <meta name="description" content="DEX: Your personal AI assistant running locally on Windows. Chat, voice, app control, and remote access.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1451,24 +1455,29 @@
             .mobile-bottom-nav { display: flex; }
             .media-deck-grid { grid-template-columns: repeat(3, 1fr); }
             .quick-apps-grid { grid-template-columns: repeat(2, 1fr); }
-            .chat-composer-wrap { margin-bottom: 58px; }
-            .page-scrollable { padding-bottom: 74px !important; }
+            .page-scrollable { padding-bottom: 84px !important; }
         }
 
-        /* ── FIT TO SCREEN MODE ── */
+        /* ── FIT TO SCREEN / FULLSCREEN MODE ── */
         body.fit-to-screen {
             height: 100dvh !important;
             max-height: 100dvh !important;
             overflow: hidden !important;
             position: fixed !important;
+            inset: 0 !important;
             width: 100vw !important;
         }
         body.fit-to-screen .workspace {
-            height: calc(100dvh - 54px - 58px) !important;
-            overflow-y: auto !important;
+            height: calc(100dvh - var(--header-height)) !important;
+            overflow: hidden !important;
+        }
+        @media (max-width: 768px) {
+            body.fit-to-screen .workspace {
+                height: calc(100dvh - var(--header-height) - 56px - env(safe-area-inset-bottom, 0px)) !important;
+            }
         }
         body.fit-to-screen .page { height: 100% !important; }
-        body.fit-to-screen .chat-view { height: 100% !important; }
+        body.fit-to-screen .chat-container { height: 100% !important; }
         body.fit-to-screen .messages-list { flex: 1 1 auto !important; overflow-y: auto !important; }
 
         /* ── SPREADSHEET TABLE ── */
@@ -1605,18 +1614,35 @@
                 --header-height: 52px;
             }
             body {
-                overflow-x: hidden;
+                overflow: hidden;
                 width: 100vw;
                 max-width: 100vw;
+                height: 100dvh;
             }
             header {
                 padding: 0 10px;
                 height: var(--header-height);
+                gap: 6px;
             }
+            .header-brand { min-width: 0; gap: 6px; }
+            .logo-text { font-size: 13px; white-space: nowrap; }
             .logo-text span { display: none; }
+            .efferd-search-capsule { display: none !important; }
+            .header-status { gap: 6px; flex-shrink: 0; }
+            .header-status .efferd-primary-btn { display: none !important; }
+            .header-actions { display: none !important; }
+            .status-pill { padding: 3px 8px; font-size: 10px; white-space: nowrap; }
+            #headerFitScreenBtn { padding: 4px 8px !important; font-size: 11px !important; white-space: nowrap; }
             .workspace {
                 width: 100vw;
                 max-width: 100vw;
+                height: calc(100dvh - var(--header-height) - 56px - env(safe-area-inset-bottom, 0px));
+                overflow: hidden;
+            }
+            .content-area {
+                width: 100vw;
+                max-width: 100vw;
+                height: 100%;
                 overflow: hidden;
             }
             .sidebar {
@@ -1635,19 +1661,25 @@
             .page {
                 width: 100vw;
                 max-width: 100vw;
+                height: 100%;
                 box-sizing: border-box;
+                overflow: hidden;
             }
             .page-scrollable {
-                padding: 10px 10px 80px 10px;
+                padding: 12px 12px 24px 12px;
                 width: 100vw;
                 max-width: 100vw;
+                height: 100%;
                 box-sizing: border-box;
+                overflow-y: auto;
                 overflow-x: hidden;
             }
             .notion-hero-viewport {
-                padding: 10px 6px 6px;
+                padding: 12px 10px 24px;
                 width: 100%;
                 max-width: 100%;
+                height: 100%;
+                overflow-y: auto;
                 box-sizing: border-box;
             }
             .notion-hero-container {
@@ -1730,36 +1762,47 @@
             .efferd-recents-table {
                 min-width: 360px;
             }
-            /* Chat Page Fit to Screen */
-            #page-chat {
-                height: calc(100dvh - var(--header-height));
+            /* Chat Page Fit to Screen (active only!) */
+            #page-chat.active {
+                height: 100%;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
             }
-            .chat-messages {
-                flex: 1;
+            .chat-container {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .messages-list {
+                flex: 1 1 auto;
+                min-height: 0;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                padding: 10px 8px;
+                padding: 12px 10px;
             }
             .msg-row {
                 max-width: 96%;
             }
-            .composer-wrap {
-                padding: 8px 10px max(10px, env(safe-area-inset-bottom)) 10px !important;
-                background: var(--bg-elevated);
-                border-top: 1px solid var(--border-subtle);
-                width: 100vw;
-                box-sizing: border-box;
-            }
             .composer-bar {
+                flex-shrink: 0;
                 padding: 8px 10px;
                 width: 100%;
+                background: var(--bg-elevated);
+                border-top: 1px solid var(--border-subtle);
                 box-sizing: border-box;
+                gap: 6px;
+                z-index: 15;
             }
-            .composer-input {
+            .composer-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 15px;
+            }
+            .chat-input {
                 font-size: 14px;
+                padding: 8px 0;
             }
             .card {
                 padding: 14px;
@@ -1783,6 +1826,45 @@
             to { opacity: 1; transform: translateY(0); }
         }
     
+        .new-chat-btn img { filter: brightness(0); }
+
+        .remote-devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .remote-device-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .remote-device-item.online {
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .remote-pill-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .remote-pill-online {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .remote-pill-standby {
+            color: #fbbf24;
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
         /* ── EFFERD DASHBOARD 3 STYLES ── */
         .efferd-brand-badge {
             display: flex;
@@ -2293,8 +2375,8 @@
         </div>
 
         <div class="header-status">
-            <button class="btn" id="headerFitScreenBtn" onclick="toggleFitToScreen()" title="Toggle Fit to Screen View" style="padding: 4px 9px; font-size: 11px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                <span>⛶</span> <span>Fit View</span>
+            <button class="btn" id="headerFitScreenBtn" onclick="toggleFitToScreen()" title="Toggle Fullscreen View (like F11)" style="padding: 4px 9px; font-size: 11px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                <span>⛶</span> <span>Fullscreen</span>
             </button>
             <div class="status-pill" id="backendStatus">
                 <div class="status-dot"></div>
@@ -2382,7 +2464,7 @@
                                 <span class="mobile-remote-status" id="remoteStatusPill">CONNECTED</span>
                             </div>
                             <div class="remote-pad-grid">
-                                <button class="remote-pad-btn" onclick="toggleVoiceMode()" title="Voice Command">
+                                <button class="remote-pad-btn" onclick="showPage('voice'); toggleVoiceConversationMode();" title="Voice Command">
                                     <span class="icon">🎙️</span>
                                     <span>Voice Mic</span>
                                 </button>
@@ -2665,9 +2747,30 @@
                     <div class="page-header">
                         <div>
                             <div class="page-title">📱 Windows Remote Control Deck</div>
-                            <div class="page-desc">Control your laptop display, launch applications, navigate media, or pair securely.</div>
+                            <div class="page-desc">Control your laptop display, launch applications, inspect connected mobile devices, or pair securely.</div>
                         </div>
-                        <button class="btn" id="remoteFitScreenBtn" onclick="toggleFitToScreen()">⛶ Fit to Screen</button>
+                        <button class="btn" id="remoteFitScreenBtn" onclick="toggleFitToScreen()">⛶ Fullscreen</button>
+                    </div>
+
+                    <!-- Connected Remote Device & Laptop Bridge Status -->
+                    <div class="card" id="connectedDevicesCard" style="padding: 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="live-dot"></span>
+                                <span style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Connected Remote Devices &amp; Host Bridge</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="remote-pill-badge remote-pill-standby" id="remoteHostBridgeBadge">Checking Bridge...</span>
+                                <button class="btn" style="padding: 4px 10px; font-size: 11px;" onclick="refreshRemoteDevicesPanel()">↻ Refresh</button>
+                            </div>
+                        </div>
+                        <div id="thisDeviceMetaBox" style="font-size: 12px; color: var(--text-secondary); padding: 8px 10px; background: rgba(255,255,255,0.025); border: 1px solid var(--border-subtle); border-radius: 8px;">
+                            Detecting client device info...
+                        </div>
+                        <div class="remote-devices-grid" id="connectedRemotesList">
+                            <!-- Live connected mobile / desktop devices rendered here -->
+                        </div>
+                        <div id="remoteCommandLog" style="margin-top: 10px; font-size: 11px; color: var(--text-muted);"></div>
                     </div>
 
                     <!-- Tactile Virtual Remote Control Deck -->
@@ -3225,7 +3328,11 @@
 
     <!-- ── MOBILE BOTTOM NAVIGATION BAR ── -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav">
-        <button class="mobile-nav-btn active" id="mobNavChat" onclick="showPage('chat')">
+        <button class="mobile-nav-btn active" id="mobNavOverview" onclick="showPage('overview')">
+            <span class="mob-nav-icon">🏠</span>
+            <span class="mob-nav-label">Home</span>
+        </button>
+        <button class="mobile-nav-btn" id="mobNavChat" onclick="showPage('chat')">
             <span class="mob-nav-icon">💬</span>
             <span class="mob-nav-label">Chat</span>
         </button>
@@ -3278,7 +3385,7 @@
                 if (rCenter) rCenter.style.display = 'block';
             }
             if (localStorage.getItem('dex_fit_to_screen') === 'true') {
-                toggleFitToScreen();
+                applyFitVisualState(true);
             }
             initSpeechSynthesis();
             initSpeechRecognition();
@@ -3286,6 +3393,7 @@
             initTheme();
             fetchNetworkInfo();
             initLaptopRemotePoller();
+            initRemoteDeviceMonitor();
             // Auto refresh status every 15s
             setInterval(loadStatus, 15000);
         });
@@ -3403,7 +3511,10 @@
 
             if (pageId === 'tools') fetchTools();
             if (pageId === 'tasks') fetchTasks();
-            if (pageId === 'remote') fetchNetworkInfo();
+            if (pageId === 'remote') {
+                fetchNetworkInfo();
+                refreshRemoteDevicesPanel();
+            }
             if (pageId === 'settings') loadStatus();
 
             closeSidebar();
@@ -3553,16 +3664,25 @@
             'chatgpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
             'gpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
             'notion': { label: 'Notion', url: 'https://www.notion.so', web: 'https://www.notion.so' },
-            'spotify': { label: 'Spotify', url: 'https://open.spotify.com', protocol: 'spotify:', web: 'https://open.spotify.com' },
-            'whatsapp': { label: 'WhatsApp', url: 'https://web.whatsapp.com', protocol: 'whatsapp:', web: 'https://web.whatsapp.com' },
-            'calculator': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator' },
-            'calc': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator' },
-            'notepad': { label: 'Notepad', url: 'https://notepad.js.org', protocol: 'notepad:', web: 'https://notepad.js.org' },
-            'settings': { label: 'Windows Settings', url: 'ms-settings:', protocol: 'ms-settings:', web: null },
-            'camera': { label: 'Camera', url: 'microsoft.windows.camera:', protocol: 'microsoft.windows.camera:', web: null },
-            'clock': { label: 'Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is' },
-            'alarm': { label: 'Alarms & Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is' },
-            'paint': { label: 'Paint', url: 'ms-paint:', protocol: 'ms-paint:', web: 'https://jspaint.app' },
+            'spotify': { label: 'Spotify', url: 'https://open.spotify.com', protocol: 'spotify:', web: 'https://open.spotify.com', isNativeApp: true },
+            'whatsapp': { label: 'WhatsApp', url: 'https://web.whatsapp.com', protocol: 'whatsapp:', web: 'https://web.whatsapp.com', isNativeApp: true },
+            'calculator': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator', isNativeApp: true, type: 'open_app' },
+            'calc': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator', isNativeApp: true, type: 'open_app' },
+            'notepad': { label: 'Notepad', url: 'https://notepad.js.org', protocol: 'notepad:', web: 'https://notepad.js.org', isNativeApp: true, type: 'open_app' },
+            'chrome': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+            'google chrome': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+            'browser': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+            'edge': { label: 'Microsoft Edge', url: 'https://www.bing.com', web: 'https://www.bing.com', isNativeApp: true, type: 'open_app' },
+            'explorer': { label: 'File Explorer', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'file explorer': { label: 'File Explorer', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'cmd': { label: 'Command Prompt', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'terminal': { label: 'Windows Terminal', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'powershell': { label: 'PowerShell', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'settings': { label: 'Windows Settings', url: 'ms-settings:', protocol: 'ms-settings:', web: null, isNativeApp: true, type: 'open_app' },
+            'camera': { label: 'Camera', url: 'microsoft.windows.camera:', protocol: 'microsoft.windows.camera:', web: null, isNativeApp: true, type: 'open_app' },
+            'clock': { label: 'Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is', isNativeApp: true, type: 'open_app' },
+            'alarm': { label: 'Alarms & Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is', isNativeApp: true, type: 'open_app' },
+            'paint': { label: 'Paint', url: 'ms-paint:', protocol: 'ms-paint:', web: 'https://jspaint.app', isNativeApp: true, type: 'open_app' },
             'maps': { label: 'Google Maps', url: 'https://www.google.com/maps', web: 'https://www.google.com/maps' },
             'mail': { label: 'Gmail', url: 'https://mail.google.com', protocol: 'mailto:', web: 'https://mail.google.com' },
             'gmail': { label: 'Gmail', url: 'https://mail.google.com', web: 'https://mail.google.com' },
@@ -3574,24 +3694,52 @@
             'netflix': { label: 'Netflix', url: 'https://www.netflix.com', web: 'https://www.netflix.com' },
             'twitch': { label: 'Twitch', url: 'https://www.twitch.tv', web: 'https://www.twitch.tv' },
             'amazon': { label: 'Amazon', url: 'https://www.amazon.com', web: 'https://www.amazon.com' },
-            'vscode': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
-            'vs code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
-            'code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
-            'discord': { label: 'Discord', url: 'https://discord.com/app', protocol: 'discord:', web: 'https://discord.com/app' },
-            'telegram': { label: 'Telegram', url: 'https://web.telegram.org', protocol: 'tg:', web: 'https://web.telegram.org' },
-            'steam': { label: 'Steam', url: 'https://store.steampowered.com', protocol: 'steam:', web: 'https://store.steampowered.com' },
+            'vscode': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+            'vs code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+            'code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+            'discord': { label: 'Discord', url: 'https://discord.com/app', protocol: 'discord:', web: 'https://discord.com/app', isNativeApp: true },
+            'telegram': { label: 'Telegram', url: 'https://web.telegram.org', protocol: 'tg:', web: 'https://web.telegram.org', isNativeApp: true },
+            'steam': { label: 'Steam', url: 'https://store.steampowered.com', protocol: 'steam:', web: 'https://store.steampowered.com', isNativeApp: true, type: 'open_app' },
             'music': { label: 'YouTube Music', url: 'https://music.youtube.com', web: 'https://music.youtube.com' },
             'wikipedia': { label: 'Wikipedia', url: 'https://www.wikipedia.org', web: 'https://www.wikipedia.org' }
         };
 
+        function stripLaptopModifier(text) {
+            return String(text || '')
+                .replace(/\s+(?:please|now|for me)\s*[.?!]*$/i, '')
+                .replace(/\s+(?:in|on|at|onto|to)\s+(?:the\s+|my\s+)?(?:laptop|pc|desktop|computer|windows|machine|host)(?:\s+screen)?\s*[.?!]*$/i, '')
+                .replace(/\s+(?:please|now|for me)\s*[.?!]*$/i, '')
+                .trim();
+        }
+
         function resolveClientAction(rawText) {
             if (!rawText) return null;
-            const text = rawText.trim();
+            const text = stripLaptopModifier(rawText);
             const lower = text.toLowerCase();
 
             // Ignore tool inspection commands
             if (/^(?:run\s+)?tool:\s*/i.test(lower) || lower === 'open_app' || lower === 'open_url') {
                 return null;
+            }
+
+            if (lower === 'take a screenshot' || lower === 'take screenshot' || lower === 'capture screenshot' || lower === 'screenshot') {
+                return {
+                    type: 'screenshot',
+                    target: 'take screenshot',
+                    label: 'Desktop Screenshot',
+                    isNativeApp: true,
+                    isWeb: false
+                };
+            }
+
+            if (lower === 'minimize_all' || lower === 'minimize all' || lower === 'show desktop') {
+                return {
+                    type: 'remote_control',
+                    target: 'minimize_all',
+                    label: 'Minimize All Windows',
+                    isNativeApp: true,
+                    isWeb: false
+                };
             }
 
             // Match play
@@ -3670,12 +3818,13 @@
             if (CLIENT_APP_MAP[targetLower]) {
                 const item = CLIENT_APP_MAP[targetLower];
                 return {
-                    type: 'open',
+                    type: item.type || 'open',
                     target,
                     label: item.label,
                     url: item.url,
                     protocol: item.protocol || null,
                     web: item.web || item.url,
+                    isNativeApp: Boolean(item.isNativeApp),
                     isWeb: Boolean(item.web)
                 };
             }
@@ -3683,12 +3832,13 @@
             for (const [key, item] of Object.entries(CLIENT_APP_MAP)) {
                 if (targetLower.includes(key)) {
                     return {
-                        type: 'open',
+                        type: item.type || 'open',
                         target,
                         label: item.label,
                         url: item.url,
                         protocol: item.protocol || null,
                         web: item.web || item.url,
+                        isNativeApp: Boolean(item.isNativeApp),
                         isWeb: Boolean(item.web)
                     };
                 }
@@ -3701,6 +3851,7 @@
                 url: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
                 protocol: null,
                 web: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
+                isFallbackSearch: true,
                 isWeb: true
             };
         }
@@ -3715,86 +3866,165 @@
             return isTouchMobileDevice() || window.location.search.includes('token');
         }
 
-        async function dispatchToLaptop(action) {
-            if (!action) return;
-            const cmd = action.protocol ? action.protocol : ('open ' + (action.target || action.label));
+        function isCloudDeployment() {
+            const h = window.location.hostname || '';
+            return h.includes('vercel.app') || h.includes('dex.ai');
+        }
 
-            const endpoints = [];
-            const savedHost = localStorage.getItem('dex_laptop_host');
-            if (savedHost) {
-                endpoints.push(savedHost.replace(/\/+$/, ''));
+        function getRemoteDeviceIdentity() {
+            let devId = localStorage.getItem('dex_client_device_id');
+            if (!devId) {
+                devId = 'dev-' + Math.random().toString(36).slice(2, 10);
+                localStorage.setItem('dex_client_device_id', devId);
             }
-            if (!window.location.hostname.includes('vercel.app') && !window.location.hostname.includes('dex.ai')) {
-                endpoints.push(window.location.origin);
-            }
-            endpoints.push('http://127.0.0.1:31416');
-            endpoints.push('http://127.0.0.1:8080');
+            const ua = navigator.userAgent || '';
+            let os = 'Desktop';
+            if (/Android/i.test(ua)) os = 'Android';
+            else if (/iPhone/i.test(ua)) os = 'iPhone';
+            else if (/iPad/i.test(ua)) os = 'iPad';
+            else if (/Windows/i.test(ua)) os = 'Windows';
+            else if (/Mac OS/i.test(ua)) os = 'macOS';
+            else if (/Linux/i.test(ua)) os = 'Linux';
 
-            // Enqueue to cloud relay queue
-            const cloudQueueUrl = window.location.hostname.includes('vercel.app')
-                ? '/api/remote-queue'
-                : 'https://dex-phi-bay.vercel.app/api/remote-queue';
+            let browser = 'Browser';
+            if (/Edg/i.test(ua)) browser = 'Edge';
+            else if (/Chrome/i.test(ua)) browser = 'Chrome';
+            else if (/Firefox/i.test(ua)) browser = 'Firefox';
+            else if (/Safari/i.test(ua)) browser = 'Safari';
 
-            try {
-                fetch(cloudQueueUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command: cmd, action: action, source: 'mobile' })
-                }).catch(() => {});
-            } catch (e) {}
+            const isMob = isTouchMobileDevice();
+            const customName = localStorage.getItem('dex_device_name');
+            const name = customName || (isMob ? `${os} Phone (${browser})` : `${os} Workstation (${browser})`);
+            const orientation = window.innerHeight >= window.innerWidth ? 'Portrait' : 'Landscape';
+            const fs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains('fit-to-screen'));
 
-            // Send to candidate local/network endpoints in parallel
-            for (const ep of endpoints) {
+            return {
+                deviceId: devId,
+                role: isMob ? 'mobile' : 'desktop',
+                name,
+                deviceName: name,
+                osBrowser: `${os} / ${browser}`,
+                screen: `${window.innerWidth}x${window.innerHeight}`,
+                orientation,
+                fullscreen: fs,
+                channel: isCloudDeployment() ? 'Cloud Relay' : 'LAN Direct'
+            };
+        }
+
+        async function dispatchToLaptop(action, rawCommand = '') {
+            if (!action && !rawCommand) return { ok: false };
+            const dev = getRemoteDeviceIdentity();
+            const targetName = action?.target || action?.label || rawCommand;
+            const cmd = rawCommand
+                ? stripLaptopModifier(rawCommand)
+                : ((action?.isNativeApp || action?.type === 'open_app' || action?.type === 'remote_control' || action?.type === 'screenshot')
+                    ? (targetName === 'minimize_all' || targetName === 'take screenshot' ? targetName : ('open ' + targetName))
+                    : (action?.protocol || ('open ' + targetName)));
+
+            const payload = {
+                command: cmd,
+                action: action || { type: 'run', target: cmd, label: cmd },
+                source: isMobileOrRemoteClient() ? 'mobile' : 'desktop',
+                deviceId: dev.deviceId,
+                deviceName: dev.deviceName,
+                osBrowser: dev.osBrowser,
+                screen: dev.screen,
+                orientation: dev.orientation,
+                fullscreen: dev.fullscreen
+            };
+
+            let delivered = false;
+            let hostOnline = false;
+
+            // 1. If hosted on Local Java Server (Direct QR LAN or 127.0.0.1), call native /api/remote/command
+            if (!isCloudDeployment()) {
                 try {
-                    fetch(ep + '/api/chat', {
+                    const res = await apiFetch('/api/remote/command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        delivered = true;
+                        hostOnline = true;
+                    }
+                } catch (e) {}
+            } else {
+                // 2. Hosted on Vercel Cloud -> Enqueue reliably to shared /api/remote-queue
+                try {
+                    const res = await fetch('/api/remote-queue', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        delivered = true;
+                        hostOnline = Boolean(data.hostOnline);
+                    }
+                } catch (e) {}
+            }
+
+            // 3. Optional saved local Laptop Bridge fallback when non-HTTPS or browser PNA permits
+            const savedHost = localStorage.getItem('dex_laptop_host');
+            if (!delivered && savedHost && (window.location.protocol === 'http:' || savedHost.startsWith('https://'))) {
+                try {
+                    const ep = savedHost.replace(/\/+$/, '');
+                    const res = await fetch(ep + '/api/remote/command', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + (authToken || localStorage.getItem('dex_remote_token') || 'dex_web_live_pin_849201')
+                            'Authorization': 'Bearer ' + (authToken || localStorage.getItem('dex_remote_token') || '')
                         },
-                        body: JSON.stringify({ message: cmd, source: 'mobile' })
-                    }).catch(() => {});
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) delivered = true;
                 } catch (e) {}
             }
+
+            if (isMobileOrRemoteClient()) {
+                refreshRemoteDevicesPanel();
+            }
+            return { ok: delivered, hostOnline };
         }
 
-        function executeClientAction(action) {
+        function executeClientAction(action, alreadyExecutedOnLaptop = false, rawCommand = '') {
             if (!action) return;
 
-            const isRemote = isTouchMobileDevice();
+            const isRemote = isTouchMobileDevice() || isMobileOrRemoteClient();
 
-            // When user is on mobile/remote, do NOT open the URL in the mobile browser!
-            // YouTube / apps must open ON THE LAPTOP.
+            // Mobile/Remote MUST launch on Laptop — never hijack into mobile phone screen
             if (isRemote) {
-                console.log('[DEX Remote] Mobile remote control active: dispatching action to Laptop display.');
-                showToast('💻 Dispatched to Laptop: ' + action.label);
-                dispatchToLaptop(action);
+                if (!alreadyExecutedOnLaptop) {
+                    dispatchToLaptop(action, rawCommand).then(res => {
+                        if (res && res.ok) {
+                            showToast(res.hostOnline
+                                ? '💻 Sent to Laptop: ' + action.label
+                                : '📡 Queued for Laptop Bridge: ' + action.label);
+                        } else {
+                            showToast('⚠️ Dispatch error. Ensure Laptop DEX server is running.');
+                        }
+                    });
+                } else {
+                    showToast('💻 Executed on Laptop: ' + action.label);
+                }
                 return;
             }
 
-            // Running locally on Laptop / Desktop:
-            if (action.url) {
+            // Desktop Client: if local Java backend already launched it on Windows, skip duplicate window.open!
+            if (alreadyExecutedOnLaptop) {
+                return;
+            }
+
+            if (action.url && !action.isNativeApp) {
                 try {
                     const win = window.open(action.url, '_blank');
                     if (win) {
                         try { win.focus(); } catch (e) {}
                     }
-                } catch (e) {
-                    console.warn('Browser popup blocked:', e);
-                }
-            }
-
-            if (action.protocol) {
-                try {
-                    const ifr = document.createElement('iframe');
-                    ifr.style.display = 'none';
-                    ifr.src = action.protocol;
-                    document.body.appendChild(ifr);
-                    setTimeout(() => { try { ifr.remove(); } catch (e) {} }, 3000);
                 } catch (e) {}
             }
-
-            dispatchToLaptop(action);
+            dispatchToLaptop(action, rawCommand);
         }
 
         function createActionCardElement(action) {
@@ -3813,9 +4043,9 @@
                         </div>
                         <span class="action-card-badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);">LAPTOP 💻</span>
                     </div>
-                    <div class="action-card-url" style="color: #10B981; font-weight: 500;">✓ Dispatched to Windows Laptop screen</div>
+                    <div class="action-card-url" style="color: #10B981; font-weight: 500; word-break: normal; overflow-wrap: break-word;">✓ Dispatched to Windows Laptop screen</div>
                     <div class="action-card-btn-row">
-                        <button type="button" class="notion-action-btn" onclick="dispatchToLaptop(CLIENT_APP_MAP['${escapeHtml(action.target || action.label).toLowerCase()}'] || { target: '${escapeHtml(action.target || action.label)}', label: '${escapeHtml(action.label)}' }); showToast('Re-dispatched to Laptop 💻…');">
+                        <button type="button" class="notion-action-btn" data-rerun="1">
                             <span>💻 Re-run on Laptop</span>
                         </button>
                         ${action.url ? `
@@ -3828,6 +4058,13 @@
                         <span>Executed on your laptop. Tap "Open on this phone" only if you also want it on mobile.</span>
                     </div>
                 `;
+                const rerunBtn = card.querySelector('[data-rerun]');
+                if (rerunBtn) {
+                    rerunBtn.addEventListener('click', () => {
+                        dispatchToLaptop(action, action.target || action.label);
+                        showToast('Re-dispatched to Laptop 💻…');
+                    });
+                }
                 return card;
             }
 
@@ -3905,6 +4142,7 @@
                 const savedApiKey = localStorage.getItem('dex_api_key') || '';
                 const savedProvider = localStorage.getItem('dex_active_provider') || 'GEMINI';
                 const isRemote = isMobileOrRemoteClient();
+                const dev = getRemoteDeviceIdentity();
                 const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -3913,13 +4151,19 @@
                         apiKey: savedApiKey,
                         provider: savedProvider,
                         isMobile: isRemote,
-                        source: isRemote ? 'mobile' : 'desktop'
+                        source: isRemote ? 'mobile' : 'desktop',
+                        deviceId: dev.deviceId,
+                        deviceName: dev.deviceName,
+                        osBrowser: dev.osBrowser,
+                        screen: dev.screen,
+                        orientation: dev.orientation,
+                        fullscreen: dev.fullscreen
                     })
                 });
 
                 const data = await res.json();
                 const reply = data.reply || 'No response received.';
-                appendMessage('assistant', reply, data.action);
+                appendMessage('assistant', reply, data.action || null, Boolean(data.executedOnLaptop), text);
 
                 // Handle speech synthesis if enabled or in voice mode
                 if (isVoiceModeActive || autoSpeakReplies) {
@@ -3937,7 +4181,7 @@
             }
         }
 
-        function appendMessage(role, text, action = null) {
+        function appendMessage(role, text, action = null, executedOnLaptop = false, rawUserText = '') {
             const list = document.getElementById('messagesList');
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
@@ -3965,14 +4209,17 @@
                     bubble.appendChild(img);
                 }
 
-                // If action wasn't explicitly passed, detect from text
+                // If action wasn't explicitly passed, detect from original user command or assistant text
+                if (!action && rawUserText) {
+                    action = resolveClientAction(rawUserText);
+                }
                 if (!action) {
                     action = resolveClientAction(text);
                 }
 
-                // If action exists, execute and render Notion Action Card
+                // If action exists, execute on Laptop and render Action Card
                 if (action) {
-                    executeClientAction(action);
+                    executeClientAction(action, executedOnLaptop, rawUserText);
                     bubble.appendChild(createActionCardElement(action));
                 } else if (text.includes('DEX Tool [open_app]') || text.includes('open_app')) {
                     bubble.appendChild(createQuickChipsElement());
@@ -4462,65 +4709,299 @@
         }
 
         // ── LAPTOP REMOTE COMMAND POLLER (Executes mobile commands on laptop screen) ──
+        // ── CONNECTED REMOTE DEVICES & LAPTOP POLLER ──
         let remotePollerActive = false;
+        let remoteMonitorStarted = false;
+
+        function getRelayQueueBaseUrl() {
+            return isCloudDeployment()
+                ? '/api/remote-queue'
+                : 'https://dex-phi-bay.vercel.app/api/remote-queue';
+        }
+
+        function initRemoteDeviceMonitor() {
+            if (remoteMonitorStarted) return;
+            remoteMonitorStarted = true;
+            renderLocalDeviceMetaBox();
+            sendDeviceHeartbeat().then(() => refreshRemoteDevicesPanel());
+            setInterval(() => {
+                sendDeviceHeartbeat().then(() => {
+                    const remotePage = document.getElementById('page-remote');
+                    if (remotePage && remotePage.classList.contains('active')) {
+                        refreshRemoteDevicesPanel();
+                    }
+                });
+            }, 8000);
+            window.addEventListener('resize', () => renderLocalDeviceMetaBox());
+        }
+
+        function renderLocalDeviceMetaBox() {
+            const box = document.getElementById('thisDeviceMetaBox');
+            if (!box) return;
+            const d = getRemoteDeviceIdentity();
+            box.innerHTML = `<b>This Session:</b> ${escapeHtml(d.deviceName)} • ${escapeHtml(d.osBrowser)} • `
+                + `<b>Screen:</b> ${escapeHtml(d.screen)} (${escapeHtml(d.orientation)}) • `
+                + `<b>Channel:</b> ${escapeHtml(d.channel)} • <b>Fullscreen:</b> ${d.fullscreen ? 'ON' : 'OFF'}`;
+        }
+
+        async function sendDeviceHeartbeat() {
+            const dev = getRemoteDeviceIdentity();
+            renderLocalDeviceMetaBox();
+
+            if (!isCloudDeployment()) {
+                try {
+                    await apiFetch('/api/remote/heartbeat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dev)
+                    });
+                } catch (e) {}
+            } else {
+                try {
+                    const res = await fetch('/api/remote-queue', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'heartbeat', ...dev })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        renderConnectedDevicesPayload(data);
+                    }
+                } catch (e) {}
+            }
+        }
+
+        async function refreshRemoteDevicesPanel() {
+            try {
+                if (!isCloudDeployment()) {
+                    const res = await apiFetch('/api/remote/sessions');
+                    if (res.ok) {
+                        const data = await res.json();
+                        renderLocalSessionsPayload(data);
+                        return;
+                    }
+                }
+                const res = await fetch(getRelayQueueBaseUrl() + '?consumer=browser');
+                if (res.ok) {
+                    const data = await res.json();
+                    renderConnectedDevicesPayload(data);
+                }
+            } catch (e) {}
+        }
+
+        function renderLocalSessionsPayload(data) {
+            const badge = document.getElementById('remoteHostBridgeBadge');
+            const listEl = document.getElementById('connectedRemotesList');
+            const statusPill = document.getElementById('remoteStatusPill');
+            if (!listEl) return;
+
+            if (badge) {
+                badge.className = 'remote-pill-badge remote-pill-online';
+                badge.textContent = `LAPTOP BRIDGE ONLINE (:${data.port || 31416})`;
+            }
+            if (statusPill) {
+                statusPill.textContent = (data.count > 0) ? `${data.count} REMOTE ONLINE` : 'CONNECTED';
+            }
+
+            const sessions = data.sessions || [];
+            if (sessions.length === 0) {
+                listEl.innerHTML = `<div class="remote-device-item"><div style="font-size:12px; color:var(--text-secondary);">No mobile remote connected yet. Scan the QR code below or open <b>dex-phi-bay.vercel.app</b> on your phone.</div></div>`;
+                return;
+            }
+
+            const now = Date.now();
+            listEl.innerHTML = sessions.map(s => {
+                const age = Math.max(0, Math.round((now - (s.lastSeenAt || now)) / 1000));
+                return `
+                    <div class="remote-device-item online">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <strong style="font-size:12.5px; color:#FFFFFF;">📱 ${escapeHtml(s.deviceName || 'Mobile Remote')}</strong>
+                            <span class="remote-pill-badge remote-pill-online">ONLINE • ${age}s</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(s.osBrowser || '')} • ${escapeHtml(s.channel || 'LAN')} (${escapeHtml(s.ipAddress || '')})</div>
+                        <div style="font-size:11px; color:var(--text-muted);">Screen: ${escapeHtml(s.screen || '—')} ${escapeHtml(s.orientation || '')}${s.fullscreen ? ' • Fullscreen' : ''} • Cmds: ${s.commandCount || 0}</div>
+                        ${s.lastCommand ? `<div style="font-size:11px; color:#93c5fd;">Last: "${escapeHtml(s.lastCommand)}"</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderConnectedDevicesPayload(data) {
+            const badge = document.getElementById('remoteHostBridgeBadge');
+            const listEl = document.getElementById('connectedRemotesList');
+            const logEl = document.getElementById('remoteCommandLog');
+            const statusPill = document.getElementById('remoteStatusPill');
+            if (!listEl || !data) return;
+
+            const host = data.host;
+            const hostOnline = Boolean(data.hostOnline);
+            if (badge) {
+                badge.className = 'remote-pill-badge ' + (hostOnline ? 'remote-pill-online' : 'remote-pill-standby');
+                badge.textContent = hostOnline
+                    ? `LAPTOP ONLINE (${host?.name || 'Windows'})`
+                    : 'LAPTOP BRIDGE STANDBY (Start DEX on PC)';
+            }
+
+            const mobileList = (data.mobileDevices || (data.devices || []).filter(d => d.role === 'mobile'));
+            if (statusPill) {
+                const onlineMobs = mobileList.filter(m => m.online).length;
+                statusPill.textContent = hostOnline
+                    ? (onlineMobs > 0 ? `BRIDGE ON • ${onlineMobs} PHONE` : 'LAPTOP ONLINE')
+                    : 'CLOUD STANDBY';
+            }
+
+            const now = Date.now();
+            const cards = [];
+            if (host) {
+                const hAge = Math.max(0, Math.round((now - (host.lastSeen || now)) / 1000));
+                cards.push(`
+                    <div class="remote-device-item ${hostOnline ? 'online' : ''}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <strong style="font-size:12.5px; color:#FFFFFF;">💻 ${escapeHtml(host.name || 'Windows Laptop')}</strong>
+                            <span class="remote-pill-badge ${hostOnline ? 'remote-pill-online' : 'remote-pill-standby'}">${hostOnline ? 'HOST ONLINE' : 'OFFLINE'} • ${hAge}s</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(host.osBrowser || 'Windows / DEX Java Bridge')}</div>
+                        <div style="font-size:11px; color:var(--text-muted);">Local IP: ${escapeHtml(host.lanIp || '127.0.0.1')}:${host.port || 31416}</div>
+                    </div>
+                `);
+            }
+            for (const m of mobileList) {
+                const mAge = Math.max(0, Math.round((now - (m.lastSeen || now)) / 1000));
+                cards.push(`
+                    <div class="remote-device-item ${m.online ? 'online' : ''}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <strong style="font-size:12.5px; color:#FFFFFF;">📱 ${escapeHtml(m.name || 'Mobile Device')}</strong>
+                            <span class="remote-pill-badge ${m.online ? 'remote-pill-online' : 'remote-pill-standby'}">${m.online ? 'ONLINE' : 'IDLE'} • ${mAge}s</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(m.osBrowser || 'Mobile Web')} • Cloud Relay</div>
+                        <div style="font-size:11px; color:var(--text-muted);">Screen: ${escapeHtml(m.screen || '—')} ${escapeHtml(m.orientation || '')}${m.fullscreen ? ' • Fullscreen' : ''} • Cmds: ${m.commandsSent || 0}</div>
+                        ${m.lastCommand ? `<div style="font-size:11px; color:#93c5fd;">Last: "${escapeHtml(m.lastCommand)}"</div>` : ''}
+                    </div>
+                `);
+            }
+
+            listEl.innerHTML = cards.length > 0
+                ? cards.join('')
+                : `<div class="remote-device-item"><div style="font-size:12px; color:var(--text-secondary);">Waiting for remote device heartbeats...</div></div>`;
+
+            if (logEl && Array.isArray(data.history) && data.history.length > 0) {
+                logEl.innerHTML = '<b>Recent Executed on Laptop:</b> ' + data.history.slice(0, 3).map(h =>
+                    `<span style="display:inline-block; margin-right:10px; color:var(--text-secondary);">✓ ${escapeHtml(h.command || h.target)}</span>`
+                ).join('');
+            }
+        }
+
         function initLaptopRemotePoller() {
             if (isTouchMobileDevice() || remotePollerActive) return;
             remotePollerActive = true;
 
-            const pollUrl = window.location.hostname.includes('vercel.app')
-                ? '/api/remote-queue'
-                : 'https://dex-phi-bay.vercel.app/api/remote-queue';
-
-            console.log('[DEX Remote Bridge] Active laptop poller listening on:', pollUrl);
+            const relayBase = getRelayQueueBaseUrl();
+            console.log('[DEX Remote Bridge] Active browser monitor listening on:', relayBase);
 
             setInterval(async () => {
                 try {
-                    const res = await fetch(pollUrl);
+                    const res = await fetch(relayBase + '?consumer=browser');
                     if (!res.ok) return;
                     const data = await res.json();
+                    renderConnectedDevicesPayload(data);
+
                     if (data && data.commands && data.commands.length > 0) {
                         for (const cmd of data.commands) {
-                            fetch(pollUrl, {
+                            // Peek-ACK as 'browser' ONLY so Java CloudRelayWorker never loses the queue item!
+                            fetch(relayBase, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ackId: cmd.id })
+                                body: JSON.stringify({ ackId: cmd.id, consumer: 'browser' })
                             }).catch(() => {});
 
-                            console.log('[DEX Remote] Received mobile command for laptop:', cmd);
-                            showToast('📱 Remote Command from Phone: ' + (cmd.action?.label || cmd.command));
+                            showToast('📱 Mobile Remote Command: ' + (cmd.action?.label || cmd.command));
 
-                            if (cmd.action) {
-                                if (cmd.action.url) {
-                                    window.open(cmd.action.url, '_blank');
-                                }
-                                fetch('http://127.0.0.1:31416/api/chat', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ message: cmd.command })
-                                }).catch(() => {});
-                            } else if (cmd.command) {
-                                fetch('http://127.0.0.1:31416/api/chat', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ message: cmd.command })
-                                }).catch(() => {});
+                            // Only fall back to window.open if Java native desktop bridge is NOT online and it's a web URL
+                            if (!data.hostOnline && cmd.action && cmd.action.url && !cmd.action.isNativeApp) {
+                                try { window.open(cmd.action.url, '_blank'); } catch (e) {}
                             }
                         }
                     }
                 } catch (e) {}
-            }, 1500);
+            }, 1800);
         }
 
-        // Lightweight pure JS SVG QR generator
+        // Pure-JS ISO 18004 SVG QR Code Generator (Byte mode, Level L, Versions 1-10)
+        const DEX_QR = (() => {
+            const TOTAL = [0,26,44,70,100,134,172,196,242,292,346];
+            const EC_PER = [0,7,10,15,20,26,18,20,24,30,18];
+            const BLOCKS = [0,1,1,1,1,1,2,2,2,2,4];
+            function gfMul(x,y){let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x;}return z;}
+            function rsDiv(deg){const r=new Uint8Array(deg);r[deg-1]=1;let rt=1;for(let i=0;i<deg;i++){for(let j=0;j<deg;j++){r[j]=gfMul(r[j],rt);if(j+1<deg)r[j]^=r[j+1];}rt=gfMul(rt,2);}return r;}
+            function rsRem(data,div){const r=new Uint8Array(div.length);for(let b of data){const f=(b^r[0])&255;r.copyWithin(0,1);r[r.length-1]=0;for(let i=0;i<r.length;i++)r[i]^=gfMul(div[i],f);}return r;}
+            function encode(text){
+                const bytes=new TextEncoder().encode(text);
+                let v=1;for(;v<=10;v++){const cap=Math.floor(((TOTAL[v]-EC_PER[v]*BLOCKS[v])*8-(4+(v<=9?8:16)))/8);if(bytes.length<=cap)break;}
+                if(v>10)throw new Error('Payload too large for QR');
+                const dataCw=TOTAL[v]-EC_PER[v]*BLOCKS[v];
+                const bits=[];const pushBits=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push((val>>>i)&1);};
+                pushBits(4,4);pushBits(bytes.length,v<=9?8:16);for(let b of bytes)pushBits(b,8);
+                pushBits(0,Math.min(4,dataCw*8-bits.length));while(bits.length%8!==0)bits.push(0);
+                let pad=0;while(bits.length<dataCw*8){pushBits(pad%2===0?0xEC:0x11,8);pad++;}
+                const data=new Uint8Array(dataCw);for(let i=0;i<bits.length;i++)if(bits[i])data[i>>>3]|=(1<<(7-(i&7)));
+                const nb=BLOCKS[v],ecLen=EC_PER[v],tot=TOTAL[v],ns=nb-(tot%nb),sbl=Math.floor(tot/nb),sdl=sbl-ecLen;
+                const div=rsDiv(ecLen),blocks=[];let off=0;
+                for(let i=0;i<nb;i++){const dl=sdl+(i<ns?0:1);const bd=data.slice(off,off+dl);off+=dl;const ec=rsRem(bd,div);const fb=new Uint8Array(sdl+1+ecLen);fb.set(bd);fb.set(ec,sdl+1);blocks.push(fb);}
+                const all=[];for(let c=0;c<=sdl;c++)for(let b=0;b<nb;b++)if(c<sdl||b>=ns)all.push(blocks[b][c]);
+                for(let c=sdl+1;c<sdl+1+ecLen;c++)for(let b=0;b<nb;b++)all.push(blocks[b][c]);
+                const size=v*4+17,m=Array.from({length:size},()=>Array(size).fill(false)),fn=Array.from({length:size},()=>Array(size).fill(false));
+                const setF=(r,c,d)=>{m[r][c]=d;fn[r][c]=true;};
+                for(let i=0;i<size;i++){setF(6,i,i%2===0);setF(i,6,i%2===0);}
+                const find=(cr,cc)=>{for(let dr=-4;dr<=4;dr++)for(let dc=-4;dc<=4;dc++){const r=cr+dr,c=cc+dc;if(r>=0&&r<size&&c>=0&&c<size)setF(r,c,Math.max(Math.abs(dr),Math.abs(dc))!==2&&Math.max(Math.abs(dr),Math.abs(dc))!==4);}};
+                find(3,3);find(3,size-4);find(size-4,3);
+                if(v>=2){const na=Math.floor(v/7)+2,st=Math.floor((v*4+na*2+1)/(na*2-2))*2,ac=[6];let pos=size-7;for(let i=na-1;i>=1;i--,pos-=st)ac[i]=pos;
+                    for(let i=0;i<na;i++)for(let j=0;j<na;j++){if((i===0&&j===0)||(i===0&&j===na-1)||(i===na-1&&j===0))continue;for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++)setF(ac[i]+dr,ac[j]+dc,Math.max(Math.abs(dr),Math.abs(dc))!==1);}
+                }
+                setF(4*v+9,8,true);
+                for(let i=0;i<=5;i++){fn[i][8]=true;fn[8][i]=true;}fn[7][8]=true;fn[8][8]=true;fn[8][7]=true;
+                for(let i=0;i<8;i++)fn[8][size-1-i]=true;for(let i=0;i<7;i++)fn[size-1-i][8]=true;
+                if(v>=7){let rem=v;for(let i=0;i<12;i++)rem=(rem<<1)^((rem>>>11)*0x1F25);const vb=(v<<12)|rem;for(let i=0;i<18;i++){const bit=((vb>>>i)&1)!==0,a=size-11+(i%3),b=Math.floor(i/3);setF(a,b,bit);setF(b,a,bit);}}
+                let bi=0,tb=all.length*8,up=true;
+                for(let rt=size-1;rt>=1;rt-=2){if(rt===6)rt=5;for(let s=0;s<size;s++){const r=up?size-1-s:s;for(let o=0;o<2;o++){const c=rt-o;if(!fn[r][c]){let dk=false;if(bi<tb){dk=((all[bi>>>3]>>>(7-(bi&7)))&1)!==0;bi++;}m[r][c]=dk;}}}up=!up;}
+                const inv=(mk,r,c)=>[()=>(r+c)%2===0,()=>r%2===0,()=>c%3===0,()=>(r+c)%3===0,()=>((r>>1)+Math.floor(c/3))%2===0,()=>((r*c)%2)+((r*c)%3)===0,()=>(((r*c)%2)+((r*c)%3))%2===0,()=>(((r+c)%2)+((r*c)%3))%2===0][mk]();
+                const drawFmt=(mat,mk)=>{let rem=(8|mk);for(let i=0;i<10;i++)rem=(rem<<1)^((rem>>>9)*0x537);const fb=((8|mk)<<10|rem)^0x5412,gb=i=>((fb>>>i)&1)!==0;
+                    for(let i=0;i<=5;i++)mat[i][8]=gb(i);mat[7][8]=gb(6);mat[8][8]=gb(7);mat[8][7]=gb(8);for(let i=9;i<15;i++)mat[8][14-i]=gb(i);
+                    for(let i=0;i<8;i++)mat[8][size-1-i]=gb(i);for(let i=8;i<15;i++)mat[size-15+i][8]=gb(i);
+                };
+                let bestM=0,bestP=1e9;
+                for(let mk=0;mk<8;mk++){const cand=m.map(r=>r.slice());for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(!fn[r][c]&&inv(mk,r,c))cand[r][c]=!cand[r][c];drawFmt(cand,mk);
+                    let pen=0;
+                    for(let r=0;r<size;r++){let rl=0,rc=false,ph=0;for(let c=0;c<size;c++){const dk=cand[r][c];if(c===0||dk!==rc){if(rl>=5)pen+=3+(rl-5);rc=dk;rl=1;}else rl++;ph=((ph<<1)|(dk?1:0))&0x7FF;if(c>=10&&(ph===0b10111010000||ph===0b00001011101))pen+=40;}if(rl>=5)pen+=3+(rl-5);}
+                    for(let c=0;c<size;c++){let rl=0,rc=false,ph=0;for(let r=0;r<size;r++){const dk=cand[r][c];if(r===0||dk!==rc){if(rl>=5)pen+=3+(rl-5);rc=dk;rl=1;}else rl++;ph=((ph<<1)|(dk?1:0))&0x7FF;if(r>=10&&(ph===0b10111010000||ph===0b00001011101))pen+=40;}if(rl>=5)pen+=3+(rl-5);}
+                    for(let r=0;r<size-1;r++)for(let c=0;c<size-1;c++)if(cand[r][c]===cand[r][c+1]&&cand[r][c]===cand[r+1][c]&&cand[r][c]===cand[r+1][c+1])pen+=3;
+                    let dkCnt=0;for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(cand[r][c])dkCnt++;const k=Math.max(0,Math.ceil(Math.abs(dkCnt*20-size*size*10)/(size*size))-1);pen+=k*10;
+                    if(pen<bestP){bestP=pen;bestM=mk;}
+                }
+                for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(!fn[r][c]&&inv(bestM,r,c))m[r][c]=!m[r][c];
+                drawFmt(m,bestM);return m;
+            }
+            return { encode };
+        })();
+
+        // Pure JS Self-Contained SVG QR Code Generator (Zero external API dependency)
         function renderQRCode(text) {
             const qrBox = document.getElementById('qrBox');
-            qrBox.innerHTML = `
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}" 
-                     alt="Pairing QR Code" 
-                     width="180" height="180" 
-                     style="border-radius: 8px; display: block;" 
-                     onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'padding: 30px; font-size: 12px; color: #000;\\'>Open on phone:<br><b>${text}</b></div>'"/>
-            `;
+            if (!qrBox) return;
+            try {
+                const matrix = DEX_QR.encode(text);
+                const n = matrix.length;
+                const border = 3;
+                const total = n + border * 2;
+                let d = '';
+                for (let r = 0; r < n; r++) {
+                    for (let c = 0; c < n; c++) {
+                        if (matrix[r][c]) d += `M${c + border},${r + border}h1v1h-1z`;
+                    }
+                }
+                qrBox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" width="180" height="180" shape-rendering="crispEdges" style="border-radius:8px; display:block; background:#fff;"><rect width="100%" height="100%" fill="#ffffff"/><path d="${d}" fill="#000000"/></svg>`;
+            } catch (e) {
+                qrBox.innerHTML = `<div style="padding: 20px; font-size: 12px; color: #000; word-break: break-all;">Open on phone:<br><b>${escapeHtml(text)}</b></div>`;
+            }
         }
 
         function copyRemoteUrl() {
@@ -4558,22 +5039,67 @@
             }
         }
 
-        // ── FIT-TO-SCREEN TOGGLE (MOBILE & DESKTOP) ──
-        function toggleFitToScreen() {
-            const isFit = document.body.classList.toggle('fit-to-screen');
-            localStorage.setItem('dex_fit_to_screen', isFit ? 'true' : 'false');
+        // ── TRUE FULLSCREEN & FIT-TO-SCREEN TOGGLE (MOBILE & DESKTOP, LIKE F11) ──
+        function applyFitVisualState(isFull) {
+            document.body.classList.toggle('fit-to-screen', Boolean(isFull));
+            localStorage.setItem('dex_fit_to_screen', isFull ? 'true' : 'false');
             const hBtn = document.getElementById('headerFitScreenBtn');
             const rBtn = document.getElementById('remoteFitScreenBtn');
-            if (hBtn) hBtn.innerHTML = isFit ? '<span>🗗</span> <span>Standard</span>' : '<span>⛶</span> <span>Fit View</span>';
-            if (rBtn) rBtn.innerHTML = isFit ? '🗗 Standard View' : '⛶ Fit to Screen';
-            showToast(isFit ? '⛶ Fit-to-Screen Enabled (Locked 100dvh)' : '🗗 Standard View Restored');
+            if (hBtn) hBtn.innerHTML = isFull ? '<span>🗗</span> <span>Exit Full</span>' : '<span>⛶</span> <span>Fullscreen</span>';
+            if (rBtn) rBtn.innerHTML = isFull ? '🗗 Exit Fullscreen' : '⛶ Fullscreen';
+            renderLocalDeviceMetaBox();
         }
+
+        async function toggleFitToScreen() {
+            const elem = document.documentElement;
+            const nativeFs = document.fullscreenElement || document.webkitFullscreenElement;
+            const currentlyFit = Boolean(nativeFs || document.body.classList.contains('fit-to-screen'));
+
+            if (!currentlyFit) {
+                try {
+                    if (elem.requestFullscreen) {
+                        await elem.requestFullscreen({ navigationUI: 'hide' });
+                    } else if (elem.webkitRequestFullscreen) {
+                        elem.webkitRequestFullscreen();
+                    }
+                } catch (e) {}
+                applyFitVisualState(true);
+                showToast('⛶ Fullscreen Active');
+            } else {
+                try {
+                    if (document.fullscreenElement && document.exitFullscreen) {
+                        await document.exitFullscreen();
+                    } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                } catch (e) {}
+                applyFitVisualState(false);
+                showToast('🗗 Standard View Restored');
+            }
+            sendDeviceHeartbeat();
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            applyFitVisualState(isFs);
+            sendDeviceHeartbeat();
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            applyFitVisualState(isFs);
+        });
 
         // ── REMOTE PAD COMMAND DISPATCHER ──
         function sendRemotePadCommand(cmd, label) {
-            showToast('📱 Dispatched to Laptop: ' + (label || cmd));
-            const action = resolveClientAction(cmd) || { type: 'run', target: cmd, label: label || cmd };
-            dispatchToLaptop(action);
+            showToast('📱 Sending to Laptop: ' + (label || cmd));
+            const action = resolveClientAction(cmd) || { type: 'remote_control', target: cmd, label: label || cmd, isNativeApp: true };
+            dispatchToLaptop(action, cmd).then(res => {
+                if (res && res.ok) {
+                    showToast(res.hostOnline
+                        ? '💻 Executed on Laptop: ' + (label || cmd)
+                        : '📡 Queued for Laptop Bridge: ' + (label || cmd));
+                }
+            });
         }
 
         function closeStudioModal(modalId) {

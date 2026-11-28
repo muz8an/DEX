@@ -38,8 +38,19 @@ public class DEXWebServer {
     private final String host;
     private final int port;
     private HttpServer server;
+    private java.util.concurrent.ExecutorService executor;
     private volatile boolean relayRunning = false;
     private Thread relayThread;
+    private static volatile long lastCloudRelaySuccessAt = 0L;
+    private static volatile String activeRelayHost = "";
+
+    public static boolean isRelayConnected() {
+        return lastCloudRelaySuccessAt > 0L && (System.currentTimeMillis() - lastCloudRelaySuccessAt) < 15_000L;
+    }
+
+    public static String getActiveRelayHost() {
+        return activeRelayHost;
+    }
 
     public DEXWebServer(AIClient aiClient) {
         this(aiClient, DEXConfig.getWebHost(), DEXConfig.getWebPort());
@@ -57,7 +68,12 @@ public class DEXWebServer {
         }
 
         server = HttpServer.create(new InetSocketAddress(host, port), 0);
-        server.setExecutor(Executors.newCachedThreadPool());
+        executor = Executors.newCachedThreadPool(r -> {
+            Thread t = new Thread(r, "DEX-HTTP-Worker");
+            t.setDaemon(true);
+            return t;
+        });
+        server.setExecutor(executor);
 
         // Dashboard UI handler
         server.createContext("/", new DashboardHandler());
@@ -86,6 +102,9 @@ public class DEXWebServer {
         server.createContext("/api/pair/pin", new PairPinHandler());
         server.createContext("/api/devices", new DevicesHandler());
         server.createContext("/api/devices/revoke", new DeviceRevokeHandler());
+        server.createContext("/api/remote/heartbeat", new RemoteHeartbeatHandler());
+        server.createContext("/api/remote/sessions", new RemoteSessionsHandler());
+        server.createContext("/api/remote/command", new RemoteCommandHandler(aiClient));
 
         server.start();
         System.out.println("[DEX] Web Dashboard started at http://" + host + ":" + port);
@@ -102,66 +121,200 @@ public class DEXWebServer {
             java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
                     .connectTimeout(java.time.Duration.ofSeconds(4))
                     .build();
-            String relayUrl = System.getenv("DEX_CLOUD_RELAY_URL");
-            if (relayUrl == null || relayUrl.isBlank()) {
-                relayUrl = "https://dex-phi-bay.vercel.app/api/remote-queue";
+
+            List<String> relayUrls = new ArrayList<>();
+            String customRelay = System.getenv("DEX_CLOUD_RELAY_URL");
+            if (customRelay != null && !customRelay.isBlank()) {
+                for (String u : customRelay.split(",")) {
+                    String trimmed = u.trim();
+                    if (!trimmed.isEmpty()) relayUrls.add(trimmed);
+                }
             }
+            if (relayUrls.isEmpty()) {
+                relayUrls.add("https://dex-phi-bay.vercel.app/api/remote-queue");
+                relayUrls.add("https://dexai-gamma.vercel.app/api/remote-queue");
+            }
+
+            int cycle = 0;
             while (relayRunning) {
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(1400);
                     if (!relayRunning) break;
-                    java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                            .uri(java.net.URI.create(relayUrl))
-                            .timeout(java.time.Duration.ofSeconds(4))
-                            .header("Accept", "application/json")
-                            .GET()
-                            .build();
-                    java.net.http.HttpResponse<String> resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
-                    if (resp.statusCode() == 200 && resp.body() != null && !resp.body().isBlank()) {
-                        JsonNode root = MAPPER.readTree(resp.body());
-                        JsonNode cmds = root.get("commands");
-                        if (cmds != null && cmds.isArray()) {
-                            for (JsonNode cmd : cmds) {
-                                int cmdId = cmd.has("id") ? cmd.get("id").asInt() : 0;
-                                String command = cmd.has("command") ? cmd.get("command").asText() : "";
-                                JsonNode act = cmd.get("action");
-                                String url = (act != null && act.has("url")) ? act.get("url").asText() : null;
-                                String target = (act != null && act.has("target")) ? act.get("target").asText() : command;
+                    boolean sendHeartbeat = (cycle % 5 == 0);
+                    cycle++;
 
-                                System.out.println("[DEX CloudRelay] Executing phone command on Windows: " + command);
+                    for (String relayUrl : relayUrls) {
+                        if (!relayRunning) break;
+                        try {
+                            if (sendHeartbeat) {
+                                sendDesktopHeartbeat(client, relayUrl, port);
+                            }
 
-                                // Execute natively on Windows
-                                if (url != null && !url.isBlank()) {
-                                    com.dex.WindowsController.openDefaultBrowser(url);
-                                } else if (target != null && !target.isBlank()) {
-                                    com.dex.WindowsController.openApp(target);
-                                } else if (!command.isBlank()) {
-                                    com.dex.WindowsController.openApp(command);
-                                }
+                            String pollUrl = relayUrl + (relayUrl.contains("?") ? "&" : "?") + "consumer=desktop";
+                            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                                    .uri(java.net.URI.create(pollUrl))
+                                    .timeout(java.time.Duration.ofSeconds(4))
+                                    .header("Accept", "application/json")
+                                    .GET()
+                                    .build();
+                            java.net.http.HttpResponse<String> resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+                            if (resp.statusCode() == 200 && resp.body() != null && !resp.body().isBlank()) {
+                                lastCloudRelaySuccessAt = System.currentTimeMillis();
+                                activeRelayHost = relayUrl;
 
-                                // Send ACK back to clear queue
-                                if (cmdId > 0) {
-                                    String ackJson = "{\"ackId\":" + cmdId + "}";
-                                    java.net.http.HttpRequest ackReq = java.net.http.HttpRequest.newBuilder()
-                                            .uri(java.net.URI.create(relayUrl))
-                                            .header("Content-Type", "application/json")
-                                            .timeout(java.time.Duration.ofSeconds(4))
-                                            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(ackJson))
-                                            .build();
-                                    client.send(ackReq, java.net.http.HttpResponse.BodyHandlers.discarding());
+                                JsonNode root = MAPPER.readTree(resp.body());
+                                syncCloudDevices(root.get("devices"), relayUrl);
+
+                                JsonNode cmds = root.get("commands");
+                                if (cmds != null && cmds.isArray()) {
+                                    for (JsonNode cmd : cmds) {
+                                        int cmdId = cmd.has("id") ? cmd.get("id").asInt() : 0;
+                                        String command = cmd.has("command") ? cmd.get("command").asText() : "";
+                                        JsonNode act = cmd.get("action");
+                                        String devId = cmd.path("deviceId").asText("");
+                                        String devName = cmd.path("deviceName").asText("");
+                                        String osBrowser = cmd.path("osBrowser").asText("");
+
+                                        if (!devId.isBlank() || !devName.isBlank()) {
+                                            com.dex.security.DeviceManager.recordRemoteSession(
+                                                    devId.isBlank() ? "cloud-mobile" : devId,
+                                                    devName.isBlank() ? "Mobile Web Client" : devName,
+                                                    osBrowser.isBlank() ? "Mobile Browser" : osBrowser,
+                                                    relayUrl.contains("dexai-gamma") ? "Cloud (dex.ai)" : "Cloud Relay",
+                                                    "Cloud",
+                                                    cmd.path("screen").asText(""),
+                                                    cmd.path("orientation").asText(""),
+                                                    cmd.path("fullscreen").asBoolean(false),
+                                                    command
+                                            );
+                                        }
+
+                                        System.out.println("[DEX CloudRelay] Executing phone command on Windows: " + command);
+                                        String execResult = executeRemotePayloadOnWindows(command, act, aiClient);
+
+                                        if (cmdId > 0) {
+                                            ObjectNode ackPayload = MAPPER.createObjectNode();
+                                            ackPayload.put("ackId", cmdId);
+                                            ackPayload.put("consumer", "desktop");
+                                            ackPayload.put("executed", true);
+                                            ackPayload.put("result", execResult != null ? execResult : "Executed");
+                                            java.net.http.HttpRequest ackReq = java.net.http.HttpRequest.newBuilder()
+                                                    .uri(java.net.URI.create(relayUrl))
+                                                    .header("Content-Type", "application/json")
+                                                    .timeout(java.time.Duration.ofSeconds(4))
+                                                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(ackPayload)))
+                                                    .build();
+                                            client.send(ackReq, java.net.http.HttpResponse.BodyHandlers.discarding());
+                                        }
+                                    }
                                 }
                             }
+                        } catch (InterruptedException ie) {
+                            throw ie;
+                        } catch (Exception ignored) {
+                            // Individual relay host unavailable or offline
                         }
                     }
                 } catch (InterruptedException ie) {
                     break;
-                } catch (Exception ignored) {
-                    // Transient network timeout or offline
                 }
             }
         }, "DEX-CloudRelayWorker");
         relayThread.setDaemon(true);
         relayThread.start();
+    }
+
+    private static void sendDesktopHeartbeat(java.net.http.HttpClient client, String relayUrl, int webPort) {
+        try {
+            String computerName = System.getenv("COMPUTERNAME");
+            if (computerName == null || computerName.isBlank()) {
+                computerName = System.getProperty("user.name", "Windows-PC");
+            }
+            ObjectNode hb = MAPPER.createObjectNode();
+            hb.put("type", "heartbeat");
+            hb.put("role", "desktop");
+            hb.put("deviceId", "laptop-" + computerName.toLowerCase(Locale.ROOT));
+            hb.put("name", computerName);
+            hb.put("os", System.getProperty("os.name", "Windows") + " / Java " + Runtime.version().feature());
+            hb.put("port", webPort);
+            hb.put("lanIp", DEXConfig.getDetectedHostIps().isEmpty() ? "127.0.0.1" : DEXConfig.getDetectedHostIps().get(0));
+
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(relayUrl))
+                    .header("Content-Type", "application/json")
+                    .timeout(java.time.Duration.ofSeconds(3))
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(hb)))
+                    .build();
+            client.send(req, java.net.http.HttpResponse.BodyHandlers.discarding());
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static void syncCloudDevices(JsonNode devicesNode, String relayUrl) {
+        if (devicesNode == null || !devicesNode.isArray()) return;
+        String channelLabel = relayUrl.contains("dexai-gamma") ? "Cloud (dex.ai)" : "Cloud Relay";
+        for (JsonNode d : devicesNode) {
+            if (!"mobile".equalsIgnoreCase(d.path("role").asText("mobile"))) continue;
+            if (!d.path("online").asBoolean(true)) continue;
+            String id = d.path("deviceId").asText("");
+            String name = d.path("name").asText("Mobile Device");
+            String osBrowser = d.path("osBrowser").asText(d.path("os").asText("Mobile Web"));
+            String screen = d.path("screen").asText("");
+            String orientation = d.path("orientation").asText("");
+            boolean fs = d.path("fullscreen").asBoolean(false);
+            com.dex.security.DeviceManager.recordRemoteSession(
+                    id, name, osBrowser, channelLabel, "Cloud", screen, orientation, fs, null
+            );
+        }
+    }
+
+    private static String executeRemotePayloadOnWindows(String rawCommand, JsonNode act, AIClient aiClient) {
+        String command = rawCommand != null ? com.dex.WindowsController.stripLaptopPhraseSuffix(rawCommand) : "";
+        String lower = command.toLowerCase(Locale.ROOT).trim();
+
+        // 1. Tactile remote controls (D-pad, volume, media, minimize)
+        if (lower.equals("minimize_all") || lower.equals("vol_up") || lower.equals("vol_down")
+                || lower.equals("mute") || lower.equals("media_play_pause")
+                || lower.equals("media_next") || lower.equals("media_prev")
+                || lower.startsWith("remote_key ")) {
+            return com.dex.WindowsController.executeRemoteControlAction(lower).toDisplayString();
+        }
+
+        // 2. Desktop screenshot
+        if (lower.equals("take a screenshot") || lower.equals("take screenshot")
+                || lower.equals("capture screenshot") || lower.equals("screenshot")) {
+            return SystemTools.takeScreenshot("");
+        }
+
+        // 3. Explicit structured action metadata
+        if (act != null && !act.isMissingNode() && !act.isNull()) {
+            String type = act.path("type").asText("");
+            String target = act.path("target").asText("");
+            String url = act.path("url").asText("");
+            boolean isNativeApp = act.path("isNativeApp").asBoolean(false);
+            boolean isFallbackSearch = act.path("isFallbackSearch").asBoolean(false);
+
+            if ("open_app".equalsIgnoreCase(type) || isNativeApp) {
+                String appTarget = !target.isBlank() ? target : command;
+                if ("chrome".equalsIgnoreCase(appTarget)) {
+                    return com.dex.WindowsController.executeOpenChrome(null).toDisplayString();
+                }
+                return com.dex.WindowsController.openApp(appTarget);
+            }
+            if (url != null && !url.isBlank() && !isFallbackSearch) {
+                return com.dex.WindowsController.openDefaultBrowser(url);
+            }
+        }
+
+        // 4. Natural-language dispatch through DEX TaskManager / WindowsController
+        String taskOut = TaskManager.handle(command);
+        if (taskOut != null && !taskOut.isBlank()) {
+            if (taskOut.startsWith("Unsupported application") && act != null && act.has("url") && !act.path("url").asText("").isBlank()) {
+                return com.dex.WindowsController.openDefaultBrowser(act.path("url").asText());
+            }
+            return taskOut;
+        }
+        return com.dex.WindowsController.openApp(command);
     }
 
     public synchronized void stop() {
@@ -173,6 +326,10 @@ public class DEXWebServer {
         if (server != null) {
             server.stop(0);
             server = null;
+        }
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
         }
     }
 
@@ -241,8 +398,9 @@ public class DEXWebServer {
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Device-Token");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Private-Network", "true");
         exchange.sendResponseHeaders(statusCode, bytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(bytes);
@@ -294,6 +452,9 @@ public class DEXWebServer {
             status.put("toolsCount", ToolManager.getAllTools().size());
             status.put("remoteAuthEnabled", true);
             status.put("pairedDevicesCount", com.dex.security.DeviceManager.getPairedDevices().size());
+            status.put("connectedRemotesCount", com.dex.security.DeviceManager.getActiveRemoteSessions().size());
+            status.put("relayConnected", lastCloudRelaySuccessAt > 0 && (System.currentTimeMillis() - lastCloudRelaySuccessAt) < 15_000L);
+            status.put("relayHost", activeRelayHost);
             status.put("authorized", authorized);
             if (authorized) {
                 status.put("remoteToken", DEXConfig.getRemoteAuthToken());
@@ -541,10 +702,43 @@ public class DEXWebServer {
                     return;
                 }
 
-                String reply = aiClient.processMessage(userMessage);
+                String remoteIp = exchange.getRemoteAddress() != null && exchange.getRemoteAddress().getAddress() != null
+                        ? exchange.getRemoteAddress().getAddress().getHostAddress()
+                        : "127.0.0.1";
+                boolean isLoopback = "127.0.0.1".equals(remoteIp) || "0:0:0:0:0:0:0:1".equals(remoteIp) || "::1".equals(remoteIp);
+                boolean isMobileClient = json.path("isMobile").asBoolean(false)
+                        || "mobile".equalsIgnoreCase(json.path("source").asText(""))
+                        || !isLoopback;
+
+                if (isMobileClient) {
+                    String ua = exchange.getRequestHeaders().getFirst("User-Agent");
+                    com.dex.security.DeviceManager.recordRemoteSession(
+                            json.path("deviceId").asText(""),
+                            json.path("deviceName").asText(""),
+                            json.path("osBrowser").asText(ua != null ? summarizeUserAgent(ua) : "Mobile Browser"),
+                            remoteIp,
+                            "LAN",
+                            json.path("screen").asText(""),
+                            json.path("orientation").asText(""),
+                            json.path("fullscreen").asBoolean(false),
+                            userMessage
+                    );
+                }
+
+                String lower = userMessage.toLowerCase(Locale.ROOT).trim();
+                String reply;
+                if (lower.equals("minimize_all") || lower.equals("vol_up") || lower.equals("vol_down")
+                        || lower.equals("mute") || lower.equals("media_play_pause")
+                        || lower.equals("media_next") || lower.equals("media_prev")
+                        || lower.startsWith("remote_key ")) {
+                    reply = com.dex.WindowsController.executeRemoteControlAction(userMessage).toDisplayString();
+                } else {
+                    reply = aiClient.processMessage(userMessage);
+                }
 
                 ObjectNode responseNode = MAPPER.createObjectNode();
                 responseNode.put("reply", reply);
+                responseNode.put("executedOnLaptop", true);
                 responseNode.put("timestamp", System.currentTimeMillis());
 
                 sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(responseNode));
@@ -1159,6 +1353,159 @@ public class DEXWebServer {
                 sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
             } catch (Exception e) {
                 sendJsonResponse(exchange, 500, "{\"error\": \"Revoke error: " + e.getMessage() + "\"}");
+            }
+        }
+    }
+
+    private static String summarizeUserAgent(String ua) {
+        if (ua == null || ua.isBlank()) return "Unknown Browser";
+        String os = ua.contains("Android") ? "Android"
+                : (ua.contains("iPhone") || ua.contains("iPad")) ? "iOS"
+                : ua.contains("Windows") ? "Windows"
+                : ua.contains("Mac OS") ? "macOS"
+                : "Web";
+        String browser = ua.contains("Edg") ? "Edge"
+                : ua.contains("Chrome") ? "Chrome"
+                : ua.contains("Firefox") ? "Firefox"
+                : ua.contains("Safari") ? "Safari"
+                : "Browser";
+        return os + " / " + browser;
+    }
+
+    private static class RemoteHeartbeatHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String remoteIp = exchange.getRemoteAddress() != null && exchange.getRemoteAddress().getAddress() != null
+                        ? exchange.getRemoteAddress().getAddress().getHostAddress()
+                        : "127.0.0.1";
+                String ua = exchange.getRequestHeaders().getFirst("User-Agent");
+
+                com.dex.security.DeviceManager.RemoteSession session = com.dex.security.DeviceManager.recordRemoteSession(
+                        json.path("deviceId").asText(""),
+                        json.path("name").asText(json.path("deviceName").asText("Mobile Device")),
+                        json.path("osBrowser").asText(summarizeUserAgent(ua)),
+                        remoteIp,
+                        json.path("channel").asText("LAN"),
+                        json.path("screen").asText(""),
+                        json.path("orientation").asText(""),
+                        json.path("fullscreen").asBoolean(false),
+                        null
+                );
+
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("ok", true);
+                resp.put("sessionId", session.getSessionId());
+                resp.put("connectedCount", com.dex.security.DeviceManager.getActiveRemoteSessions().size());
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 400, "{\"error\": \"Invalid heartbeat: " + e.getMessage() + "\"}");
+            }
+        }
+    }
+
+    private static class RemoteSessionsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+
+            List<com.dex.security.DeviceManager.RemoteSession> active = com.dex.security.DeviceManager.getActiveRemoteSessions();
+            ObjectNode root = MAPPER.createObjectNode();
+            root.put("count", active.size());
+            root.put("relayConnected", lastCloudRelaySuccessAt > 0 && (System.currentTimeMillis() - lastCloudRelaySuccessAt) < 15_000L);
+            root.put("relayHost", activeRelayHost);
+            root.put("hostName", System.getProperty("user.name", "Laptop"));
+            root.put("port", DEXConfig.getWebPort());
+
+            ArrayNode arr = root.putArray("sessions");
+            for (com.dex.security.DeviceManager.RemoteSession s : active) {
+                ObjectNode n = arr.addObject();
+                n.put("sessionId", s.getSessionId());
+                n.put("deviceName", s.getDeviceName());
+                n.put("osBrowser", s.getOsBrowser());
+                n.put("ipAddress", s.getIpAddress());
+                n.put("channel", s.getChannel());
+                n.put("screen", s.getScreen() != null ? s.getScreen() : "");
+                n.put("orientation", s.getOrientation() != null ? s.getOrientation() : "");
+                n.put("fullscreen", s.isFullscreen());
+                n.put("connectedAt", s.getConnectedAt());
+                n.put("lastSeenAt", s.getLastSeenAt());
+                n.put("commandCount", s.getCommandCount());
+                n.put("lastCommand", s.getLastCommand() != null ? s.getLastCommand() : "");
+                n.put("online", s.isOnline());
+            }
+            sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(root));
+        }
+    }
+
+    private static class RemoteCommandHandler implements HttpHandler {
+        private final AIClient aiClient;
+
+        public RemoteCommandHandler(AIClient aiClient) {
+            this.aiClient = aiClient;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJsonResponse(exchange, 204, "");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                sendJsonResponse(exchange, 401, "{\"error\": \"Unauthorized.\"}");
+                return;
+            }
+            try {
+                String body = readRequestBody(exchange);
+                JsonNode json = MAPPER.readTree(body);
+                String command = json.path("command").asText("").trim();
+                if (command.isEmpty()) {
+                    sendJsonResponse(exchange, 400, "{\"error\": \"Command cannot be empty.\"}");
+                    return;
+                }
+
+                String remoteIp = exchange.getRemoteAddress() != null && exchange.getRemoteAddress().getAddress() != null
+                        ? exchange.getRemoteAddress().getAddress().getHostAddress()
+                        : "127.0.0.1";
+                String ua = exchange.getRequestHeaders().getFirst("User-Agent");
+                com.dex.security.DeviceManager.recordRemoteSession(
+                        json.path("deviceId").asText(""),
+                        json.path("deviceName").asText("Mobile Remote"),
+                        json.path("osBrowser").asText(summarizeUserAgent(ua)),
+                        remoteIp,
+                        "LAN",
+                        json.path("screen").asText(""),
+                        json.path("orientation").asText(""),
+                        json.path("fullscreen").asBoolean(false),
+                        command
+                );
+
+                String result = executeRemotePayloadOnWindows(command, json.get("action"), aiClient);
+                ObjectNode resp = MAPPER.createObjectNode();
+                resp.put("ok", true);
+                resp.put("executedOnLaptop", true);
+                resp.put("command", command);
+                resp.put("result", result);
+                sendJsonResponse(exchange, 200, MAPPER.writeValueAsString(resp));
+            } catch (Exception e) {
+                sendJsonResponse(exchange, 500, "{\"error\": \"Remote command failed: " + e.getMessage() + "\"}");
             }
         }
     }

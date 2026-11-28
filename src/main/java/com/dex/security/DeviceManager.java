@@ -180,6 +180,138 @@ public class DeviceManager {
         saveDevices();
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // Live Remote Web / Mobile Companion Session Telemetry (Pure Java)
+    // ──────────────────────────────────────────────────────────────
+
+    private static final long SESSION_ONLINE_TTL_MS = 65_000L;
+    private static final long SESSION_RETENTION_MS = 600_000L;
+    private static final Map<String, RemoteSession> REMOTE_SESSIONS = new ConcurrentHashMap<>();
+
+    public static class RemoteSession {
+        private String sessionId;
+        private String deviceName;
+        private String osBrowser;
+        private String ipAddress;
+        private String channel;
+        private String screen;
+        private String orientation;
+        private boolean fullscreen;
+        private long connectedAt;
+        private long lastSeenAt;
+        private int commandCount;
+        private String lastCommand;
+
+        public RemoteSession() {}
+
+        public String getSessionId() { return sessionId; }
+        public void setSessionId(String sessionId) { this.sessionId = sessionId; }
+
+        public String getDeviceName() { return deviceName; }
+        public void setDeviceName(String deviceName) { this.deviceName = deviceName; }
+
+        public String getOsBrowser() { return osBrowser; }
+        public void setOsBrowser(String osBrowser) { this.osBrowser = osBrowser; }
+
+        public String getIpAddress() { return ipAddress; }
+        public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+
+        public String getChannel() { return channel; }
+        public void setChannel(String channel) { this.channel = channel; }
+
+        public String getScreen() { return screen; }
+        public void setScreen(String screen) { this.screen = screen; }
+
+        public String getOrientation() { return orientation; }
+        public void setOrientation(String orientation) { this.orientation = orientation; }
+
+        public boolean isFullscreen() { return fullscreen; }
+        public void setFullscreen(boolean fullscreen) { this.fullscreen = fullscreen; }
+
+        public long getConnectedAt() { return connectedAt; }
+        public void setConnectedAt(long connectedAt) { this.connectedAt = connectedAt; }
+
+        public long getLastSeenAt() { return lastSeenAt; }
+        public void setLastSeenAt(long lastSeenAt) { this.lastSeenAt = lastSeenAt; }
+
+        public int getCommandCount() { return commandCount; }
+        public void setCommandCount(int commandCount) { this.commandCount = commandCount; }
+
+        public String getLastCommand() { return lastCommand; }
+        public void setLastCommand(String lastCommand) { this.lastCommand = lastCommand; }
+
+        public boolean isOnline() {
+            return (System.currentTimeMillis() - lastSeenAt) <= SESSION_ONLINE_TTL_MS;
+        }
+    }
+
+    public static RemoteSession recordRemoteSession(
+            String sessionId,
+            String deviceName,
+            String osBrowser,
+            String ipAddress,
+            String channel,
+            String screen,
+            String orientation,
+            boolean fullscreen,
+            String commandExecuted
+    ) {
+        String key = (sessionId != null && !sessionId.isBlank())
+                ? sessionId.trim()
+                : ((ipAddress != null && !ipAddress.isBlank() ? ipAddress : "remote") + "-" + (channel != null ? channel : "LAN"));
+        long now = System.currentTimeMillis();
+
+        RemoteSession session = REMOTE_SESSIONS.computeIfAbsent(key, k -> {
+            RemoteSession s = new RemoteSession();
+            s.setSessionId(k);
+            s.setConnectedAt(now);
+            s.setCommandCount(0);
+            return s;
+        });
+
+        if (deviceName != null && !deviceName.isBlank()) session.setDeviceName(deviceName.trim());
+        else if (session.getDeviceName() == null) session.setDeviceName("Remote Device");
+
+        if (osBrowser != null && !osBrowser.isBlank()) session.setOsBrowser(osBrowser.trim());
+        else if (session.getOsBrowser() == null) session.setOsBrowser("Web Browser");
+
+        if (ipAddress != null && !ipAddress.isBlank()) session.setIpAddress(ipAddress.trim());
+        if (channel != null && !channel.isBlank()) session.setChannel(channel.trim());
+        else if (session.getChannel() == null) session.setChannel("LAN");
+
+        if (screen != null && !screen.isBlank()) session.setScreen(screen.trim());
+        if (orientation != null && !orientation.isBlank()) session.setOrientation(orientation.trim());
+        session.setFullscreen(fullscreen);
+        session.setLastSeenAt(now);
+
+        if (commandExecuted != null && !commandExecuted.isBlank()) {
+            session.setCommandCount(session.getCommandCount() + 1);
+            session.setLastCommand(commandExecuted.trim());
+        }
+        return session;
+    }
+
+    public static List<RemoteSession> getActiveRemoteSessions() {
+        long now = System.currentTimeMillis();
+        List<RemoteSession> active = new ArrayList<>();
+        Iterator<Map.Entry<String, RemoteSession>> it = REMOTE_SESSIONS.entrySet().iterator();
+        while (it.hasNext()) {
+            RemoteSession s = it.next().getValue();
+            long age = now - s.getLastSeenAt();
+            if (age > SESSION_RETENTION_MS) {
+                it.remove();
+            } else if (age <= SESSION_ONLINE_TTL_MS) {
+                active.add(s);
+            }
+        }
+        active.sort(Comparator.comparingLong(RemoteSession::getLastSeenAt).reversed());
+        return active;
+    }
+
+    public static void clearRemoteSessions() {
+        REMOTE_SESSIONS.clear();
+    }
+
     private static synchronized void loadDevices() {
         if (!Files.exists(PAIRED_DEVICES_FILE)) {
             return;

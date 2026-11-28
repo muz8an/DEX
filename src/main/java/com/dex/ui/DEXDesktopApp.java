@@ -13,7 +13,10 @@ import com.dex.memory.MemoryManager;
 import com.dex.profile.UserProfileManager;
 import com.dex.security.DeviceManager;
 import com.dex.security.SecretStorage;
+import com.dex.server.DEXWebServer;
 import com.dex.tools.SystemTools;
+import com.dex.util.QRCodeGenerator;
+import com.dex.util.TerminalRemotePrinter;
 import com.dex.voice.VoiceController;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
@@ -58,6 +61,7 @@ public class DEXDesktopApp extends JFrame {
     public static final Color CHAT_BOT_BUBBLE     = new Color(0x1A, 0x1A, 0x1A); // Bot message card
     public static final Color SUCCESS             = new Color(0xFF, 0xFF, 0xFF); // Monochrome white indicator
     public static final Color ERROR               = new Color(0xD0, 0xD0, 0xD0); // Monochrome light gray alert // Crimson red (#DC2626)
+    public static final Color PRIMARY_TEXT_ON_LIGHT = new Color(0x0A, 0x0A, 0x0A); // High-contrast dark ink on white pills/buttons
 
     // ==================== FONTS ====================
     public static final Font FONT_SERIF_TITLE = getSerifTitleFont();
@@ -144,6 +148,11 @@ public class DEXDesktopApp extends JFrame {
     private JLabel mobilePinLabel;
     private JLabel mobilePinExpiryLabel;
     private JLabel mobileHostIpLabel;
+    private JLabel mobileQrImageLabel;
+    private JLabel mobileQrUrlLabel;
+    private JLabel mobileRelayStatusLabel;
+    private DefaultListModel<String> remoteSessionsModel;
+    private JList<String> remoteSessionsList;
     private DefaultListModel<String> pairedDevicesModel;
     private JList<String> pairedDevicesList;
     private Timer mobilePinTimer;
@@ -211,10 +220,13 @@ public class DEXDesktopApp extends JFrame {
     }
 
     private void initComponents() {
-        setTitle("AI Assistant");
-        setSize(1320, 860);
-        setMinimumSize(new Dimension(1080, 700));
-        setLocationRelativeTo(null);
+        setTitle("DEX AI Assistant");
+        Rectangle maxBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        int targetW = Math.min(1260, Math.max(960, maxBounds.width - 20));
+        int targetH = Math.min(780, Math.max(600, maxBounds.height - 20));
+        setSize(targetW, targetH);
+        setMinimumSize(new Dimension(Math.min(960, maxBounds.width - 20), Math.min(600, maxBounds.height - 20)));
+        setLocation(maxBounds.x + (maxBounds.width - targetW) / 2, maxBounds.y + (maxBounds.height - targetH) / 2);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override public void windowClosing(WindowEvent e) { handleExit(); }
@@ -349,8 +361,9 @@ public class DEXDesktopApp extends JFrame {
 
         JButton continueBtn = new JButton("Continue");
         continueBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setForeground(PRIMARY_TEXT_ON_LIGHT);
         continueBtn.setBackground(PRIMARY_MAROON);
+        continueBtn.setFocusPainted(false);
         continueBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         continueBtn.setMaximumSize(new Dimension(380, 42));
         continueBtn.setPreferredSize(new Dimension(380, 42));
@@ -419,7 +432,7 @@ public class DEXDesktopApp extends JFrame {
                     if (c instanceof JLabel) {
                         JLabel lbl = (JLabel) c;
                         if ("navLabel".equals(lbl.getName())) {
-                            lbl.setForeground(active ? Color.WHITE : TEXT_PRIMARY);
+                            lbl.setForeground(active ? PRIMARY_TEXT_ON_LIGHT : TEXT_PRIMARY);
                             lbl.setFont(active ? FONT_BOLD : FONT_BODY);
                         }
                     }
@@ -586,7 +599,7 @@ public class DEXDesktopApp extends JFrame {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color iconColor = (currentPage == pageIdx) ? Color.WHITE : TEXT_SECONDARY;
+                Color iconColor = (currentPage == pageIdx) ? PRIMARY_TEXT_ON_LIGHT : TEXT_SECONDARY;
                 DrawIcons.drawNavIcon(g2, iconType, 0, 0, 16, 16, iconColor);
                 g2.dispose();
             }
@@ -1679,7 +1692,7 @@ private JPanel createEfferdCardWrapper() {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(PRIMARY_MAROON);
                 g2.fillOval(0, 0, getWidth(), getHeight());
-                DrawIcons.drawSendAirplane(g2, (getWidth()-18)/2, (getHeight()-18)/2, 18, 18, Color.WHITE);
+                DrawIcons.drawSendAirplane(g2, (getWidth()-18)/2, (getHeight()-18)/2, 18, 18, PRIMARY_TEXT_ON_LIGHT);
                 g2.dispose();
             }
         };
@@ -2054,8 +2067,9 @@ private JPanel createEfferdCardWrapper() {
                 }
                 g2.fillOval(x, y, size, size);
 
-                // Draw White Mic Icon in Center
-                DrawIcons.drawNavIcon(g2, "voice", x + (size - 22)/2, y + (size - 22)/2, 22, 22, Color.WHITE);
+                // Draw high-contrast Mic Icon in Center
+                Color micInk = isVoiceListening ? Color.WHITE : PRIMARY_TEXT_ON_LIGHT;
+                DrawIcons.drawNavIcon(g2, "voice", x + (size - 22)/2, y + (size - 22)/2, 22, 22, micInk);
                 g2.dispose();
             }
         };
@@ -2110,10 +2124,10 @@ private JPanel createEfferdCardWrapper() {
         transcriptCard.setBorder(new EmptyBorder(12, 18, 12, 18));
         transcriptCard.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        voiceUserTranscript = new JLabel("<html><span style='color:#787774;'>You said:</span> <span style='color:#37352F;'>Ready to listen. Click the microphone above to start speaking.</span></html>");
+        voiceUserTranscript = new JLabel("<html><span style='color:#9E9E9E;'>You said:</span> <span style='color:#F2F2F2;'>Ready to listen. Click the microphone above to start speaking.</span></html>");
         voiceUserTranscript.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
-        voiceAiReply = new JLabel("<html><span style='color:#37352F;font-weight:bold;'>DEX:</span> <span style='color:#37352F;'>How can I assist you today?</span></html>");
+        voiceAiReply = new JLabel("<html><span style='color:#FFFFFF;font-weight:bold;'>DEX:</span> <span style='color:#D8D8D8;'>How can I assist you today?</span></html>");
         voiceAiReply.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
         JPanel transcriptBox = new JPanel(new GridLayout(2, 1, 0, 6));
@@ -2164,7 +2178,7 @@ private JPanel createEfferdCardWrapper() {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(PRIMARY_MAROON);
                 g2.fillOval(0, 0, getWidth(), getHeight());
-                DrawIcons.drawSendAirplane(g2, (getWidth()-16)/2, (getHeight()-16)/2, 16, 16, Color.WHITE);
+                DrawIcons.drawSendAirplane(g2, (getWidth()-16)/2, (getHeight()-16)/2, 16, 16, PRIMARY_TEXT_ON_LIGHT);
                 g2.dispose();
             }
         };
@@ -2279,10 +2293,10 @@ private JPanel createEfferdCardWrapper() {
             voiceStatusText.setText("Processing with DEX AI...");
         }
         if (voiceUserTranscript != null) {
-            voiceUserTranscript.setText("<html><span style='color:#787774;'>You said:</span> <span style='color:#37352F;'>\"" + escapeHtml(text) + "\"</span></html>");
+            voiceUserTranscript.setText("<html><span style='color:#9E9E9E;'>You said:</span> <span style='color:#F2F2F2;'>\"" + escapeHtml(text) + "\"</span></html>");
         }
         if (voiceAiReply != null) {
-            voiceAiReply.setText("<html><span style='color:#37352F;font-weight:bold;'>DEX:</span> <span style='color:#787774;'>Thinking...</span></html>");
+            voiceAiReply.setText("<html><span style='color:#FFFFFF;font-weight:bold;'>DEX:</span> <span style='color:#B0B0B0;'>Thinking...</span></html>");
         }
 
         SwingWorker<String, Void> aiWorker = new SwingWorker<>() {
@@ -2300,7 +2314,7 @@ private JPanel createEfferdCardWrapper() {
                 try {
                     String reply = get();
                     if (voiceAiReply != null) {
-                        voiceAiReply.setText("<html><span style='color:#37352F;font-weight:bold;'>DEX:</span> <span style='color:#37352F;'>" + escapeHtml(reply).replace("\n", "<br>") + "</span></html>");
+                        voiceAiReply.setText("<html><span style='color:#FFFFFF;font-weight:bold;'>DEX:</span> <span style='color:#EDEDED;'>" + escapeHtml(reply).replace("\n", "<br>") + "</span></html>");
                     }
                     if (voiceStatusText != null) {
                         voiceStatusText.setText(voiceTtsCheckBox != null && voiceTtsCheckBox.isSelected() ? "Speaking response aloud..." : "Response ready.");
@@ -2357,8 +2371,9 @@ private JPanel createEfferdCardWrapper() {
 
         JButton captureBtn = new JButton("Capture Screen");
         captureBtn.setFont(FONT_BOLD);
-        captureBtn.setForeground(Color.WHITE);
+        captureBtn.setForeground(PRIMARY_TEXT_ON_LIGHT);
         captureBtn.setBackground(PRIMARY_MAROON);
+        captureBtn.setFocusPainted(false);
         captureBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         captureBtn.addActionListener(e -> {
             resultArea.setText("Capturing desktop screenshot...");
@@ -2484,7 +2499,8 @@ private JPanel createEfferdCardWrapper() {
         JButton navBtn = new JButton("Navigate & Extract");
         navBtn.setFont(FONT_BOLD);
         navBtn.setBackground(PRIMARY_MAROON);
-        navBtn.setForeground(Color.WHITE);
+        navBtn.setForeground(PRIMARY_TEXT_ON_LIGHT);
+        navBtn.setFocusPainted(false);
         navBtn.addActionListener(e -> doBrowserNavigate());
         navRow.add(browserUrlField, BorderLayout.CENTER);
         navRow.add(navBtn, BorderLayout.EAST);
@@ -2681,8 +2697,9 @@ private JPanel createEfferdCardWrapper() {
 
         JButton saveProvBtn = new JButton("Save & Apply Provider");
         saveProvBtn.setFont(FONT_BOLD);
-        saveProvBtn.setForeground(Color.WHITE);
+        saveProvBtn.setForeground(PRIMARY_TEXT_ON_LIGHT);
         saveProvBtn.setBackground(PRIMARY_MAROON);
+        saveProvBtn.setFocusPainted(false);
         saveProvBtn.addActionListener(e -> {
             AIProviderType pType = (AIProviderType) providerCombo.getSelectedItem();
             ProviderManager.setActiveProviderType(pType);
@@ -2732,8 +2749,9 @@ private JPanel createEfferdCardWrapper() {
 
         JButton saveProfileBtn = new JButton("Save Name");
         saveProfileBtn.setFont(FONT_BOLD);
-        saveProfileBtn.setForeground(Color.WHITE);
+        saveProfileBtn.setForeground(PRIMARY_TEXT_ON_LIGHT);
         saveProfileBtn.setBackground(PRIMARY_MAROON);
+        saveProfileBtn.setFocusPainted(false);
         saveProfileBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         saveProfileBtn.addActionListener(e -> {
             String updated = profileNameField.getText().trim();
@@ -2817,7 +2835,7 @@ private JPanel createEfferdCardWrapper() {
         content.setBackground(BG_APP);
 
         // 1. Slim Top Status Card
-        JPanel topBanner = new JPanel(new BorderLayout(12, 0)) {
+        JPanel topBanner = new JPanel(new BorderLayout(10, 0)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -2830,20 +2848,31 @@ private JPanel createEfferdCardWrapper() {
             }
         };
         topBanner.setOpaque(false);
-        topBanner.setBorder(new EmptyBorder(8, 16, 8, 16));
-        topBanner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        topBanner.setPreferredSize(new Dimension(800, 42));
+        topBanner.setBorder(new EmptyBorder(8, 14, 8, 14));
+        topBanner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        topBanner.setPreferredSize(new Dimension(760, 44));
 
-        JLabel statusLbl = new JLabel("● DEX Web Server is ONLINE on port " + DEXConfig.getWebPort());
+        JPanel statusLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        statusLeft.setOpaque(false);
+        JLabel statusLbl = new JLabel("\u25CF Local Server: ONLINE :" + DEXConfig.getWebPort());
         statusLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         statusLbl.setForeground(SUCCESS);
 
-        JButton openWebBtn = new JButton("🌐 Open Web Dashboard");
+        mobileRelayStatusLabel = new JLabel(DEXWebServer.isRelayConnected()
+                ? "\u25CF Cloud Bridge: CONNECTED"
+                : "\u25CB Cloud Bridge: STANDBY");
+        mobileRelayStatusLabel.setFont(FONT_SMALL);
+        mobileRelayStatusLabel.setForeground(TEXT_SECONDARY);
+        statusLeft.add(statusLbl);
+        statusLeft.add(mobileRelayStatusLabel);
+
+        JButton openWebBtn = new JButton("Open Web Dashboard");
         openWebBtn.setFont(FONT_SMALL);
+        openWebBtn.setFocusPainted(false);
         openWebBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         openWebBtn.addActionListener(e -> SystemTools.openUrl("http://127.0.0.1:" + DEXConfig.getWebPort()));
 
-        topBanner.add(statusLbl, BorderLayout.WEST);
+        topBanner.add(statusLeft, BorderLayout.WEST);
         topBanner.add(openWebBtn, BorderLayout.EAST);
 
         content.add(topBanner);
@@ -2856,21 +2885,21 @@ private JPanel createEfferdCardWrapper() {
         String lanIp = DEXConfig.getLanIp();
         int port = DEXConfig.getWebPort();
 
-        // ========== LEFT CARD: Pairing PIN & Network ==========
-        JPanel leftCard = createTitledCard("Device Pairing & Connection");
+        // ========== LEFT CARD: Pairing PIN, Network & Live Pure-Java QR ==========
+        JPanel leftCard = createTitledCard("Device Pairing & QR Remote");
         leftCard.setLayout(new BoxLayout(leftCard, BoxLayout.Y_AXIS));
 
-        JLabel pinHint = new JLabel("Enter this 6-digit PIN on your phone to authorize:");
+        JLabel pinHint = new JLabel("Scan QR directly or pair with this 6-digit PIN:");
         pinHint.setFont(FONT_LABEL);
         pinHint.setForeground(TEXT_SECONDARY);
         pinHint.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // PIN display + Expiry timer in clean centered row
         JPanel pinBlock = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
         pinBlock.setOpaque(false);
+        pinBlock.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
 
         mobilePinLabel = new JLabel(DeviceManager.getActivePin());
-        mobilePinLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        mobilePinLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         mobilePinLabel.setForeground(PRIMARY_MAROON);
 
         mobilePinExpiryLabel = new JLabel("Expires: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
@@ -2880,22 +2909,24 @@ private JPanel createEfferdCardWrapper() {
         pinBlock.add(mobilePinLabel);
         pinBlock.add(mobilePinExpiryLabel);
 
-        // PIN Action Buttons
         JPanel pinBtnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
         pinBtnRow.setOpaque(false);
+        pinBtnRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
 
-        JButton copyPinBtn = new JButton("📋 Copy PIN");
+        JButton copyPinBtn = new JButton("Copy PIN");
         copyPinBtn.setFont(FONT_SMALL);
+        copyPinBtn.setFocusPainted(false);
         copyPinBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         copyPinBtn.addActionListener(e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(mobilePinLabel.getText()), null);
             JOptionPane.showMessageDialog(this, "PIN copied: " + mobilePinLabel.getText());
         });
 
-        JButton genPinBtn = new JButton("🔄 Generate New PIN");
+        JButton genPinBtn = new JButton("\u21BB New PIN");
         genPinBtn.setFont(FONT_SMALL);
         genPinBtn.setBackground(PRIMARY_MAROON);
-        genPinBtn.setForeground(Color.WHITE);
+        genPinBtn.setForeground(PRIMARY_TEXT_ON_LIGHT);
+        genPinBtn.setFocusPainted(false);
         genPinBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         genPinBtn.addActionListener(e -> {
             String newPin = DeviceManager.generatePairingPin();
@@ -2906,32 +2937,26 @@ private JPanel createEfferdCardWrapper() {
         pinBtnRow.add(copyPinBtn);
         pinBtnRow.add(genPinBtn);
 
-        // Horizontal Divider
         JSeparator sep = new JSeparator();
         sep.setForeground(BORDER_SUBTLE);
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
 
-        // Network Section
-        JLabel netSectionTitle = new JLabel("DEX PC Network Details (Enter in Mobile App):");
-        netSectionTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        netSectionTitle.setForeground(TEXT_PRIMARY);
-
         JPanel netGrid = new JPanel(new GridLayout(1, 2, 8, 0));
         netGrid.setOpaque(false);
+        netGrid.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
 
-        // IP Box
         JPanel ipBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         ipBox.setOpaque(false);
         JLabel ipTag = new JLabel("IP: ");
         ipTag.setFont(FONT_SMALL);
         ipTag.setForeground(TEXT_SECONDARY);
         mobileHostIpLabel = new JLabel(lanIp);
-        mobileHostIpLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        mobileHostIpLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         mobileHostIpLabel.setForeground(PRIMARY_MAROON);
-        JButton copyIpBtn = new JButton("📋");
+        JButton copyIpBtn = new JButton("Copy");
         copyIpBtn.setFont(FONT_SMALL);
-        copyIpBtn.setToolTipText("Copy IP");
-        copyIpBtn.setMargin(new Insets(2, 6, 2, 6));
+        copyIpBtn.setFocusPainted(false);
+        copyIpBtn.setMargin(new Insets(1, 6, 1, 6));
         copyIpBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         copyIpBtn.addActionListener(e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(mobileHostIpLabel.getText()), null);
@@ -2941,19 +2966,18 @@ private JPanel createEfferdCardWrapper() {
         ipBox.add(mobileHostIpLabel);
         ipBox.add(copyIpBtn);
 
-        // Port Box
         JPanel portBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         portBox.setOpaque(false);
         JLabel portTag = new JLabel("Port: ");
         portTag.setFont(FONT_SMALL);
         portTag.setForeground(TEXT_SECONDARY);
         JLabel portValLbl = new JLabel(String.valueOf(port));
-        portValLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        portValLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         portValLbl.setForeground(PRIMARY_MAROON);
-        JButton copyPortBtn = new JButton("📋");
+        JButton copyPortBtn = new JButton("Copy");
         copyPortBtn.setFont(FONT_SMALL);
-        copyPortBtn.setToolTipText("Copy Port");
-        copyPortBtn.setMargin(new Insets(2, 6, 2, 6));
+        copyPortBtn.setFocusPainted(false);
+        copyPortBtn.setMargin(new Insets(1, 6, 1, 6));
         copyPortBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         copyPortBtn.addActionListener(e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(String.valueOf(port)), null);
@@ -2966,73 +2990,178 @@ private JPanel createEfferdCardWrapper() {
         netGrid.add(ipBox);
         netGrid.add(portBox);
 
-        // Network Interface Selector
+        // Network Interface Selector (bounded height so BoxLayout never stretches it)
         JPanel nicRow = new JPanel(new BorderLayout(6, 0));
         nicRow.setOpaque(false);
+        nicRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         JLabel nicLbl = new JLabel("Network Interface:");
         nicLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         nicLbl.setForeground(TEXT_MUTED);
 
         JComboBox<String> ipsCombo = new JComboBox<>(DEXConfig.getDetectedHostIps().toArray(new String[0]));
         ipsCombo.setFont(FONT_SMALL);
+        ipsCombo.setPreferredSize(new Dimension(210, 26));
+        ipsCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+
+        JPanel modeRow = new JPanel(new BorderLayout(6, 0));
+        modeRow.setOpaque(false);
+        modeRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        JLabel modeLbl = new JLabel("QR Target Mode:");
+        modeLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        modeLbl.setForeground(TEXT_MUTED);
+
+        JComboBox<String> qrModeCombo = new JComboBox<>(new String[]{
+                "Local Wi-Fi (Instant Direct)",
+                "Cloud Relay (dex-phi-bay.vercel.app)"
+        });
+        qrModeCombo.setFont(FONT_SMALL);
+        qrModeCombo.setPreferredSize(new Dimension(210, 26));
+        qrModeCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+
+        // Pure-Java QR Image Container
+        JPanel qrFrame = new JPanel(new GridBagLayout());
+        qrFrame.setBackground(Color.WHITE);
+        qrFrame.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_PILL, 1),
+                new EmptyBorder(8, 8, 8, 8)
+        ));
+        qrFrame.setAlignmentX(Component.CENTER_ALIGNMENT);
+        qrFrame.setMaximumSize(new Dimension(176, 176));
+        qrFrame.setPreferredSize(new Dimension(176, 176));
+
+        mobileQrImageLabel = new JLabel();
+        qrFrame.add(mobileQrImageLabel);
+
+        mobileQrUrlLabel = new JLabel("", SwingConstants.CENTER);
+        mobileQrUrlLabel.setFont(new Font("Consolas", Font.PLAIN, 10));
+        mobileQrUrlLabel.setForeground(TEXT_SECONDARY);
+        mobileQrUrlLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mobileQrUrlLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+
+        Runnable updateQrCodeView = () -> {
+            String ipVal = mobileHostIpLabel.getText().trim();
+            boolean useCloud = qrModeCombo.getSelectedIndex() == 1;
+            String qrTargetUrl = useCloud
+                    ? TerminalRemotePrinter.CLOUD_PRIMARY_URL
+                    : ("http://" + ipVal + ":" + port + "/?token=" + DEXConfig.getRemoteAuthToken());
+            try {
+                BufferedImage qrImg = QRCodeGenerator.toImage(qrTargetUrl, 156);
+                mobileQrImageLabel.setIcon(new ImageIcon(qrImg));
+                mobileQrImageLabel.setText("");
+            } catch (Exception ex) {
+                mobileQrImageLabel.setIcon(null);
+                mobileQrImageLabel.setText("QR Unavailable");
+            }
+            mobileQrUrlLabel.setText(qrTargetUrl);
+        };
+
         ipsCombo.addActionListener(e -> {
             String selected = (String) ipsCombo.getSelectedItem();
             if (selected != null) {
                 String clean = selected.replaceAll("\\s*\\(.*\\)", "").trim();
                 mobileHostIpLabel.setText(clean);
+                updateQrCodeView.run();
             }
         });
+        qrModeCombo.addActionListener(e -> updateQrCodeView.run());
+        updateQrCodeView.run();
+
         nicRow.add(nicLbl, BorderLayout.WEST);
         nicRow.add(ipsCombo, BorderLayout.CENTER);
+        modeRow.add(modeLbl, BorderLayout.WEST);
+        modeRow.add(qrModeCombo, BorderLayout.CENTER);
 
         leftCard.add(pinHint);
         leftCard.add(Box.createVerticalStrut(4));
         leftCard.add(pinBlock);
         leftCard.add(Box.createVerticalStrut(4));
         leftCard.add(pinBtnRow);
-        leftCard.add(Box.createVerticalStrut(8));
-        leftCard.add(sep);
-        leftCard.add(Box.createVerticalStrut(8));
-        leftCard.add(netSectionTitle);
-        leftCard.add(Box.createVerticalStrut(4));
-        leftCard.add(netGrid);
         leftCard.add(Box.createVerticalStrut(6));
+        leftCard.add(sep);
+        leftCard.add(Box.createVerticalStrut(6));
+        leftCard.add(netGrid);
+        leftCard.add(Box.createVerticalStrut(4));
         leftCard.add(nicRow);
+        leftCard.add(Box.createVerticalStrut(4));
+        leftCard.add(modeRow);
+        leftCard.add(Box.createVerticalStrut(8));
+        leftCard.add(qrFrame);
+        leftCard.add(Box.createVerticalStrut(4));
+        leftCard.add(mobileQrUrlLabel);
 
         grid.add(leftCard);
 
-        // ========== RIGHT CARD: Instructions & Authorized Devices ==========
-        JPanel rightCard = createTitledCard("Setup Guide & Devices");
+        // ========== RIGHT CARD: Guide, Connected Remotes & Paired Devices ==========
+        JPanel rightCard = createTitledCard("Connected Remote Devices & Guide");
         rightCard.setLayout(new BoxLayout(rightCard, BoxLayout.Y_AXIS));
 
-        // Quick 3-Step Guide (compact)
-        String guideHtml = "<html><body style='line-height:1.45;color:#2D2120;font-size:11px;'>"
-            + "<b>1. Wi-Fi:</b> Connect your phone to the same Wi-Fi as this PC.<br>"
-            + "<b>2. Settings:</b> In DEX-Mobile, enter Host IP & Port.<br>"
-            + "<b>3. Authorize:</b> Enter the 6-digit PIN & tap <b>\"Pair Device\"</b> &rarr; Status becomes green!"
+        String guideHtml = "<html><body style='line-height:1.45;color:#D4D4D4;font-size:11px;'>"
+            + "<b style='color:#FFFFFF;'>1. Scan QR:</b> Point your phone camera at the QR code on the left (same Wi-Fi for Direct, or switch QR Mode to Cloud).<br>"
+            + "<b style='color:#FFFFFF;'>2. Control Laptop:</b> Send <i>\"open youtube in laptop\"</i>, <i>\"open vscode\"</i>, or use the tactile deck.<br>"
+            + "<b style='color:#FFFFFF;'>3. Fullscreen:</b> Tap <b>Fit Screen</b> on mobile to launch edge-to-edge full display."
             + "</body></html>";
         JLabel guideLbl = new JLabel(guideHtml);
         guideLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         guideLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSeparator rightSep = new JSeparator();
-        rightSep.setForeground(BORDER_SUBTLE);
-        rightSep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        JSeparator rightSep1 = new JSeparator();
+        rightSep1.setForeground(BORDER_SUBTLE);
+        rightSep1.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+
+        // Live Connected Remote Devices section
+        JPanel liveHeaderRow = new JPanel(new BorderLayout(6, 0));
+        liveHeaderRow.setOpaque(false);
+        liveHeaderRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        liveHeaderRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+
+        JLabel liveTitle = new JLabel("\u25CF Live Connected Mobile / Web Devices");
+        liveTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        liveTitle.setForeground(TEXT_PRIMARY);
+
+        JButton refreshLiveBtn = new JButton("\u21BB Refresh");
+        refreshLiveBtn.setFont(FONT_SMALL);
+        refreshLiveBtn.setFocusPainted(false);
+        refreshLiveBtn.setMargin(new Insets(2, 6, 2, 6));
+        refreshLiveBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        refreshLiveBtn.addActionListener(e -> refreshRemoteSessionsList());
+
+        liveHeaderRow.add(liveTitle, BorderLayout.WEST);
+        liveHeaderRow.add(refreshLiveBtn, BorderLayout.EAST);
+
+        remoteSessionsModel = new DefaultListModel<>();
+        remoteSessionsList = new JList<>(remoteSessionsModel);
+        remoteSessionsList.setFont(FONT_SMALL);
+        remoteSessionsList.setBackground(BG_CARD_ALT);
+        remoteSessionsList.setForeground(TEXT_PRIMARY);
+        remoteSessionsList.setVisibleRowCount(4);
+        refreshRemoteSessionsList();
+
+        JScrollPane liveScroll = new JScrollPane(remoteSessionsList);
+        liveScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+        liveScroll.setPreferredSize(new Dimension(300, 94));
+        liveScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 108));
+        liveScroll.setBorder(BorderFactory.createLineBorder(BORDER_SUBTLE, 1));
+
+        JSeparator rightSep2 = new JSeparator();
+        rightSep2.setForeground(BORDER_SUBTLE);
+        rightSep2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
 
         // Authorized Devices section
         JPanel devicesHeaderRow = new JPanel(new BorderLayout(6, 0));
         devicesHeaderRow.setOpaque(false);
         devicesHeaderRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        devicesHeaderRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
 
-        JLabel devTitle = new JLabel("Authorized Companion Devices");
+        JLabel devTitle = new JLabel("Authorized Paired Companion Devices");
         devTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
         devTitle.setForeground(TEXT_PRIMARY);
 
         JPanel devBtnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
         devBtnRow.setOpaque(false);
 
-        JButton refreshDevBtn = new JButton("🔄 Refresh");
+        JButton refreshDevBtn = new JButton("\u21BB Refresh");
         refreshDevBtn.setFont(FONT_SMALL);
+        refreshDevBtn.setFocusPainted(false);
         refreshDevBtn.setMargin(new Insets(2, 6, 2, 6));
         refreshDevBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         refreshDevBtn.addActionListener(e -> refreshPairedDevicesList());
@@ -3040,6 +3169,7 @@ private JPanel createEfferdCardWrapper() {
         JButton revokeBtn = new JButton("Revoke Selected");
         revokeBtn.setFont(FONT_SMALL);
         revokeBtn.setForeground(ERROR);
+        revokeBtn.setFocusPainted(false);
         revokeBtn.setMargin(new Insets(2, 6, 2, 6));
         revokeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         revokeBtn.addActionListener(e -> {
@@ -3062,18 +3192,25 @@ private JPanel createEfferdCardWrapper() {
         pairedDevicesList = new JList<>(pairedDevicesModel);
         pairedDevicesList.setFont(FONT_SMALL);
         pairedDevicesList.setBackground(BG_CARD_ALT);
+        pairedDevicesList.setForeground(TEXT_PRIMARY);
         pairedDevicesList.setVisibleRowCount(3);
         refreshPairedDevicesList();
 
         JScrollPane devScroll = new JScrollPane(pairedDevicesList);
         devScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-        devScroll.setPreferredSize(new Dimension(300, 72));
-        devScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        devScroll.setPreferredSize(new Dimension(300, 74));
+        devScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         devScroll.setBorder(BorderFactory.createLineBorder(BORDER_SUBTLE, 1));
 
         rightCard.add(guideLbl);
         rightCard.add(Box.createVerticalStrut(8));
-        rightCard.add(rightSep);
+        rightCard.add(rightSep1);
+        rightCard.add(Box.createVerticalStrut(8));
+        rightCard.add(liveHeaderRow);
+        rightCard.add(Box.createVerticalStrut(4));
+        rightCard.add(liveScroll);
+        rightCard.add(Box.createVerticalStrut(8));
+        rightCard.add(rightSep2);
         rightCard.add(Box.createVerticalStrut(8));
         rightCard.add(devicesHeaderRow);
         rightCard.add(Box.createVerticalStrut(4));
@@ -3092,7 +3229,7 @@ private JPanel createEfferdCardWrapper() {
 
         mobilePanel.add(scrollPane, BorderLayout.CENTER);
 
-        // 1-second auto-refresh timer for PIN countdown
+        final int[] tickCounter = {0};
         mobilePinTimer = new Timer(1000, e -> {
             long remaining = DeviceManager.getPinRemainingSeconds();
             if (remaining <= 0) {
@@ -3101,6 +3238,15 @@ private JPanel createEfferdCardWrapper() {
             }
             if (mobilePinExpiryLabel != null) {
                 mobilePinExpiryLabel.setText("Expires: " + formatRemainingTime(DeviceManager.getPinRemainingSeconds()));
+            }
+            tickCounter[0]++;
+            if (tickCounter[0] % 2 == 0) {
+                refreshRemoteSessionsList();
+                if (mobileRelayStatusLabel != null) {
+                    mobileRelayStatusLabel.setText(DEXWebServer.isRelayConnected()
+                            ? "\u25CF Cloud Bridge: CONNECTED"
+                            : "\u25CB Cloud Bridge: STANDBY");
+                }
             }
         });
         mobilePinTimer.start();
@@ -3114,6 +3260,42 @@ private JPanel createEfferdCardWrapper() {
         return String.format("%dm %02ds", m, s);
     }
 
+    private void refreshRemoteSessionsList() {
+        if (remoteSessionsModel == null) return;
+        java.util.List<DeviceManager.RemoteSession> sessions = DeviceManager.getActiveRemoteSessions();
+        java.util.List<String> nextRows = new java.util.ArrayList<>();
+        if (sessions.isEmpty()) {
+            nextRows.add("No active mobile remotes yet. Scan the QR code or open Vercel remote.");
+        } else {
+            long now = System.currentTimeMillis();
+            for (DeviceManager.RemoteSession s : sessions) {
+                long ageSec = Math.max(0L, (now - s.getLastSeenAt()) / 1000L);
+                String fs = s.isFullscreen() ? " [Fullscreen]" : "";
+                String screen = (s.getScreen() != null && !s.getScreen().isBlank()) ? " | " + s.getScreen() : "";
+                String lastCmd = (s.getLastCommand() != null && !s.getLastCommand().isBlank()) ? " | Last: " + s.getLastCommand() : "";
+                nextRows.add(
+                        "[ONLINE] " + s.getDeviceName() + " (" + s.getOsBrowser() + ") - "
+                        + s.getChannel() + " " + s.getIpAddress() + screen + fs
+                        + " | Cmds: " + s.getCommandCount() + " (" + ageSec + "s ago)" + lastCmd
+                );
+            }
+        }
+        if (remoteSessionsModel.size() == nextRows.size()) {
+            boolean same = true;
+            for (int i = 0; i < nextRows.size(); i++) {
+                if (!nextRows.get(i).equals(remoteSessionsModel.getElementAt(i))) {
+                    same = false;
+                    break;
+                }
+            }
+            if (same) return;
+        }
+        remoteSessionsModel.clear();
+        for (String row : nextRows) {
+            remoteSessionsModel.addElement(row);
+        }
+    }
+
     private void refreshPairedDevicesList() {
         if (pairedDevicesModel == null) return;
         pairedDevicesModel.clear();
@@ -3123,7 +3305,7 @@ private JPanel createEfferdCardWrapper() {
         } else {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm");
             for (DeviceManager.PairedDevice d : devices) {
-                pairedDevicesModel.addElement("📱 " + d.getDeviceName() + " (ID: " + d.getDeviceId() + " • Paired: " + sdf.format(new Date(d.getPairedAt())) + ")");
+                pairedDevicesModel.addElement("[Phone] " + d.getDeviceName() + " (ID: " + d.getDeviceId() + " - Paired: " + sdf.format(new Date(d.getPairedAt())) + ")");
             }
         }
     }

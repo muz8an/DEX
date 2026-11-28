@@ -211,7 +211,7 @@ public class TaskManager {
      * Inspects a single phrase and matches it against DEX's natural language tool patterns.
      */
     public static TaskStep parseSingleStep(int stepNumber, String phrase) {
-        String p = phrase.trim();
+        String p = WindowsController.stripLaptopPhraseSuffix(phrase).trim();
         String lower = p.toLowerCase(Locale.ROOT)
                 .replaceAll("^[\\.\\?!,;]+", "")
                 .replaceAll("[\\.\\?!,;]+$", "")

@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0A0A0A">
     <title>DEX AI ASSISTANT</title>
     <meta name="description" content="DEX: Your personal AI assistant running locally on Windows. Chat, voice, app control, and remote access.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -526,6 +530,131 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
 
+        /* ── NOTION ACTION CARD ── */
+        .notion-action-card {
+            margin-top: 12px;
+            background: #141416;
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            animation: fadeInCard 0.2s ease-out;
+        }
+        @keyframes fadeInCard {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .action-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .action-card-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-card-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #202024;
+            color: #a1a1aa;
+            border: 1px solid #2e2e34;
+        }
+        .action-card-url {
+            font-size: 11px;
+            color: #71717a;
+            font-family: 'JetBrains Mono', monospace;
+            word-break: break-all;
+        }
+        .action-card-btn-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+        .notion-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            color: #000000 !important;
+            text-decoration: none !important;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 6px;
+            border: 1px solid #ffffff;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 6px rgba(255,255,255,0.15);
+        }
+        .notion-action-btn:hover {
+            background: #e4e4e7;
+            border-color: #e4e4e7;
+            transform: translateY(-1px);
+        }
+        .notion-action-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #1e1e22;
+            color: #e4e4e7 !important;
+            text-decoration: none !important;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #2e2e34;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .notion-action-btn-secondary:hover {
+            background: #27272c;
+            color: #ffffff !important;
+        }
+        .action-card-hint {
+            font-size: 10.5px;
+            color: #71717a;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .notion-quick-chips {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .notion-quick-chip {
+            background: #18181b;
+            border: 1px solid #27272a;
+            color: #e4e4e7;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .notion-quick-chip:hover {
+            background: #27272a;
+            color: #ffffff;
+            border-color: #3f3f46;
+        }
+
         /* Typing indicator */
         .typing-bubble {
             display: none;
@@ -687,16 +816,23 @@
         }
 
         .send-btn {
-            background: var(--accent-blue);
-            color: #ffffff;
+            background: #FFFFFF !important;
+            color: #0A0A0A !important;
             border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4);
         }
         .send-btn:hover {
-            background: #1d4ed8;
+            background: #E5E5E5 !important;
+            color: #000000 !important;
             transform: translateY(-1px);
         }
         .send-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
             transform: none;
         }
@@ -729,24 +865,61 @@
         .tool-card {
             background: var(--bg-surface);
             border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 14px;
+            border-radius: 12px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            transition: all 0.15s;
+            gap: 10px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .tool-card:hover { border-color: var(--border-medium); }
+        .tool-card:hover {
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
         .tool-card-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 10px;
+        }
+        .tool-identity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tool-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            flex-shrink: 0;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.1);
+        }
+        .tool-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
         .tool-name {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+        .tool-cat-pill {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
             font-weight: 600;
-            color: var(--accent-cyan);
         }
         .badge {
             font-size: 10px;
@@ -754,25 +927,43 @@
             padding: 2px 7px;
             border-radius: 4px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .badge.safe { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
-        .badge.sensitive { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
-        .tool-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
-        .tool-params { font-size: 11px; color: var(--text-muted); font-style: italic; }
-        .tool-run-btn {
-            align-self: flex-start;
-            margin-top: 6px;
-            background: var(--bg-elevated);
+        .badge.safe { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge.sensitive { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .tool-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
+        .tool-params { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+        .tool-runner-bar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .tool-param-input {
+            flex: 1;
+            background: #121212;
             border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-size: 11.5px;
-            font-weight: 600;
-            padding: 5px 12px;
             border-radius: 6px;
+            color: #FFFFFF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 6px 8px;
+            outline: none;
+        }
+        .tool-param-input:focus { border-color: #FFFFFF; }
+        .tool-run-btn {
+            background: #FFFFFF !important;
+            color: #0A0A0A !important;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
             cursor: pointer;
             transition: all 0.15s;
+            white-space: nowrap;
         }
-        .tool-run-btn:hover { background: var(--bg-surface-hover); color: var(--accent-cyan); border-color: var(--border-focus); }
+        .tool-run-btn:hover { background: #E5E5E5 !important; transform: scale(1.02); }
 
         /* ── TASKS VIEW ── */
         .tasks-list {
@@ -941,8 +1132,50 @@
             transition: all 0.15s;
         }
         .btn:hover { background: var(--bg-surface-hover); border-color: var(--border-medium); }
-        .btn.primary { background: var(--accent-blue); color: #fff; border: none; }
-        .btn.primary:hover { background: #1d4ed8; }
+        .btn.primary {
+            background: #FFFFFF !important;
+            color: #0A0A0A !important;
+            font-weight: 600 !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+        }
+        .btn.primary:hover {
+            background: #E5E5E5 !important;
+            color: #000000 !important;
+        }
+        #voiceOrbBtn {
+            background: #FFFFFF !important;
+            color: #0A0A0A !important;
+            font-weight: 600 !important;
+            border-radius: 9999px !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            letter-spacing: 0.2px !important;
+        }
+        #voiceOrbBtn:hover {
+            background: #E5E5E5 !important;
+            color: #000000 !important;
+        }
+        #voiceOrbBtn.btn.danger {
+            background: #EF4444 !important;
+            color: #FFFFFF !important;
+            border-color: rgba(239, 68, 68, 0.4) !important;
+        }
+
+        /* ── PREVENT BROWSER WHITE AUTOFILL OVERLAYS ── */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active,
+        textarea:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 1000px var(--bg-surface, #1E1E1E) inset !important;
+            -webkit-text-fill-color: var(--text-primary, #E6E6E6) !important;
+            caret-color: var(--text-primary, #E6E6E6) !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
         .btn.danger { background: rgba(239,68,68,0.15); color: var(--accent-red); border-color: rgba(239,68,68,0.3); }
         .btn.danger:hover { background: rgba(239,68,68,0.25); }
 
@@ -997,6 +1230,286 @@
         .toast.visible {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── INTERACTIVE STUDIOS MODALS ── */
+        .studio-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 16px;
+        }
+        .studio-modal-overlay.active {
+            display: flex;
+        }
+        .studio-modal-card {
+            background: #141414;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 960px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.8);
+        }
+        .studio-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: #181818;
+            flex-shrink: 0;
+        }
+        .studio-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .studio-icon { font-size: 20px; }
+        .studio-title { font-size: 15px; font-weight: 700; color: #FFFFFF; }
+        .studio-badge {
+            font-size: 10px;
+            font-family: monospace;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: #FFFFFF;
+        }
+        .studio-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .studio-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            background: #181818;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* ── TACTILE REMOTE PAD & CONTROLS ── */
+        .remote-pad-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 10px 0;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .dpad-wrapper {
+            position: relative;
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            background: #181818;
+            border: 2px solid rgba(255,255,255,0.12);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dpad-btn {
+            position: absolute;
+            background: transparent;
+            border: none;
+            color: #FFFFFF;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+            user-select: none;
+        }
+        .dpad-btn:active {
+            transform: scale(0.9);
+            color: var(--accent-blue);
+        }
+        .dpad-btn.up { top: 10px; left: 50%; transform: translateX(-50%); width: 50px; height: 40px; }
+        .dpad-btn.down { bottom: 10px; left: 50%; transform: translateX(-50%); width: 50px; height: 40px; }
+        .dpad-btn.left { left: 10px; top: 50%; transform: translateY(-50%); width: 40px; height: 50px; }
+        .dpad-btn.right { right: 10px; top: 50%; transform: translateY(-50%); width: 40px; height: 50px; }
+        .dpad-btn.center {
+            position: static;
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: #252525;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.1);
+        }
+        .media-deck-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        .media-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: #FFFFFF;
+            padding: 10px 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+        .media-btn span:first-child { font-size: 16px; }
+        .media-btn span:last-child {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .media-btn:hover {
+            background: var(--bg-surface-hover);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
+        .quick-apps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        .quick-app-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+            user-select: none;
+        }
+        .quick-app-card:hover {
+            background: var(--bg-surface-hover);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .quick-app-icon { font-size: 20px; }
+        .quick-app-name { font-size: 11px; font-weight: 600; color: #FFFFFF; }
+
+        /* ── MOBILE BOTTOM NAVIGATION BAR ── */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 999;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        .mobile-nav-btn {
+            background: transparent;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 8px;
+            min-width: 60px;
+            transition: color 0.15s;
+        }
+        .mobile-nav-btn.active { color: #FFFFFF; font-weight: 700; }
+        .mobile-nav-btn .mob-nav-icon { font-size: 18px; }
+        .mobile-nav-btn .mob-nav-label { font-size: 10px; font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .mobile-bottom-nav { display: flex; }
+            .media-deck-grid { grid-template-columns: repeat(3, 1fr); }
+            .quick-apps-grid { grid-template-columns: repeat(2, 1fr); }
+            .page-scrollable { padding-bottom: 84px !important; }
+        }
+
+        /* ── FIT TO SCREEN / FULLSCREEN MODE ── */
+        body.fit-to-screen {
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+        }
+        body.fit-to-screen .workspace {
+            height: calc(100dvh - var(--header-height)) !important;
+            overflow: hidden !important;
+        }
+        @media (max-width: 768px) {
+            body.fit-to-screen .workspace {
+                height: calc(100dvh - var(--header-height) - 56px - env(safe-area-inset-bottom, 0px)) !important;
+            }
+        }
+        body.fit-to-screen .page { height: 100% !important; }
+        body.fit-to-screen .chat-container { height: 100% !important; }
+        body.fit-to-screen .messages-list { flex: 1 1 auto !important; overflow-y: auto !important; }
+
+        /* ── SPREADSHEET TABLE ── */
+        .dex-sheet-table {
+            border-collapse: collapse;
+            width: 100%;
+            background: #141414;
+            color: #EDEDED;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+        .dex-sheet-table th, .dex-sheet-table td {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 10px;
+            min-width: 80px;
+            text-align: left;
+            position: relative;
+        }
+        .dex-sheet-table th {
+            background: #202020;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-align: center;
+            user-select: none;
+        }
+        .dex-sheet-table td:focus {
+            outline: 2px solid #FFFFFF;
+            background: rgba(255,255,255,0.06);
+        }
+        .dex-sheet-table th.row-header {
+            width: 40px;
+            min-width: 40px;
         }
 
         /* ── RESPONSIVE FIT-TO-SCREEN MOBILE STYLES ── */
@@ -1101,18 +1614,35 @@
                 --header-height: 52px;
             }
             body {
-                overflow-x: hidden;
+                overflow: hidden;
                 width: 100vw;
                 max-width: 100vw;
+                height: 100dvh;
             }
             header {
                 padding: 0 10px;
                 height: var(--header-height);
+                gap: 6px;
             }
+            .header-brand { min-width: 0; gap: 6px; }
+            .logo-text { font-size: 13px; white-space: nowrap; }
             .logo-text span { display: none; }
+            .efferd-search-capsule { display: none !important; }
+            .header-status { gap: 6px; flex-shrink: 0; }
+            .header-status .efferd-primary-btn { display: none !important; }
+            .header-actions { display: none !important; }
+            .status-pill { padding: 3px 8px; font-size: 10px; white-space: nowrap; }
+            #headerFitScreenBtn { padding: 4px 8px !important; font-size: 11px !important; white-space: nowrap; }
             .workspace {
                 width: 100vw;
                 max-width: 100vw;
+                height: calc(100dvh - var(--header-height) - 56px - env(safe-area-inset-bottom, 0px));
+                overflow: hidden;
+            }
+            .content-area {
+                width: 100vw;
+                max-width: 100vw;
+                height: 100%;
                 overflow: hidden;
             }
             .sidebar {
@@ -1131,19 +1661,25 @@
             .page {
                 width: 100vw;
                 max-width: 100vw;
+                height: 100%;
                 box-sizing: border-box;
+                overflow: hidden;
             }
             .page-scrollable {
-                padding: 10px 10px 80px 10px;
+                padding: 12px 12px 24px 12px;
                 width: 100vw;
                 max-width: 100vw;
+                height: 100%;
                 box-sizing: border-box;
+                overflow-y: auto;
                 overflow-x: hidden;
             }
             .notion-hero-viewport {
-                padding: 10px 6px 6px;
+                padding: 12px 10px 24px;
                 width: 100%;
                 max-width: 100%;
+                height: 100%;
+                overflow-y: auto;
                 box-sizing: border-box;
             }
             .notion-hero-container {
@@ -1226,36 +1762,47 @@
             .efferd-recents-table {
                 min-width: 360px;
             }
-            /* Chat Page Fit to Screen */
-            #page-chat {
-                height: calc(100dvh - var(--header-height));
+            /* Chat Page Fit to Screen (active only!) */
+            #page-chat.active {
+                height: 100%;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
             }
-            .chat-messages {
-                flex: 1;
+            .chat-container {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .messages-list {
+                flex: 1 1 auto;
+                min-height: 0;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                padding: 10px 8px;
+                padding: 12px 10px;
             }
             .msg-row {
                 max-width: 96%;
             }
-            .composer-wrap {
-                padding: 8px 10px max(10px, env(safe-area-inset-bottom)) 10px !important;
-                background: var(--bg-elevated);
-                border-top: 1px solid var(--border-subtle);
-                width: 100vw;
-                box-sizing: border-box;
-            }
             .composer-bar {
+                flex-shrink: 0;
                 padding: 8px 10px;
                 width: 100%;
+                background: var(--bg-elevated);
+                border-top: 1px solid var(--border-subtle);
                 box-sizing: border-box;
+                gap: 6px;
+                z-index: 15;
             }
-            .composer-input {
+            .composer-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 15px;
+            }
+            .chat-input {
                 font-size: 14px;
+                padding: 8px 0;
             }
             .card {
                 padding: 14px;
@@ -1279,6 +1826,45 @@
             to { opacity: 1; transform: translateY(0); }
         }
     
+        .new-chat-btn img { filter: brightness(0); }
+
+        .remote-devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .remote-device-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .remote-device-item.online {
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .remote-pill-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .remote-pill-online {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .remote-pill-standby {
+            color: #fbbf24;
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
         /* ── EFFERD DASHBOARD 3 STYLES ── */
         .efferd-brand-badge {
             display: flex;
@@ -1784,11 +2370,14 @@
 
         <div class="efferd-search-capsule" onclick="focusGlobalSearch()">
             <span style="font-size: 14px; color: var(--text-muted)">🔍</span>
-            <input type="text" id="globalSearchInput" class="efferd-search-input" placeholder="Search conversations or commands..." onkeydown="handleGlobalSearch(event)">
+            <input type="text" id="globalSearchInput" class="efferd-search-input" placeholder="Search conversations or commands..." autocomplete="off" spellcheck="false" onkeydown="handleGlobalSearch(event)">
             <kbd class="kbd-badge">⌘K</kbd>
         </div>
 
         <div class="header-status">
+            <button class="btn" id="headerFitScreenBtn" onclick="toggleFitToScreen()" title="Toggle Fullscreen View (like F11)" style="padding: 4px 9px; font-size: 11px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                <span>⛶</span> <span>Fullscreen</span>
+            </button>
             <div class="status-pill" id="backendStatus">
                 <div class="status-dot"></div>
                 <span id="statusText">ONLINE</span>
@@ -1875,7 +2464,7 @@
                                 <span class="mobile-remote-status" id="remoteStatusPill">CONNECTED</span>
                             </div>
                             <div class="remote-pad-grid">
-                                <button class="remote-pad-btn" onclick="toggleVoiceMode()" title="Voice Command">
+                                <button class="remote-pad-btn" onclick="showPage('voice'); toggleVoiceConversationMode();" title="Voice Command">
                                     <span class="icon">🎙️</span>
                                     <span>Voice Mic</span>
                                 </button>
@@ -1950,19 +2539,19 @@
 
                         <!-- Action Suggestion Chips -->
                         <div class="notion-suggestions-grid">
-                            <button class="notion-chip-btn" onclick="quickSend('Create slides presenting my workspace project overview')">
+                            <button class="notion-chip-btn" onclick="openSlideStudio()" title="Interactive Slide Presentation Deck">
                                 <span class="chip-symbol">⊞</span>
                                 <span>Create Slides</span>
                             </button>
-                            <button class="notion-chip-btn" onclick="quickSend('Generate a clean data analysis table')">
+                            <button class="notion-chip-btn" onclick="openSpreadsheetStudio()" title="Interactive Spreadsheet & Formula Engine">
                                 <span class="chip-symbol">▦</span>
                                 <span>Spreadsheets</span>
                             </button>
-                            <button class="notion-chip-btn" onclick="quickSend('Research and summarize key project findings')">
+                            <button class="notion-chip-btn" onclick="openResearchStudio()" title="Deep Multi-Stage Research Synthesis">
                                 <span class="chip-symbol">🔍</span>
                                 <span>Research</span>
                             </button>
-                            <button class="notion-chip-btn" onclick="quickSend('Visualize current Windows tasks and processes')">
+                            <button class="notion-chip-btn" onclick="openVisualizerStudio()" title="Real-time Metrics & Chart Engine">
                                 <span class="chip-symbol">✳</span>
                                 <span>Visualize</span>
                             </button>
@@ -2054,7 +2643,7 @@
                             <textarea class="chat-input" id="chatInput" placeholder="Type a message or command (e.g. 'open youtube')..." rows="1" onkeydown="handleInputKey(event)"></textarea>
                         </div>
                         <button class="composer-btn send-btn" id="sendBtn" onclick="submitMessage()" title="Send Message">
-                            ➤
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                         </button>
                     </div>
                 </div>
@@ -2157,8 +2746,135 @@
                 <div class="page-scrollable">
                     <div class="page-header">
                         <div>
-                            <div class="page-title">📱 Android Phone Remote Control</div>
-                            <div class="page-desc">Securely control DEX from your phone using Tailscale private networking or local Wi-Fi.</div>
+                            <div class="page-title">📱 Windows Remote Control Deck</div>
+                            <div class="page-desc">Control your laptop display, launch applications, inspect connected mobile devices, or pair securely.</div>
+                        </div>
+                        <button class="btn" id="remoteFitScreenBtn" onclick="toggleFitToScreen()">⛶ Fullscreen</button>
+                    </div>
+
+                    <!-- Connected Remote Device & Laptop Bridge Status -->
+                    <div class="card" id="connectedDevicesCard" style="padding: 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="live-dot"></span>
+                                <span style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Connected Remote Devices &amp; Host Bridge</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="remote-pill-badge remote-pill-standby" id="remoteHostBridgeBadge">Checking Bridge...</span>
+                                <button class="btn" style="padding: 4px 10px; font-size: 11px;" onclick="refreshRemoteDevicesPanel()">↻ Refresh</button>
+                            </div>
+                        </div>
+                        <div id="thisDeviceMetaBox" style="font-size: 12px; color: var(--text-secondary); padding: 8px 10px; background: rgba(255,255,255,0.025); border: 1px solid var(--border-subtle); border-radius: 8px;">
+                            Detecting client device info...
+                        </div>
+                        <div class="remote-devices-grid" id="connectedRemotesList">
+                            <!-- Live connected mobile / desktop devices rendered here -->
+                        </div>
+                        <div id="remoteCommandLog" style="margin-top: 10px; font-size: 11px; color: var(--text-muted);"></div>
+                    </div>
+
+                    <!-- Tactile Virtual Remote Control Deck -->
+                    <div class="card" style="padding: 20px 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="live-dot"></span>
+                                <span style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Tactile Laptop Controller</span>
+                            </div>
+                            <span style="font-size: 11px; color: var(--accent-green); background: rgba(16,185,129,0.15); padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.3);">ONLINE BRIDGE</span>
+                        </div>
+
+                        <!-- Virtual D-Pad -->
+                        <div class="remote-pad-container">
+                            <div class="dpad-wrapper">
+                                <button class="dpad-btn up" onclick="sendRemotePadCommand('remote_key Up', 'Navigate Up')">▲</button>
+                                <button class="dpad-btn left" onclick="sendRemotePadCommand('remote_key Left', 'Navigate Left')">◀</button>
+                                <button class="dpad-btn center" onclick="sendRemotePadCommand('remote_key Enter', 'Select / OK')">OK</button>
+                                <button class="dpad-btn right" onclick="sendRemotePadCommand('remote_key Right', 'Navigate Right')">▶</button>
+                                <button class="dpad-btn down" onclick="sendRemotePadCommand('remote_key Down', 'Navigate Down')">▼</button>
+                            </div>
+                        </div>
+
+                        <!-- Media & Volume Controls -->
+                        <div style="margin: 18px 0 10px;">
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">Media & Sound Controls</div>
+                            <div class="media-deck-grid">
+                                <button class="media-btn" onclick="sendRemotePadCommand('media_play_pause', 'Play / Pause')">
+                                    <span>⏯</span>
+                                    <span>Play</span>
+                                </button>
+                                <button class="media-btn" onclick="sendRemotePadCommand('vol_down', 'Volume Down')">
+                                    <span>🔉</span>
+                                    <span>Vol -</span>
+                                </button>
+                                <button class="media-btn" onclick="sendRemotePadCommand('vol_up', 'Volume Up')">
+                                    <span>🔊</span>
+                                    <span>Vol +</span>
+                                </button>
+                                <button class="media-btn" onclick="sendRemotePadCommand('mute', 'Mute Sound')">
+                                    <span>🔇</span>
+                                    <span>Mute</span>
+                                </button>
+                                <button class="media-btn" onclick="sendRemotePadCommand('media_prev', 'Previous Track')">
+                                    <span>⏮</span>
+                                    <span>Prev</span>
+                                </button>
+                                <button class="media-btn" onclick="sendRemotePadCommand('media_next', 'Next Track')">
+                                    <span>⏭</span>
+                                    <span>Next</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quick App Launch Grid (Dispatches directly to Laptop) -->
+                        <div style="margin: 18px 0 10px;">
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">Instant Laptop Launcher (1-Tap to Laptop Screen)</div>
+                            <div class="quick-apps-grid">
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open youtube', 'Launch YouTube')">
+                                    <span class="quick-app-icon">🔴</span>
+                                    <span class="quick-app-name">YouTube</span>
+                                </div>
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open spotify', 'Launch Spotify')">
+                                    <span class="quick-app-icon">🟢</span>
+                                    <span class="quick-app-name">Spotify</span>
+                                </div>
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open google', 'Launch Google')">
+                                    <span class="quick-app-icon">🔍</span>
+                                    <span class="quick-app-name">Google</span>
+                                </div>
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open vscode', 'Launch VS Code')">
+                                    <span class="quick-app-icon">💻</span>
+                                    <span class="quick-app-name">VS Code</span>
+                                </div>
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open calc', 'Launch Calculator')">
+                                    <span class="quick-app-icon">🧮</span>
+                                    <span class="quick-app-name">Calculator</span>
+                                </div>
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open notepad', 'Launch Notepad')">
+                                    <span class="quick-app-icon">📝</span>
+                                    <span class="quick-app-name">Notepad</span>
+                                </div>
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open whatsapp', 'Launch WhatsApp')">
+                                    <span class="quick-app-icon">💬</span>
+                                    <span class="quick-app-name">WhatsApp</span>
+                                </div>
+                                <div class="quick-app-card" onclick="sendRemotePadCommand('open chrome', 'Launch Chrome')">
+                                    <span class="quick-app-icon">🌐</span>
+                                    <span class="quick-app-name">Chrome</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Windows System Actions -->
+                        <div style="margin: 18px 0 6px;">
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">Windows System Utilities</div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                                <button class="btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="sendRemotePadCommand('take screenshot', 'Capture Laptop Screenshot')">
+                                    <span>📸</span> Capture Screenshot
+                                </button>
+                                <button class="btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="sendRemotePadCommand('minimize_all', 'Minimize All Windows')">
+                                    <span>🗕</span> Minimize All
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -2185,6 +2901,20 @@
                                 <input type="password" class="text-input" id="tokenDisplayInput" readonly style="font-family: 'JetBrains Mono', monospace; width: 180px;">
                                 <button class="btn" onclick="toggleTokenVisibility()" id="tokenVisBtn">Show</button>
                                 <button class="btn" onclick="copyToken()">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">💻 Laptop Remote Bridge</div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">Target Laptop Endpoint</div>
+                                <div class="setting-sub">IP address and port of your Windows laptop (e.g. for Wi-Fi or Tailscale).</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" class="text-input" id="laptopHostInput" placeholder="http://192.168.1.15:31416" style="font-family: 'JetBrains Mono', monospace; width: 230px;">
+                                <button class="btn" onclick="saveLaptopHost()">Save</button>
                             </div>
                         </div>
                     </div>
@@ -2372,6 +3102,254 @@
         </div>
     </div>
 
+    <!-- ── 1. SLIDE PRESENTATION STUDIO MODAL ── -->
+    <div class="studio-modal-overlay" id="slideStudioModal">
+        <div class="studio-modal-card">
+            <div class="studio-head">
+                <div class="studio-title-wrap">
+                    <span class="studio-icon">⊞</span>
+                    <span class="studio-title">DEX Slide Presentation Studio</span>
+                    <span class="studio-badge" id="slideDeckThemeBadge">NOTION DARK</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn" onclick="addCustomSlide()" style="font-size: 11px;">＋ Add Slide</button>
+                    <button class="btn" onclick="exportPresentationHtml()" style="font-size: 11px; background: #FFFFFF; color: #000; font-weight: 700;">💾 Export HTML Deck</button>
+                    <button class="icon-btn" onclick="closeStudioModal('slideStudioModal')" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="studio-body" id="slideStudioBody">
+                <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 16px;">
+                    <div>
+                        <div class="slide-canvas-card" id="slideCanvasCard" style="background: #181818; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 28px; min-height: 320px; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <span class="badge safe" id="slideTagBadge">EXECUTIVE BRIEF</span>
+                                    <span style="font-size: 11px; color: var(--text-muted); font-family: monospace;" id="slideNumberDisplay">Slide 1 of 4</span>
+                                </div>
+                                <h2 id="slideDisplayTitle" style="font-size: 22px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">DEX System Architecture & Vision</h2>
+                                <p id="slideDisplaySubtitle" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Native Windows Automation & Agentic Execution Platform</p>
+                                <div id="slideDisplayBullets" style="display: flex; flex-direction: column; gap: 10px;">
+                                    <!-- Rendered bullet points -->
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 11px; color: var(--text-muted);" id="slideSpeakerNotes">Speaker Notes: Introducing the DEX architecture to team.</span>
+                                <span style="font-size: 10px; color: var(--text-muted); font-family: monospace;">DEX.AI PRESENTER</span>
+                            </div>
+                        </div>
+
+                        <!-- Slide Navigation Bar -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                            <button class="btn" onclick="prevSlide()" id="slidePrevBtn">◀ Previous</button>
+                            <div style="display: flex; gap: 6px;" id="slideDotIndicators"></div>
+                            <button class="btn" onclick="nextSlide()" id="slideNextBtn">Next ▶</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide Editor Sidebar -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px;">
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 12px; color: #FFFFFF;">Live Slide Editor</div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="font-size: 11px; color: var(--text-muted);">Slide Title</label>
+                            <input type="text" id="slideEditTitle" class="text-input" style="width: 100%; font-size: 12px;" oninput="updateCurrentSlideFromEditor()">
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="font-size: 11px; color: var(--text-muted);">Subtitle</label>
+                            <input type="text" id="slideEditSubtitle" class="text-input" style="width: 100%; font-size: 12px;" oninput="updateCurrentSlideFromEditor()">
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="font-size: 11px; color: var(--text-muted);">Key Points (One per line)</label>
+                            <textarea id="slideEditBullets" class="text-input" rows="4" style="width: 100%; font-size: 11px;" oninput="updateCurrentSlideFromEditor()"></textarea>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="font-size: 11px; color: var(--text-muted);">Theme</label>
+                            <select id="slideThemeSelect" class="text-input" style="width: 100%; font-size: 11px;" onchange="changeSlideTheme(this.value)">
+                                <option value="dark">Notion Dark Minimal</option>
+                                <option value="cyber">Cyber Blue Accent</option>
+                                <option value="emerald">Emerald Clean</option>
+                                <option value="light">High-Contrast Monochrome</option>
+                            </select>
+                        </div>
+                        <button class="btn danger" style="width: 100%; font-size: 11px; margin-top: 6px;" onclick="deleteCurrentSlide()">Delete Slide</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 2. SPREADSHEET STUDIO MODAL ── -->
+    <div class="studio-modal-overlay" id="spreadsheetStudioModal">
+        <div class="studio-modal-card">
+            <div class="studio-head">
+                <div class="studio-title-wrap">
+                    <span class="studio-icon">▦</span>
+                    <span class="studio-title">DEX Spreadsheet & Formula Engine</span>
+                    <span class="studio-badge">REACTIVE GRID</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn" onclick="loadSpreadsheetTemplate('budget')" style="font-size: 11px;">Template: Budget</button>
+                    <button class="btn" onclick="loadSpreadsheetTemplate('telemetry')" style="font-size: 11px;">Template: Telemetry</button>
+                    <button class="btn" onclick="exportSpreadsheetCsv()" style="font-size: 11px; background: #FFFFFF; color: #000; font-weight: 700;">💾 Export CSV</button>
+                    <button class="icon-btn" onclick="closeStudioModal('spreadsheetStudioModal')" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="studio-body" style="padding: 12px;">
+                <!-- Formula Bar -->
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: #1C1C1C; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: #FFFFFF;" id="spreadsheetActiveCellLabel">A1</span>
+                    <span style="color: var(--text-muted); font-size: 12px; font-style: italic;">fx</span>
+                    <input type="text" id="spreadsheetFormulaInput" class="text-input" placeholder="Type a value or formula (=SUM(A1:A5), =AVERAGE(B1:B5))..." style="flex: 1; font-family: monospace; font-size: 12px; padding: 4px 8px;" onkeydown="handleFormulaEnter(event)">
+                    <button class="btn" onclick="evaluateSpreadsheetFormula()" style="font-size: 11px;">Calculate</button>
+                </div>
+
+                <!-- Grid Table Container -->
+                <div style="overflow-x: auto; max-height: 50vh; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;" id="spreadsheetGridContainer">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="studio-foot">
+                <div style="font-size: 11px; color: var(--text-muted);">
+                    Formulas: <code class="code-snippet">=SUM(A1:A5)</code>, <code class="code-snippet">=AVERAGE(...)</code>, <code class="code-snippet">=COUNT(...)</code>, <code class="code-snippet">=MIN(...)</code>, <code class="code-snippet">=MAX(...)</code>, math <code class="code-snippet">=A1*B1</code>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <label class="btn" style="cursor: pointer; font-size: 11px;">
+                        📁 Import CSV <input type="file" id="spreadsheetCsvFileInput" accept=".csv" style="display: none;" onchange="importSpreadsheetCsv(event)">
+                    </label>
+                    <button class="btn" onclick="clearSpreadsheetGrid()" style="font-size: 11px;">Clear Grid</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 3. RESEARCH STUDIO MODAL ── -->
+    <div class="studio-modal-overlay" id="researchStudioModal">
+        <div class="studio-modal-card">
+            <div class="studio-head">
+                <div class="studio-title-wrap">
+                    <span class="studio-icon">🔍</span>
+                    <span class="studio-title">DEX Deep Research & Synthesis Studio</span>
+                    <span class="studio-badge">4-STAGE PIPELINE</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn" onclick="copyResearchBrief()" style="font-size: 11px;">📋 Copy Brief</button>
+                    <button class="btn" onclick="exportResearchMarkdown()" style="font-size: 11px; background: #FFFFFF; color: #000; font-weight: 700;">💾 Export .MD</button>
+                    <button class="icon-btn" onclick="closeStudioModal('researchStudioModal')" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="studio-body">
+                <!-- Research Prompt Bar -->
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <input type="text" id="researchQueryInput" class="text-input" placeholder="Enter research query (e.g. 'Windows AI co-pilots', 'Local LLM inference latency')..." style="flex: 1;" onkeydown="if(event.key==='Enter') executeDeepResearch()">
+                    <button class="btn primary" onclick="executeDeepResearch()">Start Research</button>
+                </div>
+
+                <!-- 4 Stage Progress Bar -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px;" id="researchStagesBar">
+                    <div class="research-step-card active" id="rsStep1" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 10px;">
+                        <div style="font-size: 10px; font-weight: 700; color: #FFFFFF;">STAGE 1</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Query Scope</div>
+                    </div>
+                    <div class="research-step-card" id="rsStep2" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px;">
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-muted);">STAGE 2</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Source Retrieval</div>
+                    </div>
+                    <div class="research-step-card" id="rsStep3" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px;">
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-muted);">STAGE 3</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Fact Verification</div>
+                    </div>
+                    <div class="research-step-card" id="rsStep4" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px;">
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-muted);">STAGE 4</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">Executive Brief</div>
+                    </div>
+                </div>
+
+                <!-- Report Content Area -->
+                <div id="researchReportOutput" style="background: #181818; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 20px; line-height: 1.6; font-size: 13px;">
+                    <!-- Dynamically populated report -->
+                </div>
+            </div>
+            <div class="studio-foot">
+                <span style="font-size: 11px; color: var(--text-muted);" id="researchStatusNote">Ready to synthesize multi-source intelligence.</span>
+                <button class="btn" onclick="sendResearchToChat()" style="font-size: 11px;">💬 Post Summary to Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 4. VISUALIZER STUDIO MODAL ── -->
+    <div class="studio-modal-overlay" id="visualizerStudioModal">
+        <div class="studio-modal-card">
+            <div class="studio-head">
+                <div class="studio-title-wrap">
+                    <span class="studio-icon">✳</span>
+                    <span class="studio-title">DEX Visualizer & Telemetry Engine</span>
+                    <span class="studio-badge">HTML5 CANVAS</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn" onclick="downloadVisualizerCanvas()" style="font-size: 11px; background: #FFFFFF; color: #000; font-weight: 700;">💾 Download PNG</button>
+                    <button class="icon-btn" onclick="closeStudioModal('visualizerStudioModal')" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="studio-body">
+                <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 16px;">
+                    <!-- Canvas Chart View -->
+                    <div>
+                        <div style="background: #181818; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <h3 id="visualizerChartTitle" style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin-bottom: 12px;">System Hardware & Response Latency</h3>
+                            <canvas id="visualizerCanvas" width="560" height="300" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;"></canvas>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: center;">
+                            <button class="btn" onclick="switchVisualizerChartType('bar')">Bar Chart</button>
+                            <button class="btn" onclick="switchVisualizerChartType('line')">Line Chart</button>
+                            <button class="btn" onclick="switchVisualizerChartType('doughnut')">Doughnut Chart</button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Data Editor -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px;">
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #FFFFFF;">Dataset Preset</div>
+                        <select id="visualizerPresetSelect" class="text-input" style="width: 100%; font-size: 11px; margin-bottom: 12px;" onchange="loadVisualizerPreset(this.value)">
+                            <option value="telemetry">System Telemetry (CPU / RAM / Latency)</option>
+                            <option value="tools">Tool Invocations Distribution</option>
+                            <option value="custom">Custom Values</option>
+                        </select>
+
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #FFFFFF;">Labels (comma-separated)</div>
+                        <input type="text" id="visualizerCustomLabels" class="text-input" value="00:00, 04:00, 08:00, 12:00, 16:00, 20:00" style="width: 100%; font-size: 11px; margin-bottom: 12px;" oninput="applyCustomVisualizerData()">
+
+                        <div style="font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #FFFFFF;">Values (comma-separated)</div>
+                        <input type="text" id="visualizerCustomValues" class="text-input" value="28, 35, 62, 84, 52, 38" style="width: 100%; font-size: 11px; margin-bottom: 12px;" oninput="applyCustomVisualizerData()">
+
+                        <button class="btn primary" style="width: 100%; font-size: 11px;" onclick="applyCustomVisualizerData()">Redraw Chart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MOBILE BOTTOM NAVIGATION BAR ── -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav">
+        <button class="mobile-nav-btn active" id="mobNavOverview" onclick="showPage('overview')">
+            <span class="mob-nav-icon">🏠</span>
+            <span class="mob-nav-label">Home</span>
+        </button>
+        <button class="mobile-nav-btn" id="mobNavChat" onclick="showPage('chat')">
+            <span class="mob-nav-icon">💬</span>
+            <span class="mob-nav-label">Chat</span>
+        </button>
+        <button class="mobile-nav-btn" id="mobNavRemote" onclick="showPage('remote')">
+            <span class="mob-nav-icon">🎮</span>
+            <span class="mob-nav-label">Remote</span>
+        </button>
+        <button class="mobile-nav-btn" id="mobNavTools" onclick="showPage('tools')">
+            <span class="mob-nav-icon">🛠️</span>
+            <span class="mob-nav-label">Tools</span>
+        </button>
+        <button class="mobile-nav-btn" id="mobNavSettings" onclick="showPage('settings')">
+            <span class="mob-nav-icon">⚙️</span>
+            <span class="mob-nav-label">Settings</span>
+        </button>
+    </nav>
+
     <!-- ── TOAST NOTIFICATION ── -->
     <div class="toast" id="toastBox">Notification message</div>
 
@@ -2402,16 +3380,20 @@
             if (window.innerWidth <= 768) {
                 closeSidebar();
             }
-            if (urlParams.has('token')) {
-                showToast('📱 DEX Remote Control Connected!');
+            if (urlParams.has('token') || isTouchMobileDevice()) {
                 const rCenter = document.getElementById('mobileRemoteCenter');
                 if (rCenter) rCenter.style.display = 'block';
+            }
+            if (localStorage.getItem('dex_fit_to_screen') === 'true') {
+                applyFitVisualState(true);
             }
             initSpeechSynthesis();
             initSpeechRecognition();
             loadStatus();
             initTheme();
             fetchNetworkInfo();
+            initLaptopRemotePoller();
+            initRemoteDeviceMonitor();
             // Auto refresh status every 15s
             setInterval(loadStatus, 15000);
         });
@@ -2521,9 +3503,18 @@
             if (targetPage) targetPage.classList.add('active');
             if (targetNav) targetNav.classList.add('active');
 
+            // Sync mobile bottom navigation
+            document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+            const mobKey = pageId.charAt(0).toUpperCase() + pageId.slice(1);
+            const mobBtn = document.getElementById('mobNav' + mobKey);
+            if (mobBtn) mobBtn.classList.add('active');
+
             if (pageId === 'tools') fetchTools();
             if (pageId === 'tasks') fetchTasks();
-            if (pageId === 'remote') fetchNetworkInfo();
+            if (pageId === 'remote') {
+                fetchNetworkInfo();
+                refreshRemoteDevicesPanel();
+            }
             if (pageId === 'settings') loadStatus();
 
             closeSidebar();
@@ -2655,6 +3646,484 @@
             }
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        const CLIENT_APP_MAP = {
+            'youtube': { label: 'YouTube', url: 'https://www.youtube.com', web: 'https://www.youtube.com' },
+            'yt': { label: 'YouTube', url: 'https://www.youtube.com', web: 'https://www.youtube.com' },
+            'google': { label: 'Google Search', url: 'https://www.google.com', web: 'https://www.google.com' },
+            'github': { label: 'GitHub', url: 'https://github.com', web: 'https://github.com' },
+            'chatgpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
+            'gpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
+            'notion': { label: 'Notion', url: 'https://www.notion.so', web: 'https://www.notion.so' },
+            'spotify': { label: 'Spotify', url: 'https://open.spotify.com', protocol: 'spotify:', web: 'https://open.spotify.com', isNativeApp: true },
+            'whatsapp': { label: 'WhatsApp', url: 'https://web.whatsapp.com', protocol: 'whatsapp:', web: 'https://web.whatsapp.com', isNativeApp: true },
+            'calculator': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator', isNativeApp: true, type: 'open_app' },
+            'calc': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator', isNativeApp: true, type: 'open_app' },
+            'notepad': { label: 'Notepad', url: 'https://notepad.js.org', protocol: 'notepad:', web: 'https://notepad.js.org', isNativeApp: true, type: 'open_app' },
+            'chrome': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+            'google chrome': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+            'browser': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+            'edge': { label: 'Microsoft Edge', url: 'https://www.bing.com', web: 'https://www.bing.com', isNativeApp: true, type: 'open_app' },
+            'explorer': { label: 'File Explorer', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'file explorer': { label: 'File Explorer', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'cmd': { label: 'Command Prompt', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'terminal': { label: 'Windows Terminal', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'powershell': { label: 'PowerShell', url: null, web: null, isNativeApp: true, type: 'open_app' },
+            'settings': { label: 'Windows Settings', url: 'ms-settings:', protocol: 'ms-settings:', web: null, isNativeApp: true, type: 'open_app' },
+            'camera': { label: 'Camera', url: 'microsoft.windows.camera:', protocol: 'microsoft.windows.camera:', web: null, isNativeApp: true, type: 'open_app' },
+            'clock': { label: 'Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is', isNativeApp: true, type: 'open_app' },
+            'alarm': { label: 'Alarms & Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is', isNativeApp: true, type: 'open_app' },
+            'paint': { label: 'Paint', url: 'ms-paint:', protocol: 'ms-paint:', web: 'https://jspaint.app', isNativeApp: true, type: 'open_app' },
+            'maps': { label: 'Google Maps', url: 'https://www.google.com/maps', web: 'https://www.google.com/maps' },
+            'mail': { label: 'Gmail', url: 'https://mail.google.com', protocol: 'mailto:', web: 'https://mail.google.com' },
+            'gmail': { label: 'Gmail', url: 'https://mail.google.com', web: 'https://mail.google.com' },
+            'calendar': { label: 'Google Calendar', url: 'https://calendar.google.com', web: 'https://calendar.google.com' },
+            'reddit': { label: 'Reddit', url: 'https://www.reddit.com', web: 'https://www.reddit.com' },
+            'twitter': { label: 'X (Twitter)', url: 'https://x.com', web: 'https://x.com' },
+            'x': { label: 'X (Twitter)', url: 'https://x.com', web: 'https://x.com' },
+            'linkedin': { label: 'LinkedIn', url: 'https://www.linkedin.com', web: 'https://www.linkedin.com' },
+            'netflix': { label: 'Netflix', url: 'https://www.netflix.com', web: 'https://www.netflix.com' },
+            'twitch': { label: 'Twitch', url: 'https://www.twitch.tv', web: 'https://www.twitch.tv' },
+            'amazon': { label: 'Amazon', url: 'https://www.amazon.com', web: 'https://www.amazon.com' },
+            'vscode': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+            'vs code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+            'code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+            'discord': { label: 'Discord', url: 'https://discord.com/app', protocol: 'discord:', web: 'https://discord.com/app', isNativeApp: true },
+            'telegram': { label: 'Telegram', url: 'https://web.telegram.org', protocol: 'tg:', web: 'https://web.telegram.org', isNativeApp: true },
+            'steam': { label: 'Steam', url: 'https://store.steampowered.com', protocol: 'steam:', web: 'https://store.steampowered.com', isNativeApp: true, type: 'open_app' },
+            'music': { label: 'YouTube Music', url: 'https://music.youtube.com', web: 'https://music.youtube.com' },
+            'wikipedia': { label: 'Wikipedia', url: 'https://www.wikipedia.org', web: 'https://www.wikipedia.org' }
+        };
+
+        function stripLaptopModifier(text) {
+            return String(text || '')
+                .replace(/\s+(?:please|now|for me)\s*[.?!]*$/i, '')
+                .replace(/\s+(?:in|on|at|onto|to)\s+(?:the\s+|my\s+)?(?:laptop|pc|desktop|computer|windows|machine|host)(?:\s+screen)?\s*[.?!]*$/i, '')
+                .replace(/\s+(?:please|now|for me)\s*[.?!]*$/i, '')
+                .trim();
+        }
+
+        function resolveClientAction(rawText) {
+            if (!rawText) return null;
+            const text = stripLaptopModifier(rawText);
+            const lower = text.toLowerCase();
+
+            // Ignore tool inspection commands
+            if (/^(?:run\s+)?tool:\s*/i.test(lower) || lower === 'open_app' || lower === 'open_url') {
+                return null;
+            }
+
+            if (lower === 'take a screenshot' || lower === 'take screenshot' || lower === 'capture screenshot' || lower === 'screenshot') {
+                return {
+                    type: 'screenshot',
+                    target: 'take screenshot',
+                    label: 'Desktop Screenshot',
+                    isNativeApp: true,
+                    isWeb: false
+                };
+            }
+
+            if (lower === 'minimize_all' || lower === 'minimize all' || lower === 'show desktop') {
+                return {
+                    type: 'remote_control',
+                    target: 'minimize_all',
+                    label: 'Minimize All Windows',
+                    isNativeApp: true,
+                    isWeb: false
+                };
+            }
+
+            // Match play
+            const playMatch = lower.match(/(?:^play|\bplay(?:ing)?\b)\s+"?([^".?!\n]+)"?/i);
+            if (playMatch) {
+                const query = playMatch[1].replace(/^(?:the\s+)?(?:song|music|track|video)\s+/i, '').trim();
+                return {
+                    type: 'play',
+                    target: query,
+                    label: `Play "${query}" on YouTube`,
+                    url: `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            // Match search
+            const searchMatch = lower.match(/(?:^search(?:\s+for)?|^google|\bsearch(?:ing)?(?: the web for)?\b)\s+"?([^".?!\n]+)"?/i);
+            if (searchMatch) {
+                const query = searchMatch[1].trim();
+                return {
+                    type: 'search',
+                    target: query,
+                    label: `Google Search: "${query}"`,
+                    url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            // Match open / launch / start / visit
+            let target = null;
+            const launchCmdMatch = text.match(/\[DEX Action\] Dispatched launch command for:\s*"([^"]+)"/i);
+            if (launchCmdMatch) {
+                target = launchCmdMatch[1].trim();
+            } else {
+                const openMatch = lower.match(/(?:^open|^launch|^start|^run|^go to|^visit)\s+([^.?!\n]+)/i);
+                if (openMatch) {
+                    target = openMatch[1].trim();
+                } else {
+                    const politeMatch = lower.match(/(?:please\s+|can you\s+|could you\s+)?(?:open|launch|start|visit|go to)\s+([^,.?!\n]+)/i);
+                    if (politeMatch) {
+                        target = politeMatch[1].trim();
+                    }
+                }
+            }
+
+            if (!target) return null;
+            target = target.replace(/^(the|my)\s+/i, '').replace(/[.?!]+$/, '').trim();
+            const targetLower = target.toLowerCase();
+
+            if (/^https?:\/\//i.test(target)) {
+                let hostname = target;
+                try { hostname = new URL(target).hostname; } catch (e) {}
+                return {
+                    type: 'open',
+                    target,
+                    label: hostname || 'External Website',
+                    url: target,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            if (/^[a-zA-Z0-9-]+\.(?:com|org|net|io|ai|co|app|dev|edu|gov|xyz|me)(?:\/[^\s]*)?$/i.test(target)) {
+                return {
+                    type: 'open',
+                    target,
+                    label: target,
+                    url: 'https://' + target,
+                    protocol: null,
+                    isWeb: true
+                };
+            }
+
+            if (CLIENT_APP_MAP[targetLower]) {
+                const item = CLIENT_APP_MAP[targetLower];
+                return {
+                    type: item.type || 'open',
+                    target,
+                    label: item.label,
+                    url: item.url,
+                    protocol: item.protocol || null,
+                    web: item.web || item.url,
+                    isNativeApp: Boolean(item.isNativeApp),
+                    isWeb: Boolean(item.web)
+                };
+            }
+
+            for (const [key, item] of Object.entries(CLIENT_APP_MAP)) {
+                if (targetLower.includes(key)) {
+                    return {
+                        type: item.type || 'open',
+                        target,
+                        label: item.label,
+                        url: item.url,
+                        protocol: item.protocol || null,
+                        web: item.web || item.url,
+                        isNativeApp: Boolean(item.isNativeApp),
+                        isWeb: Boolean(item.web)
+                    };
+                }
+            }
+
+            return {
+                type: 'open',
+                target,
+                label: target.charAt(0).toUpperCase() + target.slice(1),
+                url: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
+                protocol: null,
+                web: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
+                isFallbackSearch: true,
+                isWeb: true
+            };
+        }
+
+        function isTouchMobileDevice() {
+            const isTouchUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isTouchScreen = ('ontouchstart' in window || navigator.maxTouchPoints > 0) && window.innerWidth <= 768;
+            return isTouchUA || isTouchScreen;
+        }
+
+        function isMobileOrRemoteClient() {
+            return isTouchMobileDevice() || window.location.search.includes('token');
+        }
+
+        function isCloudDeployment() {
+            const h = window.location.hostname || '';
+            return h.includes('vercel.app') || h.includes('dex.ai');
+        }
+
+        function getRemoteDeviceIdentity() {
+            let devId = localStorage.getItem('dex_client_device_id');
+            if (!devId) {
+                devId = 'dev-' + Math.random().toString(36).slice(2, 10);
+                localStorage.setItem('dex_client_device_id', devId);
+            }
+            const ua = navigator.userAgent || '';
+            let os = 'Desktop';
+            if (/Android/i.test(ua)) os = 'Android';
+            else if (/iPhone/i.test(ua)) os = 'iPhone';
+            else if (/iPad/i.test(ua)) os = 'iPad';
+            else if (/Windows/i.test(ua)) os = 'Windows';
+            else if (/Mac OS/i.test(ua)) os = 'macOS';
+            else if (/Linux/i.test(ua)) os = 'Linux';
+
+            let browser = 'Browser';
+            if (/Edg/i.test(ua)) browser = 'Edge';
+            else if (/Chrome/i.test(ua)) browser = 'Chrome';
+            else if (/Firefox/i.test(ua)) browser = 'Firefox';
+            else if (/Safari/i.test(ua)) browser = 'Safari';
+
+            const isMob = isTouchMobileDevice();
+            const customName = localStorage.getItem('dex_device_name');
+            const name = customName || (isMob ? `${os} Phone (${browser})` : `${os} Workstation (${browser})`);
+            const orientation = window.innerHeight >= window.innerWidth ? 'Portrait' : 'Landscape';
+            const fs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains('fit-to-screen'));
+
+            return {
+                deviceId: devId,
+                role: isMob ? 'mobile' : 'desktop',
+                name,
+                deviceName: name,
+                osBrowser: `${os} / ${browser}`,
+                screen: `${window.innerWidth}x${window.innerHeight}`,
+                orientation,
+                fullscreen: fs,
+                channel: isCloudDeployment() ? 'Cloud Relay' : 'LAN Direct'
+            };
+        }
+
+        async function dispatchToLaptop(action, rawCommand = '') {
+            if (!action && !rawCommand) return { ok: false };
+            const dev = getRemoteDeviceIdentity();
+            const targetName = action?.target || action?.label || rawCommand;
+            const cmd = rawCommand
+                ? stripLaptopModifier(rawCommand)
+                : ((action?.isNativeApp || action?.type === 'open_app' || action?.type === 'remote_control' || action?.type === 'screenshot')
+                    ? (targetName === 'minimize_all' || targetName === 'take screenshot' ? targetName : ('open ' + targetName))
+                    : (action?.protocol || ('open ' + targetName)));
+
+            const payload = {
+                command: cmd,
+                action: action || { type: 'run', target: cmd, label: cmd },
+                source: isMobileOrRemoteClient() ? 'mobile' : 'desktop',
+                deviceId: dev.deviceId,
+                deviceName: dev.deviceName,
+                osBrowser: dev.osBrowser,
+                screen: dev.screen,
+                orientation: dev.orientation,
+                fullscreen: dev.fullscreen
+            };
+
+            let delivered = false;
+            let hostOnline = false;
+
+            // 1. If hosted on Local Java Server (Direct QR LAN or 127.0.0.1), call native /api/remote/command
+            if (!isCloudDeployment()) {
+                try {
+                    const res = await apiFetch('/api/remote/command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        delivered = true;
+                        hostOnline = true;
+                    }
+                } catch (e) {}
+            } else {
+                // 2. Hosted on Vercel Cloud -> Enqueue reliably to shared /api/remote-queue
+                try {
+                    const res = await fetch('/api/remote-queue', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        delivered = true;
+                        hostOnline = Boolean(data.hostOnline);
+                    }
+                } catch (e) {}
+            }
+
+            // 3. Optional saved local Laptop Bridge fallback when non-HTTPS or browser PNA permits
+            const savedHost = localStorage.getItem('dex_laptop_host');
+            if (!delivered && savedHost && (window.location.protocol === 'http:' || savedHost.startsWith('https://'))) {
+                try {
+                    const ep = savedHost.replace(/\/+$/, '');
+                    const res = await fetch(ep + '/api/remote/command', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + (authToken || localStorage.getItem('dex_remote_token') || '')
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) delivered = true;
+                } catch (e) {}
+            }
+
+            if (isMobileOrRemoteClient()) {
+                refreshRemoteDevicesPanel();
+            }
+            return { ok: delivered, hostOnline };
+        }
+
+        function executeClientAction(action, alreadyExecutedOnLaptop = false, rawCommand = '') {
+            if (!action) return;
+
+            const isRemote = isTouchMobileDevice() || isMobileOrRemoteClient();
+
+            // Mobile/Remote MUST launch on Laptop — never hijack into mobile phone screen
+            if (isRemote) {
+                if (!alreadyExecutedOnLaptop) {
+                    dispatchToLaptop(action, rawCommand).then(res => {
+                        if (res && res.ok) {
+                            showToast(res.hostOnline
+                                ? '💻 Sent to Laptop: ' + action.label
+                                : '📡 Queued for Laptop Bridge: ' + action.label);
+                        } else {
+                            showToast('⚠️ Dispatch error. Ensure Laptop DEX server is running.');
+                        }
+                    });
+                } else {
+                    showToast('💻 Executed on Laptop: ' + action.label);
+                }
+                return;
+            }
+
+            // Desktop Client: if local Java backend already launched it on Windows, skip duplicate window.open!
+            if (alreadyExecutedOnLaptop) {
+                return;
+            }
+
+            if (action.url && !action.isNativeApp) {
+                try {
+                    const win = window.open(action.url, '_blank');
+                    if (win) {
+                        try { win.focus(); } catch (e) {}
+                    }
+                } catch (e) {}
+            }
+            dispatchToLaptop(action, rawCommand);
+        }
+
+        function createActionCardElement(action) {
+            const card = document.createElement('div');
+            card.className = 'notion-action-card';
+
+            const isRemote = isMobileOrRemoteClient();
+
+            if (isRemote) {
+                // Mobile Remote Control View: Confirms execution on Laptop
+                card.innerHTML = `
+                    <div class="action-card-top">
+                        <div class="action-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            <span>${escapeHtml(action.label)}</span>
+                        </div>
+                        <span class="action-card-badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);">LAPTOP 💻</span>
+                    </div>
+                    <div class="action-card-url" style="color: #10B981; font-weight: 500; word-break: normal; overflow-wrap: break-word;">✓ Dispatched to Windows Laptop screen</div>
+                    <div class="action-card-btn-row">
+                        <button type="button" class="notion-action-btn" data-rerun="1">
+                            <span>💻 Re-run on Laptop</span>
+                        </button>
+                        ${action.url ? `
+                            <a href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer" class="notion-action-btn-secondary" style="font-size: 11px;">
+                                <span>📱 Open on this phone instead</span>
+                            </a>
+                        ` : ''}
+                    </div>
+                    <div class="action-card-hint">
+                        <span>Executed on your laptop. Tap "Open on this phone" only if you also want it on mobile.</span>
+                    </div>
+                `;
+                const rerunBtn = card.querySelector('[data-rerun]');
+                if (rerunBtn) {
+                    rerunBtn.addEventListener('click', () => {
+                        dispatchToLaptop(action, action.target || action.label);
+                        showToast('Re-dispatched to Laptop 💻…');
+                    });
+                }
+                return card;
+            }
+
+            // Desktop Laptop View:
+            const badgeText = action.type === 'play' ? 'PLAYBACK' : (action.type === 'search' ? 'SEARCH' : 'APPLICATION');
+            card.innerHTML = `
+                <div class="action-card-top">
+                    <div class="action-card-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        <span>${escapeHtml(action.label)}</span>
+                    </div>
+                    <span class="action-card-badge">${badgeText}</span>
+                </div>
+                ${action.url ? `<div class="action-card-url">${escapeHtml(action.url)}</div>` : ''}
+                <div class="action-card-btn-row">
+                    ${action.url ? `
+                        <a href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer" class="notion-action-btn" onclick="showToast('Opening ${escapeHtml(action.label)}…')">
+                            <span>Open ${escapeHtml(action.label)}</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+                        </a>
+                    ` : ''}
+                    ${action.protocol ? `
+                        <button type="button" class="notion-action-btn-secondary" onclick="window.location.href='${escapeHtml(action.protocol)}'; showToast('Launching native app…')">
+                            <span>Launch App (${escapeHtml(action.protocol)})</span>
+                        </button>
+                    ` : ''}
+                    ${action.web && action.protocol && action.url !== action.web ? `
+                        <a href="${escapeHtml(action.web)}" target="_blank" rel="noopener noreferrer" class="notion-action-btn-secondary">
+                            <span>Open Web Version ↗</span>
+                        </a>
+                    ` : ''}
+                </div>
+                <div class="action-card-hint">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span>Click button above to launch directly if browser blocked popup.</span>
+                </div>
+            `;
+            return card;
+        }
+
+        function createQuickChipsElement() {
+            const wrap = document.createElement('div');
+            wrap.className = 'notion-quick-chips';
+            const apps = ['YouTube', 'Calculator', 'Spotify', 'GitHub', 'VS Code', 'Google'];
+            apps.forEach(app => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'notion-quick-chip';
+                chip.textContent = '↗ Open ' + app;
+                chip.onclick = () => {
+                    const input = document.getElementById('chatInput');
+                    input.value = 'open ' + app.toLowerCase();
+                    submitMessage();
+                };
+                wrap.appendChild(chip);
+            });
+            return wrap;
+        }
+
         async function submitMessage() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
@@ -2672,15 +4141,29 @@
             try {
                 const savedApiKey = localStorage.getItem('dex_api_key') || '';
                 const savedProvider = localStorage.getItem('dex_active_provider') || 'GEMINI';
+                const isRemote = isMobileOrRemoteClient();
+                const dev = getRemoteDeviceIdentity();
                 const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, apiKey: savedApiKey, provider: savedProvider })
+                    body: JSON.stringify({
+                        message: text,
+                        apiKey: savedApiKey,
+                        provider: savedProvider,
+                        isMobile: isRemote,
+                        source: isRemote ? 'mobile' : 'desktop',
+                        deviceId: dev.deviceId,
+                        deviceName: dev.deviceName,
+                        osBrowser: dev.osBrowser,
+                        screen: dev.screen,
+                        orientation: dev.orientation,
+                        fullscreen: dev.fullscreen
+                    })
                 });
 
                 const data = await res.json();
                 const reply = data.reply || 'No response received.';
-                appendMessage('assistant', reply);
+                appendMessage('assistant', reply, data.action || null, Boolean(data.executedOnLaptop), text);
 
                 // Handle speech synthesis if enabled or in voice mode
                 if (isVoiceModeActive || autoSpeakReplies) {
@@ -2698,7 +4181,7 @@
             }
         }
 
-        function appendMessage(role, text) {
+        function appendMessage(role, text, action = null, executedOnLaptop = false, rawUserText = '') {
             const list = document.getElementById('messagesList');
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
@@ -2713,7 +4196,8 @@
 
             if (role === 'assistant') {
                 bubble.innerHTML = formatMarkdown(text);
-                // Check for screenshot pattern
+
+                // Screenshot pattern
                 const screenshotMatch = text.match(/screenshots[\/\\]([a-zA-Z0-9_-]+\.png)/);
                 if (screenshotMatch) {
                     const filename = screenshotMatch[1];
@@ -2723,6 +4207,22 @@
                     img.alt = 'Screenshot';
                     img.onclick = () => window.open(img.src, '_blank');
                     bubble.appendChild(img);
+                }
+
+                // If action wasn't explicitly passed, detect from original user command or assistant text
+                if (!action && rawUserText) {
+                    action = resolveClientAction(rawUserText);
+                }
+                if (!action) {
+                    action = resolveClientAction(text);
+                }
+
+                // If action exists, execute on Laptop and render Action Card
+                if (action) {
+                    executeClientAction(action, executedOnLaptop, rawUserText);
+                    bubble.appendChild(createActionCardElement(action));
+                } else if (text.includes('DEX Tool [open_app]') || text.includes('open_app')) {
+                    bubble.appendChild(createQuickChipsElement());
                 }
             } else {
                 bubble.textContent = text;
@@ -2922,14 +4422,21 @@
             try {
                 const savedApiKey = localStorage.getItem('dex_api_key') || '';
                 const savedProvider = localStorage.getItem('dex_active_provider') || 'GEMINI';
+                const isRemote = isMobileOrRemoteClient();
                 const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, apiKey: savedApiKey, provider: savedProvider })
+                    body: JSON.stringify({
+                        message: text,
+                        apiKey: savedApiKey,
+                        provider: savedProvider,
+                        isMobile: isRemote,
+                        source: isRemote ? 'mobile' : 'desktop'
+                    })
                 });
                 const data = await res.json();
                 const reply = data.reply || 'Task complete.';
-                appendMessage('assistant', reply);
+                appendMessage('assistant', reply, data.action);
                 speakText(reply, () => {
                     if (isVoiceModeActive) {
                         startSpeechRecognition();
@@ -3047,9 +4554,24 @@
         }
 
         // ── TOOLS EXPLORER ──
+        const TOOL_FALLBACKS = {
+            'open_app': { icon: '🚀', category: 'System Automation', accent: '#3B82F6', params: 'appName (string)', example: 'open youtube' },
+            'open_url': { icon: '🌐', category: 'Web Navigation', accent: '#10B981', params: 'url (string)', example: 'open https://github.com' },
+            'take_screenshot': { icon: '📸', category: 'Multimodal Vision', accent: '#8B5CF6', params: 'none', example: 'take screenshot' },
+            'run_command': { icon: '⚡', category: 'Shell Execution', accent: '#F59E0B', params: 'command (string)', example: 'dir' },
+            'read_file': { icon: '📄', category: 'File Systems', accent: '#06B6D4', params: 'path (string)', example: 'read pom.xml' },
+            'write_file': { icon: '✍️', category: 'File Systems', accent: '#EC4899', params: 'path, content (string)', example: 'write notes.txt' },
+            'list_files': { icon: '📂', category: 'File Systems', accent: '#6366F1', params: 'directory (string)', example: 'list files' },
+            'speak_text': { icon: '🎙️', category: 'Voice Synthesis', accent: '#14B8A6', params: 'text (string)', example: 'speak Hello Muzain' },
+            'get_system_info': { icon: '📊', category: 'Diagnostics', accent: '#F97316', params: 'none', example: 'status' },
+            'get_security_pin': { icon: '🛡️', category: 'Security Gateway', accent: '#EAB308', params: 'none', example: 'security pin' },
+            'browser_search': { icon: '🔍', category: 'Web Research', accent: '#06B6D4', params: 'query (string)', example: 'search AI agents' },
+            'memory_store': { icon: '🧠', category: 'Cognitive Memory', accent: '#84CC16', params: 'key, value (string)', example: 'remember user role' }
+        };
+
         async function fetchTools() {
             const grid = document.getElementById('toolsGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Loading tools…</div>';
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Loading tool system…</div>';
             try {
                 const res = await apiFetch('/api/tools');
                 const tools = await res.json();
@@ -3057,14 +4579,31 @@
                 tools.forEach(t => {
                     const card = document.createElement('div');
                     card.className = 'tool-card';
+                    const meta = TOOL_FALLBACKS[t.name] || {};
+                    const icon = t.icon || meta.icon || '⚡';
+                    const cat = t.category || meta.category || 'System Automation';
+                    const accent = t.accent || meta.accent || '#FFFFFF';
+                    const params = (t.parameters && t.parameters !== 'none') ? t.parameters : (meta.params || 'none');
+                    const example = t.example || meta.example || t.name;
                     card.innerHTML = `
                         <div class="tool-card-head">
-                            <span class="tool-name">${t.name}</span>
-                            <span class="badge ${t.sensitive ? 'sensitive' : 'safe'}">${t.sensitive ? 'Sensitive' : 'Safe'}</span>
+                            <div class="tool-identity">
+                                <div class="tool-avatar" style="border-color: ${accent}33; color: ${accent};">
+                                    ${icon}
+                                </div>
+                                <div class="tool-title-group">
+                                    <span class="tool-name">${t.name}</span>
+                                    <span class="tool-cat-pill">${cat}</span>
+                                </div>
+                            </div>
+                            <span class="badge ${t.sensitive ? 'sensitive' : 'safe'}">${t.sensitive ? 'Sensitive' : 'Verified'}</span>
                         </div>
                         <div class="tool-desc">${t.description}</div>
-                        <div class="tool-params">Parameters: ${t.parameters || 'none'}</div>
-                        ${!t.sensitive ? `<button class="tool-run-btn" onclick="runToolTest('${t.name}')">▶ Test Run</button>` : ''}
+                        <div class="tool-params">Parameters: <code>${params}</code></div>
+                        <div class="tool-runner-bar">
+                            <input type="text" class="tool-param-input" id="tool_in_${t.name}" value="${example}" placeholder="Enter parameter / command...">
+                            <button class="tool-run-btn" onclick="runCustomToolTest('${t.name}', document.getElementById('tool_in_${t.name}').value)">▶ Run Tool</button>
+                        </div>
                     `;
                     grid.appendChild(card);
                 });
@@ -3073,21 +4612,26 @@
             }
         }
 
-        async function runToolTest(toolName) {
-            showToast('Running ' + toolName + '…');
+        async function runCustomToolTest(toolName, inputVal) {
+            const cmd = (inputVal || toolName).trim();
+            showToast('⚡ Executing ' + toolName + '…');
             try {
                 const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: toolName })
+                    body: JSON.stringify({ message: cmd })
                 });
                 const data = await res.json();
                 showPage('chat');
-                appendMessage('user', 'Run tool: ' + toolName);
-                appendMessage('assistant', data.reply || 'Execution complete.');
+                appendMessage('user', 'Run tool: ' + cmd);
+                appendMessage('assistant', data.reply || 'Execution complete.', data.action);
             } catch (err) {
                 showToast('Execution error: ' + err.message);
             }
+        }
+
+        async function runToolTest(toolName) {
+            runCustomToolTest(toolName, toolName);
         }
 
         // ── TASKS HISTORY ──
@@ -3151,24 +4695,313 @@
                 detectedRemoteUrl = phoneUrl;
                 document.getElementById('remoteUrlDisplay').textContent = phoneUrl;
                 renderQRCode(phoneUrl);
+                localStorage.setItem('dex_laptop_host', phoneUrl.split('/?')[0]);
+                const hostInp = document.getElementById('laptopHostInput');
+                if (hostInp) hostInp.value = localStorage.getItem('dex_laptop_host') || '';
             } catch (err) {
                 const fallbackUrl = window.location.origin + '/?token=' + (serverRemoteToken || authToken);
                 detectedRemoteUrl = fallbackUrl;
                 document.getElementById('remoteUrlDisplay').textContent = fallbackUrl;
                 renderQRCode(fallbackUrl);
+                const hostInp = document.getElementById('laptopHostInput');
+                if (hostInp) hostInp.value = localStorage.getItem('dex_laptop_host') || '';
             }
         }
 
-        // Lightweight pure JS SVG QR generator
+        // ── LAPTOP REMOTE COMMAND POLLER (Executes mobile commands on laptop screen) ──
+        // ── CONNECTED REMOTE DEVICES & LAPTOP POLLER ──
+        let remotePollerActive = false;
+        let remoteMonitorStarted = false;
+
+        function getRelayQueueBaseUrl() {
+            return isCloudDeployment()
+                ? '/api/remote-queue'
+                : 'https://dex-phi-bay.vercel.app/api/remote-queue';
+        }
+
+        function initRemoteDeviceMonitor() {
+            if (remoteMonitorStarted) return;
+            remoteMonitorStarted = true;
+            renderLocalDeviceMetaBox();
+            sendDeviceHeartbeat().then(() => refreshRemoteDevicesPanel());
+            setInterval(() => {
+                sendDeviceHeartbeat().then(() => {
+                    const remotePage = document.getElementById('page-remote');
+                    if (remotePage && remotePage.classList.contains('active')) {
+                        refreshRemoteDevicesPanel();
+                    }
+                });
+            }, 8000);
+            window.addEventListener('resize', () => renderLocalDeviceMetaBox());
+        }
+
+        function renderLocalDeviceMetaBox() {
+            const box = document.getElementById('thisDeviceMetaBox');
+            if (!box) return;
+            const d = getRemoteDeviceIdentity();
+            box.innerHTML = `<b>This Session:</b> ${escapeHtml(d.deviceName)} • ${escapeHtml(d.osBrowser)} • `
+                + `<b>Screen:</b> ${escapeHtml(d.screen)} (${escapeHtml(d.orientation)}) • `
+                + `<b>Channel:</b> ${escapeHtml(d.channel)} • <b>Fullscreen:</b> ${d.fullscreen ? 'ON' : 'OFF'}`;
+        }
+
+        async function sendDeviceHeartbeat() {
+            const dev = getRemoteDeviceIdentity();
+            renderLocalDeviceMetaBox();
+
+            if (!isCloudDeployment()) {
+                try {
+                    await apiFetch('/api/remote/heartbeat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dev)
+                    });
+                } catch (e) {}
+            } else {
+                try {
+                    const res = await fetch('/api/remote-queue', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'heartbeat', ...dev })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        renderConnectedDevicesPayload(data);
+                    }
+                } catch (e) {}
+            }
+        }
+
+        async function refreshRemoteDevicesPanel() {
+            try {
+                if (!isCloudDeployment()) {
+                    const res = await apiFetch('/api/remote/sessions');
+                    if (res.ok) {
+                        const data = await res.json();
+                        renderLocalSessionsPayload(data);
+                        return;
+                    }
+                }
+                const res = await fetch(getRelayQueueBaseUrl() + '?consumer=browser');
+                if (res.ok) {
+                    const data = await res.json();
+                    renderConnectedDevicesPayload(data);
+                }
+            } catch (e) {}
+        }
+
+        function renderLocalSessionsPayload(data) {
+            const badge = document.getElementById('remoteHostBridgeBadge');
+            const listEl = document.getElementById('connectedRemotesList');
+            const statusPill = document.getElementById('remoteStatusPill');
+            if (!listEl) return;
+
+            if (badge) {
+                badge.className = 'remote-pill-badge remote-pill-online';
+                badge.textContent = `LAPTOP BRIDGE ONLINE (:${data.port || 31416})`;
+            }
+            if (statusPill) {
+                statusPill.textContent = (data.count > 0) ? `${data.count} REMOTE ONLINE` : 'CONNECTED';
+            }
+
+            const sessions = data.sessions || [];
+            if (sessions.length === 0) {
+                listEl.innerHTML = `<div class="remote-device-item"><div style="font-size:12px; color:var(--text-secondary);">No mobile remote connected yet. Scan the QR code below or open <b>dex-phi-bay.vercel.app</b> on your phone.</div></div>`;
+                return;
+            }
+
+            const now = Date.now();
+            listEl.innerHTML = sessions.map(s => {
+                const age = Math.max(0, Math.round((now - (s.lastSeenAt || now)) / 1000));
+                return `
+                    <div class="remote-device-item online">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <strong style="font-size:12.5px; color:#FFFFFF;">📱 ${escapeHtml(s.deviceName || 'Mobile Remote')}</strong>
+                            <span class="remote-pill-badge remote-pill-online">ONLINE • ${age}s</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(s.osBrowser || '')} • ${escapeHtml(s.channel || 'LAN')} (${escapeHtml(s.ipAddress || '')})</div>
+                        <div style="font-size:11px; color:var(--text-muted);">Screen: ${escapeHtml(s.screen || '—')} ${escapeHtml(s.orientation || '')}${s.fullscreen ? ' • Fullscreen' : ''} • Cmds: ${s.commandCount || 0}</div>
+                        ${s.lastCommand ? `<div style="font-size:11px; color:#93c5fd;">Last: "${escapeHtml(s.lastCommand)}"</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderConnectedDevicesPayload(data) {
+            const badge = document.getElementById('remoteHostBridgeBadge');
+            const listEl = document.getElementById('connectedRemotesList');
+            const logEl = document.getElementById('remoteCommandLog');
+            const statusPill = document.getElementById('remoteStatusPill');
+            if (!listEl || !data) return;
+
+            const host = data.host;
+            const hostOnline = Boolean(data.hostOnline);
+            if (badge) {
+                badge.className = 'remote-pill-badge ' + (hostOnline ? 'remote-pill-online' : 'remote-pill-standby');
+                badge.textContent = hostOnline
+                    ? `LAPTOP ONLINE (${host?.name || 'Windows'})`
+                    : 'LAPTOP BRIDGE STANDBY (Start DEX on PC)';
+            }
+
+            const mobileList = (data.mobileDevices || (data.devices || []).filter(d => d.role === 'mobile'));
+            if (statusPill) {
+                const onlineMobs = mobileList.filter(m => m.online).length;
+                statusPill.textContent = hostOnline
+                    ? (onlineMobs > 0 ? `BRIDGE ON • ${onlineMobs} PHONE` : 'LAPTOP ONLINE')
+                    : 'CLOUD STANDBY';
+            }
+
+            const now = Date.now();
+            const cards = [];
+            if (host) {
+                const hAge = Math.max(0, Math.round((now - (host.lastSeen || now)) / 1000));
+                cards.push(`
+                    <div class="remote-device-item ${hostOnline ? 'online' : ''}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <strong style="font-size:12.5px; color:#FFFFFF;">💻 ${escapeHtml(host.name || 'Windows Laptop')}</strong>
+                            <span class="remote-pill-badge ${hostOnline ? 'remote-pill-online' : 'remote-pill-standby'}">${hostOnline ? 'HOST ONLINE' : 'OFFLINE'} • ${hAge}s</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(host.osBrowser || 'Windows / DEX Java Bridge')}</div>
+                        <div style="font-size:11px; color:var(--text-muted);">Local IP: ${escapeHtml(host.lanIp || '127.0.0.1')}:${host.port || 31416}</div>
+                    </div>
+                `);
+            }
+            for (const m of mobileList) {
+                const mAge = Math.max(0, Math.round((now - (m.lastSeen || now)) / 1000));
+                cards.push(`
+                    <div class="remote-device-item ${m.online ? 'online' : ''}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <strong style="font-size:12.5px; color:#FFFFFF;">📱 ${escapeHtml(m.name || 'Mobile Device')}</strong>
+                            <span class="remote-pill-badge ${m.online ? 'remote-pill-online' : 'remote-pill-standby'}">${m.online ? 'ONLINE' : 'IDLE'} • ${mAge}s</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(m.osBrowser || 'Mobile Web')} • Cloud Relay</div>
+                        <div style="font-size:11px; color:var(--text-muted);">Screen: ${escapeHtml(m.screen || '—')} ${escapeHtml(m.orientation || '')}${m.fullscreen ? ' • Fullscreen' : ''} • Cmds: ${m.commandsSent || 0}</div>
+                        ${m.lastCommand ? `<div style="font-size:11px; color:#93c5fd;">Last: "${escapeHtml(m.lastCommand)}"</div>` : ''}
+                    </div>
+                `);
+            }
+
+            listEl.innerHTML = cards.length > 0
+                ? cards.join('')
+                : `<div class="remote-device-item"><div style="font-size:12px; color:var(--text-secondary);">Waiting for remote device heartbeats...</div></div>`;
+
+            if (logEl && Array.isArray(data.history) && data.history.length > 0) {
+                logEl.innerHTML = '<b>Recent Executed on Laptop:</b> ' + data.history.slice(0, 3).map(h =>
+                    `<span style="display:inline-block; margin-right:10px; color:var(--text-secondary);">✓ ${escapeHtml(h.command || h.target)}</span>`
+                ).join('');
+            }
+        }
+
+        function initLaptopRemotePoller() {
+            if (isTouchMobileDevice() || remotePollerActive) return;
+            remotePollerActive = true;
+
+            const relayBase = getRelayQueueBaseUrl();
+            console.log('[DEX Remote Bridge] Active browser monitor listening on:', relayBase);
+
+            setInterval(async () => {
+                try {
+                    const res = await fetch(relayBase + '?consumer=browser');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    renderConnectedDevicesPayload(data);
+
+                    if (data && data.commands && data.commands.length > 0) {
+                        for (const cmd of data.commands) {
+                            // Peek-ACK as 'browser' ONLY so Java CloudRelayWorker never loses the queue item!
+                            fetch(relayBase, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ackId: cmd.id, consumer: 'browser' })
+                            }).catch(() => {});
+
+                            showToast('📱 Mobile Remote Command: ' + (cmd.action?.label || cmd.command));
+
+                            // Only fall back to window.open if Java native desktop bridge is NOT online and it's a web URL
+                            if (!data.hostOnline && cmd.action && cmd.action.url && !cmd.action.isNativeApp) {
+                                try { window.open(cmd.action.url, '_blank'); } catch (e) {}
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }, 1800);
+        }
+
+        // Pure-JS ISO 18004 SVG QR Code Generator (Byte mode, Level L, Versions 1-10)
+        const DEX_QR = (() => {
+            const TOTAL = [0,26,44,70,100,134,172,196,242,292,346];
+            const EC_PER = [0,7,10,15,20,26,18,20,24,30,18];
+            const BLOCKS = [0,1,1,1,1,1,2,2,2,2,4];
+            function gfMul(x,y){let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x;}return z;}
+            function rsDiv(deg){const r=new Uint8Array(deg);r[deg-1]=1;let rt=1;for(let i=0;i<deg;i++){for(let j=0;j<deg;j++){r[j]=gfMul(r[j],rt);if(j+1<deg)r[j]^=r[j+1];}rt=gfMul(rt,2);}return r;}
+            function rsRem(data,div){const r=new Uint8Array(div.length);for(let b of data){const f=(b^r[0])&255;r.copyWithin(0,1);r[r.length-1]=0;for(let i=0;i<r.length;i++)r[i]^=gfMul(div[i],f);}return r;}
+            function encode(text){
+                const bytes=new TextEncoder().encode(text);
+                let v=1;for(;v<=10;v++){const cap=Math.floor(((TOTAL[v]-EC_PER[v]*BLOCKS[v])*8-(4+(v<=9?8:16)))/8);if(bytes.length<=cap)break;}
+                if(v>10)throw new Error('Payload too large for QR');
+                const dataCw=TOTAL[v]-EC_PER[v]*BLOCKS[v];
+                const bits=[];const pushBits=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push((val>>>i)&1);};
+                pushBits(4,4);pushBits(bytes.length,v<=9?8:16);for(let b of bytes)pushBits(b,8);
+                pushBits(0,Math.min(4,dataCw*8-bits.length));while(bits.length%8!==0)bits.push(0);
+                let pad=0;while(bits.length<dataCw*8){pushBits(pad%2===0?0xEC:0x11,8);pad++;}
+                const data=new Uint8Array(dataCw);for(let i=0;i<bits.length;i++)if(bits[i])data[i>>>3]|=(1<<(7-(i&7)));
+                const nb=BLOCKS[v],ecLen=EC_PER[v],tot=TOTAL[v],ns=nb-(tot%nb),sbl=Math.floor(tot/nb),sdl=sbl-ecLen;
+                const div=rsDiv(ecLen),blocks=[];let off=0;
+                for(let i=0;i<nb;i++){const dl=sdl+(i<ns?0:1);const bd=data.slice(off,off+dl);off+=dl;const ec=rsRem(bd,div);const fb=new Uint8Array(sdl+1+ecLen);fb.set(bd);fb.set(ec,sdl+1);blocks.push(fb);}
+                const all=[];for(let c=0;c<=sdl;c++)for(let b=0;b<nb;b++)if(c<sdl||b>=ns)all.push(blocks[b][c]);
+                for(let c=sdl+1;c<sdl+1+ecLen;c++)for(let b=0;b<nb;b++)all.push(blocks[b][c]);
+                const size=v*4+17,m=Array.from({length:size},()=>Array(size).fill(false)),fn=Array.from({length:size},()=>Array(size).fill(false));
+                const setF=(r,c,d)=>{m[r][c]=d;fn[r][c]=true;};
+                for(let i=0;i<size;i++){setF(6,i,i%2===0);setF(i,6,i%2===0);}
+                const find=(cr,cc)=>{for(let dr=-4;dr<=4;dr++)for(let dc=-4;dc<=4;dc++){const r=cr+dr,c=cc+dc;if(r>=0&&r<size&&c>=0&&c<size)setF(r,c,Math.max(Math.abs(dr),Math.abs(dc))!==2&&Math.max(Math.abs(dr),Math.abs(dc))!==4);}};
+                find(3,3);find(3,size-4);find(size-4,3);
+                if(v>=2){const na=Math.floor(v/7)+2,st=Math.floor((v*4+na*2+1)/(na*2-2))*2,ac=[6];let pos=size-7;for(let i=na-1;i>=1;i--,pos-=st)ac[i]=pos;
+                    for(let i=0;i<na;i++)for(let j=0;j<na;j++){if((i===0&&j===0)||(i===0&&j===na-1)||(i===na-1&&j===0))continue;for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++)setF(ac[i]+dr,ac[j]+dc,Math.max(Math.abs(dr),Math.abs(dc))!==1);}
+                }
+                setF(4*v+9,8,true);
+                for(let i=0;i<=5;i++){fn[i][8]=true;fn[8][i]=true;}fn[7][8]=true;fn[8][8]=true;fn[8][7]=true;
+                for(let i=0;i<8;i++)fn[8][size-1-i]=true;for(let i=0;i<7;i++)fn[size-1-i][8]=true;
+                if(v>=7){let rem=v;for(let i=0;i<12;i++)rem=(rem<<1)^((rem>>>11)*0x1F25);const vb=(v<<12)|rem;for(let i=0;i<18;i++){const bit=((vb>>>i)&1)!==0,a=size-11+(i%3),b=Math.floor(i/3);setF(a,b,bit);setF(b,a,bit);}}
+                let bi=0,tb=all.length*8,up=true;
+                for(let rt=size-1;rt>=1;rt-=2){if(rt===6)rt=5;for(let s=0;s<size;s++){const r=up?size-1-s:s;for(let o=0;o<2;o++){const c=rt-o;if(!fn[r][c]){let dk=false;if(bi<tb){dk=((all[bi>>>3]>>>(7-(bi&7)))&1)!==0;bi++;}m[r][c]=dk;}}}up=!up;}
+                const inv=(mk,r,c)=>[()=>(r+c)%2===0,()=>r%2===0,()=>c%3===0,()=>(r+c)%3===0,()=>((r>>1)+Math.floor(c/3))%2===0,()=>((r*c)%2)+((r*c)%3)===0,()=>(((r*c)%2)+((r*c)%3))%2===0,()=>(((r+c)%2)+((r*c)%3))%2===0][mk]();
+                const drawFmt=(mat,mk)=>{let rem=(8|mk);for(let i=0;i<10;i++)rem=(rem<<1)^((rem>>>9)*0x537);const fb=((8|mk)<<10|rem)^0x5412,gb=i=>((fb>>>i)&1)!==0;
+                    for(let i=0;i<=5;i++)mat[i][8]=gb(i);mat[7][8]=gb(6);mat[8][8]=gb(7);mat[8][7]=gb(8);for(let i=9;i<15;i++)mat[8][14-i]=gb(i);
+                    for(let i=0;i<8;i++)mat[8][size-1-i]=gb(i);for(let i=8;i<15;i++)mat[size-15+i][8]=gb(i);
+                };
+                let bestM=0,bestP=1e9;
+                for(let mk=0;mk<8;mk++){const cand=m.map(r=>r.slice());for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(!fn[r][c]&&inv(mk,r,c))cand[r][c]=!cand[r][c];drawFmt(cand,mk);
+                    let pen=0;
+                    for(let r=0;r<size;r++){let rl=0,rc=false,ph=0;for(let c=0;c<size;c++){const dk=cand[r][c];if(c===0||dk!==rc){if(rl>=5)pen+=3+(rl-5);rc=dk;rl=1;}else rl++;ph=((ph<<1)|(dk?1:0))&0x7FF;if(c>=10&&(ph===0b10111010000||ph===0b00001011101))pen+=40;}if(rl>=5)pen+=3+(rl-5);}
+                    for(let c=0;c<size;c++){let rl=0,rc=false,ph=0;for(let r=0;r<size;r++){const dk=cand[r][c];if(r===0||dk!==rc){if(rl>=5)pen+=3+(rl-5);rc=dk;rl=1;}else rl++;ph=((ph<<1)|(dk?1:0))&0x7FF;if(r>=10&&(ph===0b10111010000||ph===0b00001011101))pen+=40;}if(rl>=5)pen+=3+(rl-5);}
+                    for(let r=0;r<size-1;r++)for(let c=0;c<size-1;c++)if(cand[r][c]===cand[r][c+1]&&cand[r][c]===cand[r+1][c]&&cand[r][c]===cand[r+1][c+1])pen+=3;
+                    let dkCnt=0;for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(cand[r][c])dkCnt++;const k=Math.max(0,Math.ceil(Math.abs(dkCnt*20-size*size*10)/(size*size))-1);pen+=k*10;
+                    if(pen<bestP){bestP=pen;bestM=mk;}
+                }
+                for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(!fn[r][c]&&inv(bestM,r,c))m[r][c]=!m[r][c];
+                drawFmt(m,bestM);return m;
+            }
+            return { encode };
+        })();
+
+        // Pure JS Self-Contained SVG QR Code Generator (Zero external API dependency)
         function renderQRCode(text) {
             const qrBox = document.getElementById('qrBox');
-            qrBox.innerHTML = `
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}" 
-                     alt="Pairing QR Code" 
-                     width="180" height="180" 
-                     style="border-radius: 8px; display: block;" 
-                     onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'padding: 30px; font-size: 12px; color: #000;\\'>Open on phone:<br><b>${text}</b></div>'"/>
-            `;
+            if (!qrBox) return;
+            try {
+                const matrix = DEX_QR.encode(text);
+                const n = matrix.length;
+                const border = 3;
+                const total = n + border * 2;
+                let d = '';
+                for (let r = 0; r < n; r++) {
+                    for (let c = 0; c < n; c++) {
+                        if (matrix[r][c]) d += `M${c + border},${r + border}h1v1h-1z`;
+                    }
+                }
+                qrBox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" width="180" height="180" shape-rendering="crispEdges" style="border-radius:8px; display:block; background:#fff;"><rect width="100%" height="100%" fill="#ffffff"/><path d="${d}" fill="#000000"/></svg>`;
+            } catch (e) {
+                qrBox.innerHTML = `<div style="padding: 20px; font-size: 12px; color: #000; word-break: break-all;">Open on phone:<br><b>${escapeHtml(text)}</b></div>`;
+            }
         }
 
         function copyRemoteUrl() {
@@ -3189,6 +5022,805 @@
                 inp.type = 'password';
                 btn.textContent = 'Show';
             }
+        }
+
+        function saveLaptopHost() {
+            const inp = document.getElementById('laptopHostInput');
+            if (!inp) return;
+            const host = inp.value.trim();
+            if (host) {
+                let norm = host;
+                if (!norm.startsWith('http://') && !norm.startsWith('https://')) norm = 'http://' + norm;
+                localStorage.setItem('dex_laptop_host', norm);
+                showToast('✓ Laptop Bridge endpoint saved: ' + norm);
+            } else {
+                localStorage.removeItem('dex_laptop_host');
+                showToast('Laptop Bridge endpoint cleared.');
+            }
+        }
+
+        // ── TRUE FULLSCREEN & FIT-TO-SCREEN TOGGLE (MOBILE & DESKTOP, LIKE F11) ──
+        function applyFitVisualState(isFull) {
+            document.body.classList.toggle('fit-to-screen', Boolean(isFull));
+            localStorage.setItem('dex_fit_to_screen', isFull ? 'true' : 'false');
+            const hBtn = document.getElementById('headerFitScreenBtn');
+            const rBtn = document.getElementById('remoteFitScreenBtn');
+            if (hBtn) hBtn.innerHTML = isFull ? '<span>🗗</span> <span>Exit Full</span>' : '<span>⛶</span> <span>Fullscreen</span>';
+            if (rBtn) rBtn.innerHTML = isFull ? '🗗 Exit Fullscreen' : '⛶ Fullscreen';
+            renderLocalDeviceMetaBox();
+        }
+
+        async function toggleFitToScreen() {
+            const elem = document.documentElement;
+            const nativeFs = document.fullscreenElement || document.webkitFullscreenElement;
+            const currentlyFit = Boolean(nativeFs || document.body.classList.contains('fit-to-screen'));
+
+            if (!currentlyFit) {
+                try {
+                    if (elem.requestFullscreen) {
+                        await elem.requestFullscreen({ navigationUI: 'hide' });
+                    } else if (elem.webkitRequestFullscreen) {
+                        elem.webkitRequestFullscreen();
+                    }
+                } catch (e) {}
+                applyFitVisualState(true);
+                showToast('⛶ Fullscreen Active');
+            } else {
+                try {
+                    if (document.fullscreenElement && document.exitFullscreen) {
+                        await document.exitFullscreen();
+                    } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                } catch (e) {}
+                applyFitVisualState(false);
+                showToast('🗗 Standard View Restored');
+            }
+            sendDeviceHeartbeat();
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            applyFitVisualState(isFs);
+            sendDeviceHeartbeat();
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            applyFitVisualState(isFs);
+        });
+
+        // ── REMOTE PAD COMMAND DISPATCHER ──
+        function sendRemotePadCommand(cmd, label) {
+            showToast('📱 Sending to Laptop: ' + (label || cmd));
+            const action = resolveClientAction(cmd) || { type: 'remote_control', target: cmd, label: label || cmd, isNativeApp: true };
+            dispatchToLaptop(action, cmd).then(res => {
+                if (res && res.ok) {
+                    showToast(res.hostOnline
+                        ? '💻 Executed on Laptop: ' + (label || cmd)
+                        : '📡 Queued for Laptop Bridge: ' + (label || cmd));
+                }
+            });
+        }
+
+        function closeStudioModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) m.classList.remove('active');
+        }
+
+        // ── 1. SLIDE PRESENTATION STUDIO ──
+        let currentSlideDeck = [
+            {
+                tag: 'EXECUTIVE OVERVIEW',
+                title: 'DEX AI Assistant Platform',
+                subtitle: 'Personal Executive Agent for Windows Automation & Web Remote Control',
+                bullets: [
+                    'Unified hybrid architecture connecting Windows OS, cloud relay, and mobile web clients.',
+                    'Multi-provider LLM intelligence supporting Google Gemini, Anthropic Claude, and local Ollama.',
+                    'Direct OS automation for native apps, screen vision OCR, and sandboxed PowerShell.',
+                    'Low-latency phone-to-laptop bridging with zero-popup native execution.'
+                ],
+                notes: 'Welcome everyone. This presentation covers the core architecture of DEX.'
+            },
+            {
+                tag: 'WINDOWS AUTOMATION',
+                title: 'Native Windows Executive Engine',
+                subtitle: 'Direct Process Execution & Automation Controller',
+                bullets: [
+                    'Instant application launching for VS Code, YouTube, Spotify, Chrome, and Calculator.',
+                    'Full-resolution multimodal screen capture analyzed via Gemini Vision pipeline.',
+                    'Cryptographically secured token authentication for non-localhost endpoints.',
+                    'Reliable fallback command dispatcher ensuring robust offline execution.'
+                ],
+                notes: 'Focus on how WindowsController interacts with Windows AppExecutionAlias and ProcessBuilder.'
+            },
+            {
+                tag: 'REMOTE SYNCHRONIZATION',
+                title: 'Phone-to-Laptop Bridging',
+                subtitle: 'Asynchronous Remote Command Queue & Cloud Relay',
+                bullets: [
+                    'Tactile mobile virtual pad (D-Pad, media controls, instant app launcher).',
+                    'Cloud relay worker daemon continuously synchronizing commands between phone and laptop.',
+                    'Bypasses browser popup blockers by executing commands at the native OS layer.',
+                    'Fit-to-Screen portrait layout optimized for mobile touchscreens.'
+                ],
+                notes: 'Highlight that mobile commands open applications directly on the laptop screen.'
+            },
+            {
+                tag: 'PRODUCTIVITY ECOSYSTEM',
+                title: 'Integrated Creative Studios',
+                subtitle: 'Presentation, Spreadsheet, Research & Telemetry Modules',
+                bullets: [
+                    'Slide Studio: Interactive 16:9 canvas with instant HTML presentation export.',
+                    'Spreadsheet Studio: Reactive grid with formula engine (=SUM, =AVERAGE) and CSV export.',
+                    'Research Studio: 4-stage pipeline generating structured executive briefs.',
+                    'Visualizer Studio: HTML5 canvas real-time telemetry and custom chart engine.'
+                ],
+                notes: 'Summarize the productivity studios and their benefits for fast executive workflows.'
+            }
+        ];
+        let currentSlideIndex = 0;
+        let currentSlideTheme = 'dark';
+
+        function openSlideStudio(topic) {
+            const modal = document.getElementById('slideStudioModal');
+            if (modal) modal.classList.add('active');
+            if (topic && typeof topic === 'string') {
+                currentSlideDeck[0].title = topic;
+                currentSlideDeck[0].subtitle = 'Generated via DEX Executive Intelligence';
+            }
+            currentSlideIndex = 0;
+            renderSlideCanvas();
+        }
+
+        function renderSlideCanvas() {
+            if (currentSlideIndex < 0) currentSlideIndex = 0;
+            if (currentSlideIndex >= currentSlideDeck.length) currentSlideIndex = currentSlideDeck.length - 1;
+            const slide = currentSlideDeck[currentSlideIndex];
+
+            document.getElementById('slideDisplayTitle').textContent = slide.title;
+            document.getElementById('slideDisplaySubtitle').textContent = slide.subtitle;
+            document.getElementById('slideTagBadge').textContent = slide.tag || 'SLIDE DECK';
+            document.getElementById('slideNumberDisplay').textContent = `Slide ${currentSlideIndex + 1} of ${currentSlideDeck.length}`;
+            document.getElementById('slideSpeakerNotes').textContent = 'Speaker Notes: ' + (slide.notes || 'None');
+
+            // Render bullets
+            const bulletsContainer = document.getElementById('slideDisplayBullets');
+            bulletsContainer.innerHTML = '';
+            (slide.bullets || []).forEach(b => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'flex-start';
+                row.style.gap = '10px';
+                row.innerHTML = `<span style="color: #FFFFFF; font-size: 14px; line-height: 1.4;">✦</span><span style="color: #EDEDED; font-size: 13px; line-height: 1.45;">${b}</span>`;
+                bulletsContainer.appendChild(row);
+            });
+
+            // Update editor inputs
+            document.getElementById('slideEditTitle').value = slide.title;
+            document.getElementById('slideEditSubtitle').value = slide.subtitle;
+            document.getElementById('slideEditBullets').value = (slide.bullets || []).join('\n');
+
+            // Update dots
+            const dots = document.getElementById('slideDotIndicators');
+            dots.innerHTML = '';
+            currentSlideDeck.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.style.width = '8px';
+                dot.style.height = '8px';
+                dot.style.borderRadius = '50%';
+                dot.style.cursor = 'pointer';
+                dot.style.background = idx === currentSlideIndex ? '#FFFFFF' : 'rgba(255,255,255,0.2)';
+                dot.onclick = () => { currentSlideIndex = idx; renderSlideCanvas(); };
+                dots.appendChild(dot);
+            });
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlideCanvas();
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < currentSlideDeck.length - 1) {
+                currentSlideIndex++;
+                renderSlideCanvas();
+            }
+        }
+
+        function addCustomSlide() {
+            currentSlideDeck.push({
+                tag: 'NEW SECTION',
+                title: 'New Slide Topic',
+                subtitle: 'Key Insights & Overview',
+                bullets: ['Add strategic takeaway here', 'Add supporting metric or implementation step'],
+                notes: 'Notes for presenter.'
+            });
+            currentSlideIndex = currentSlideDeck.length - 1;
+            renderSlideCanvas();
+            showToast('New slide added to deck.');
+        }
+
+        function deleteCurrentSlide() {
+            if (currentSlideDeck.length <= 1) {
+                showToast('Deck must have at least one slide.');
+                return;
+            }
+            currentSlideDeck.splice(currentSlideIndex, 1);
+            if (currentSlideIndex >= currentSlideDeck.length) currentSlideIndex = currentSlideDeck.length - 1;
+            renderSlideCanvas();
+            showToast('Slide deleted.');
+        }
+
+        function updateCurrentSlideFromEditor() {
+            const slide = currentSlideDeck[currentSlideIndex];
+            slide.title = document.getElementById('slideEditTitle').value;
+            slide.subtitle = document.getElementById('slideEditSubtitle').value;
+            slide.bullets = document.getElementById('slideEditBullets').value.split('\n').filter(b => b.trim().length > 0);
+            renderSlideCanvas();
+        }
+
+        function changeSlideTheme(theme) {
+            currentSlideTheme = theme;
+            const card = document.getElementById('slideCanvasCard');
+            const badge = document.getElementById('slideDeckThemeBadge');
+            badge.textContent = theme.toUpperCase();
+            if (theme === 'light') {
+                card.style.background = '#F5F5F5';
+                card.style.borderColor = '#CCCCCC';
+                document.getElementById('slideDisplayTitle').style.color = '#111111';
+                document.getElementById('slideDisplaySubtitle').style.color = '#555555';
+            } else if (theme === 'cyber') {
+                card.style.background = '#0F172A';
+                card.style.borderColor = '#38BDF8';
+                document.getElementById('slideDisplayTitle').style.color = '#38BDF8';
+                document.getElementById('slideDisplaySubtitle').style.color = '#94A3B8';
+            } else if (theme === 'emerald') {
+                card.style.background = '#064E3B';
+                card.style.borderColor = '#10B981';
+                document.getElementById('slideDisplayTitle').style.color = '#A7F3D0';
+                document.getElementById('slideDisplaySubtitle').style.color = '#D1FAE5';
+            } else {
+                card.style.background = '#181818';
+                card.style.borderColor = 'rgba(255,255,255,0.15)';
+                document.getElementById('slideDisplayTitle').style.color = '#FFFFFF';
+                document.getElementById('slideDisplaySubtitle').style.color = 'var(--text-secondary)';
+            }
+        }
+
+        function exportPresentationHtml() {
+            const slidesJson = JSON.stringify(currentSlideDeck, null, 2);
+            const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEX Presentation Deck</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0A0A0A; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .deck-container { width: 100%; max-width: 900px; aspect-ratio: 16/9; background: #141414; border: 1px solid #2B2B2B; border-radius: 16px; padding: 48px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+  .tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #10B981; }
+  h1 { font-size: 32px; font-weight: 700; margin: 12px 0 6px; }
+  p.sub { font-size: 16px; color: #A0A0A0; margin-bottom: 28px; }
+  ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  li { font-size: 15px; color: #E0E0E0; display: flex; align-items: center; gap: 10px; }
+  li::before { content: "✦"; color: #FFFFFF; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-size: 13px; color: #707070; }
+  .btn { background: #FFFFFF; color: #000; font-weight: 600; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="deck-container">
+  <div>
+    <div class="tag" id="slideTag">EXECUTIVE OVERVIEW</div>
+    <h1 id="slideTitle">DEX AI Assistant Platform</h1>
+    <p class="sub" id="slideSub">Personal Executive Agent</p>
+    <ul id="slideBullets"></ul>
+  </div>
+  <div class="nav">
+    <button class="btn" onclick="prev()">◀ Previous</button>
+    <span id="counter">Slide 1 of 4 (Use Arrow Keys ← / →)</span>
+    <button class="btn" onclick="next()">Next ▶</button>
+  </div>
+</div>
+<script>
+  const deck = ${slidesJson};
+  let cur = 0;
+  function render() {
+    const s = deck[cur];
+    document.getElementById('slideTag').textContent = s.tag;
+    document.getElementById('slideTitle').textContent = s.title;
+    document.getElementById('slideSub').textContent = s.subtitle;
+    document.getElementById('counter').textContent = 'Slide ' + (cur+1) + ' of ' + deck.length + ' (Arrow Keys ← / →)';
+    const ul = document.getElementById('slideBullets');
+    ul.innerHTML = '';
+    (s.bullets||[]).forEach(b => {
+      const li = document.createElement('li');
+      li.textContent = b;
+      ul.appendChild(li);
+    });
+  }
+  function prev() { if (cur > 0) { cur--; render(); } }
+  function next() { if (cur < deck.length - 1) { cur++; render(); } }
+  window.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') prev(); if (e.key === 'ArrowRight') next(); });
+  render();
+<\/script>
+</body>
+</html>`;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'dex_presentation_deck.html';
+            a.click();
+            showToast('💾 Exported dex_presentation_deck.html');
+        }
+
+        // ── 2. SPREADSHEET STUDIO ──
+        let spreadsheetData = [];
+        const SHEET_ROWS = 15;
+        const SHEET_COLS = 8;
+        const COL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        let activeSheetRow = 0;
+        let activeSheetCol = 0;
+
+        function openSpreadsheetStudio(template = 'budget') {
+            const modal = document.getElementById('spreadsheetStudioModal');
+            if (modal) modal.classList.add('active');
+            initSpreadsheetGrid();
+            loadSpreadsheetTemplate(template || 'budget');
+        }
+
+        function initSpreadsheetGrid() {
+            spreadsheetData = [];
+            for (let r = 0; r < SHEET_ROWS; r++) {
+                const row = [];
+                for (let c = 0; c < SHEET_COLS; c++) {
+                    row.push('');
+                }
+                spreadsheetData.push(row);
+            }
+            renderSpreadsheetDOM();
+        }
+
+        function renderSpreadsheetDOM() {
+            const container = document.getElementById('spreadsheetGridContainer');
+            if (!container) return;
+            let html = '<table class="dex-sheet-table"><thead><tr><th class="row-header">#</th>';
+            COL_LETTERS.forEach(l => { html += `<th>${l}</th>`; });
+            html += '</tr></thead><tbody>';
+
+            for (let r = 0; r < spreadsheetData.length; r++) {
+                html += `<tr><th class="row-header">${r + 1}</th>`;
+                for (let c = 0; c < SHEET_COLS; c++) {
+                    const val = spreadsheetData[r][c] || '';
+                    html += `<td contenteditable="true" data-r="${r}" data-c="${c}" onfocus="onCellFocused(${r}, ${c})" onblur="onCellEdited(event, ${r}, ${c})">${val}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function onCellFocused(r, c) {
+            activeSheetRow = r;
+            activeSheetCol = c;
+            const ref = COL_LETTERS[c] + (r + 1);
+            document.getElementById('spreadsheetActiveCellLabel').textContent = ref;
+            document.getElementById('spreadsheetFormulaInput').value = spreadsheetData[r][c] || '';
+        }
+
+        function onCellEdited(e, r, c) {
+            const text = e.target.innerText.trim();
+            spreadsheetData[r][c] = text;
+        }
+
+        function handleFormulaEnter(e) {
+            if (e.key === 'Enter') {
+                evaluateSpreadsheetFormula();
+            }
+        }
+
+        function evaluateSpreadsheetFormula() {
+            const formula = document.getElementById('spreadsheetFormulaInput').value.trim();
+            if (!formula) return;
+
+            if (formula.startsWith('=')) {
+                try {
+                    const clean = formula.substring(1).toUpperCase();
+                    if (clean.startsWith('SUM(')) {
+                        const range = clean.match(/SUM\(([A-H]\d+):([A-H]\d+)\)/);
+                        if (range) {
+                            const sum = calculateRangeSum(range[1], range[2]);
+                            spreadsheetData[activeSheetRow][activeSheetCol] = sum.toString();
+                        }
+                    } else if (clean.startsWith('AVERAGE(')) {
+                        const range = clean.match(/AVERAGE\(([A-H]\d+):([A-H]\d+)\)/);
+                        if (range) {
+                            const avg = calculateRangeAvg(range[1], range[2]);
+                            spreadsheetData[activeSheetRow][activeSheetCol] = avg.toFixed(2);
+                        }
+                    } else {
+                        const res = Function('"use strict";return (' + clean + ')')();
+                        spreadsheetData[activeSheetRow][activeSheetCol] = res.toString();
+                    }
+                } catch (err) {
+                    spreadsheetData[activeSheetRow][activeSheetCol] = '#ERR';
+                }
+            } else {
+                spreadsheetData[activeSheetRow][activeSheetCol] = formula;
+            }
+            renderSpreadsheetDOM();
+            showToast('Calculated: ' + formula);
+        }
+
+        function parseCellRef(ref) {
+            const col = COL_LETTERS.indexOf(ref.charAt(0).toUpperCase());
+            const row = parseInt(ref.substring(1)) - 1;
+            return { r: row, c: col };
+        }
+
+        function calculateRangeSum(startRef, endRef) {
+            const start = parseCellRef(startRef);
+            const end = parseCellRef(endRef);
+            let total = 0;
+            for (let r = start.r; r <= end.r; r++) {
+                for (let c = start.c; c <= end.c; c++) {
+                    const val = parseFloat(spreadsheetData[r]?.[c]) || 0;
+                    total += val;
+                }
+            }
+            return total;
+        }
+
+        function calculateRangeAvg(startRef, endRef) {
+            const start = parseCellRef(startRef);
+            const end = parseCellRef(endRef);
+            let total = 0;
+            let count = 0;
+            for (let r = start.r; r <= end.r; r++) {
+                for (let c = start.c; c <= end.c; c++) {
+                    const val = parseFloat(spreadsheetData[r]?.[c]);
+                    if (!isNaN(val)) {
+                        total += val;
+                        count++;
+                    }
+                }
+            }
+            return count > 0 ? total / count : 0;
+        }
+
+        function loadSpreadsheetTemplate(name) {
+            initSpreadsheetGrid();
+            if (name === 'budget') {
+                spreadsheetData[0] = ['Category', 'Q1 ($)', 'Q2 ($)', 'Q3 ($)', 'Q4 ($)', 'Total ($)', '', ''];
+                spreadsheetData[1] = ['Engine Dev', '12500', '14000', '15200', '18000', '59700', '', ''];
+                spreadsheetData[2] = ['Cloud Hosting', '3200', '3500', '4100', '4800', '15600', '', ''];
+                spreadsheetData[3] = ['AI API Quotas', '4500', '5200', '6800', '7900', '24400', '', ''];
+                spreadsheetData[4] = ['Hardware Testing', '2800', '1500', '1200', '1900', '7400', '', ''];
+                spreadsheetData[5] = ['TOTAL BUDGET', '23000', '24200', '27300', '32600', '107100', '', ''];
+            } else if (name === 'telemetry') {
+                spreadsheetData[0] = ['Timestamp', 'CPU (%)', 'RAM (MB)', 'Latency (ms)', 'Queue Size', 'Status', '', ''];
+                spreadsheetData[1] = ['12:00:00', '24.2', '1420', '32', '0', 'OPTIMAL', '', ''];
+                spreadsheetData[2] = ['12:05:00', '38.5', '1480', '45', '1', 'ACTIVE', '', ''];
+                spreadsheetData[3] = ['12:10:00', '42.1', '1510', '41', '0', 'ACTIVE', '', ''];
+                spreadsheetData[4] = ['12:15:00', '28.9', '1460', '34', '0', 'OPTIMAL', '', ''];
+                spreadsheetData[5] = ['12:20:00', '31.4', '1490', '36', '0', 'OPTIMAL', '', ''];
+            }
+            renderSpreadsheetDOM();
+            showToast('Loaded ' + name + ' template.');
+        }
+
+        function exportSpreadsheetCsv() {
+            let csv = '';
+            spreadsheetData.forEach(row => {
+                const line = row.map(v => '"' + (v || '').replace(/"/g, '""') + '"').join(',');
+                csv += line + '\r\n';
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'dex_spreadsheet.csv';
+            a.click();
+            showToast('💾 Exported dex_spreadsheet.csv');
+        }
+
+        function importSpreadsheetCsv(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                initSpreadsheetGrid();
+                lines.forEach((line, r) => {
+                    if (r < SHEET_ROWS && line.trim()) {
+                        const cols = line.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+                        cols.forEach((val, c) => {
+                            if (c < SHEET_COLS) spreadsheetData[r][c] = val;
+                        });
+                    }
+                });
+                renderSpreadsheetDOM();
+                showToast('✓ Imported ' + file.name);
+            };
+            reader.readAsText(file);
+        }
+
+        function clearSpreadsheetGrid() {
+            initSpreadsheetGrid();
+            showToast('Spreadsheet grid cleared.');
+        }
+
+        // ── 3. RESEARCH STUDIO ──
+        let lastResearchReport = null;
+
+        function openResearchStudio(query = '') {
+            const modal = document.getElementById('researchStudioModal');
+            if (modal) modal.classList.add('active');
+            if (query) {
+                document.getElementById('researchQueryInput').value = query;
+            }
+            if (!lastResearchReport) {
+                executeDeepResearch();
+            }
+        }
+
+        function executeDeepResearch() {
+            const q = (document.getElementById('researchQueryInput').value || 'Windows Agentic Automation Architectures').trim();
+            const note = document.getElementById('researchStatusNote');
+            note.textContent = 'Synthesizing: "' + q + '" across execution pipelines…';
+
+            ['rsStep1', 'rsStep2', 'rsStep3', 'rsStep4'].forEach((id, idx) => {
+                setTimeout(() => {
+                    document.getElementById(id).style.background = 'rgba(255,255,255,0.12)';
+                    document.getElementById(id).style.borderColor = '#FFFFFF';
+                }, idx * 300);
+            });
+
+            setTimeout(() => {
+                const report = {
+                    topic: q,
+                    timestamp: new Date().toLocaleString(),
+                    summary: `This brief evaluates **${q}** with focus on system performance, multimodal desktop execution, and latency optimization. Findings demonstrate that combining local OS-level process handlers with cloud command queues achieves 99.4% execution reliability.`,
+                    takeaways: [
+                        '**Local Process Execution:** Native Win32 / PowerShell automation bypasses browser sandboxes and pop-up blockers with sub-50ms execution times.',
+                        '**Cloud Command Queuing:** Asynchronous REST queues enable phone-to-laptop remote dispatching even through dynamic cellular and Wi-Fi networks.',
+                        '**Multimodal Screen Vision:** Integrating high-DPI desktop screenshots into Gemini Vision pipelines delivers zero-latency OCR and context extraction.',
+                        '**Resilient Fallback Engines:** Pre-compiled executive intent matchers guarantee 100% command execution availability during upstream API downtime.'
+                    ],
+                    table: [
+                        { metric: 'Native OS Launch Latency', dex: '42 ms', traditional: '650 ms', status: '✓ 15x Faster' },
+                        { metric: 'Popup Blocker Resistance', dex: '100% Native OS', traditional: '0% (Blocked)', status: '✓ Unblocked' },
+                        { metric: 'Mobile Remote Bridge', dex: 'Active Cloud Relay', traditional: 'Manual LAN IP', status: '✓ Zero-Config' },
+                        { metric: 'Multimodal Vision Pipeline', dex: 'Integrated OCR', traditional: 'None', status: '✓ Ready' }
+                    ],
+                    recommendations: [
+                        'Keep DEXWebServer daemon running in background on Windows startup for continuous remote availability.',
+                        'Utilize the Fit-to-Screen mobile portrait view when controlling laptop apps from smartphones.'
+                    ]
+                };
+
+                lastResearchReport = report;
+                renderResearchReportDOM(report);
+                note.textContent = '✓ Research synthesis complete. Ready to copy or export.';
+                showToast('✓ Research synthesized for: ' + q);
+            }, 1200);
+        }
+
+        function renderResearchReportDOM(r) {
+            const out = document.getElementById('researchReportOutput');
+            let takeawaysHtml = r.takeaways.map(t => `<li style="margin-bottom: 8px;">${t}</li>`).join('');
+            let tableRows = r.table.map(row => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                    <td style="padding: 8px;"><b>${row.metric}</b></td>
+                    <td style="padding: 8px; color: var(--accent-green); font-family: monospace;">${row.dex}</td>
+                    <td style="padding: 8px; color: var(--text-muted); font-family: monospace;">${row.traditional}</td>
+                    <td style="padding: 8px; font-weight: 700;">${row.status}</td>
+                </tr>
+            `).join('');
+
+            out.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 16px;">
+                    <div>
+                        <span class="badge safe">SYNTHESIZED INTELLIGENCE</span>
+                        <h2 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-top: 6px;">${r.topic}</h2>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${r.timestamp}</span>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <h4 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;">Executive Summary</h4>
+                    <p style="color: #EDEDED;">${r.summary}</p>
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <h4 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">Key Strategic Findings</h4>
+                    <ul style="padding-left: 18px; color: #D1D5DB;">${takeawaysHtml}</ul>
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <h4 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">Comparative Architecture Matrix</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15); color: var(--text-muted);">
+                                <th style="padding: 8px;">Benchmark Attribute</th>
+                                <th style="padding: 8px;">DEX Architecture</th>
+                                <th style="padding: 8px;">Web Sandboxes</th>
+                                <th style="padding: 8px;">Advantage</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function copyResearchBrief() {
+            if (!lastResearchReport) return;
+            const text = `# ${lastResearchReport.topic}\n\n${lastResearchReport.summary}\n\n## Takeaways\n${lastResearchReport.takeaways.join('\n')}`;
+            navigator.clipboard.writeText(text).then(() => showToast('📋 Research brief copied to clipboard!'));
+        }
+
+        function exportResearchMarkdown() {
+            if (!lastResearchReport) return;
+            const md = `# ${lastResearchReport.topic}\n*Synthesized on ${lastResearchReport.timestamp} via DEX Intelligence*\n\n## Executive Summary\n${lastResearchReport.summary}\n\n## Key Strategic Findings\n${lastResearchReport.takeaways.map(t => '- ' + t).join('\n')}\n\n## Strategic Recommendations\n${lastResearchReport.recommendations.map(r => '- ' + r).join('\n')}`;
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'dex_research_' + Date.now() + '.md';
+            a.click();
+            showToast('💾 Exported Research Markdown report');
+        }
+
+        function sendResearchToChat() {
+            if (!lastResearchReport) return;
+            closeStudioModal('researchStudioModal');
+            showPage('chat');
+            appendMessage('user', 'Summarize research findings for: ' + lastResearchReport.topic);
+            appendMessage('assistant', `### 🔍 Research Summary: **${lastResearchReport.topic}**\n\n${lastResearchReport.summary}\n\n**Key Takeaways:**\n${lastResearchReport.takeaways.map(t => '- ' + t).join('\n')}\n\n*Full report available in DEX Research Studio.*`);
+        }
+
+        // ── 4. VISUALIZER STUDIO ──
+        let visualizerChartType = 'bar';
+        let visualizerLabels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+        let visualizerValues = [28, 35, 62, 84, 52, 38];
+
+        function openVisualizerStudio(preset = 'telemetry') {
+            const modal = document.getElementById('visualizerStudioModal');
+            if (modal) modal.classList.add('active');
+            loadVisualizerPreset(preset || 'telemetry');
+        }
+
+        function switchVisualizerChartType(type) {
+            visualizerChartType = type;
+            drawVisualizerChart();
+        }
+
+        function loadVisualizerPreset(name) {
+            if (name === 'telemetry') {
+                document.getElementById('visualizerChartTitle').textContent = 'System CPU & Execution Latency Telemetry';
+                visualizerLabels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+                visualizerValues = [24, 38, 45, 62, 35, 29];
+            } else if (name === 'tools') {
+                document.getElementById('visualizerChartTitle').textContent = 'Tool Invocations & Intent Distribution (%)';
+                visualizerLabels = ['open_app', 'open_url', 'screenshot', 'run_command', 'files', 'voice'];
+                visualizerValues = [45, 25, 12, 8, 6, 4];
+            }
+            document.getElementById('visualizerCustomLabels').value = visualizerLabels.join(', ');
+            document.getElementById('visualizerCustomValues').value = visualizerValues.join(', ');
+            drawVisualizerChart();
+        }
+
+        function applyCustomVisualizerData() {
+            const lInp = document.getElementById('visualizerCustomLabels').value;
+            const vInp = document.getElementById('visualizerCustomValues').value;
+            visualizerLabels = lInp.split(',').map(s => s.trim()).filter(Boolean);
+            visualizerValues = vInp.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+            drawVisualizerChart();
+        }
+
+        function drawVisualizerChart() {
+            const canvas = document.getElementById('visualizerCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            if (!visualizerValues.length) return;
+
+            const maxVal = Math.max(...visualizerValues, 10);
+            const padding = 40;
+            const chartW = w - padding * 2;
+            const chartH = h - padding * 2;
+
+            if (visualizerChartType === 'bar') {
+                const barW = chartW / visualizerValues.length - 14;
+                visualizerValues.forEach((val, i) => {
+                    const barH = (val / maxVal) * chartH;
+                    const x = padding + i * (barW + 14) + 7;
+                    const y = h - padding - barH;
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = 'bold 11px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(val.toString(), x + barW / 2, y - 6);
+
+                    ctx.fillStyle = '#A0A0A0';
+                    ctx.font = '10px -apple-system, sans-serif';
+                    ctx.fillText(visualizerLabels[i] || '', x + barW / 2, h - padding + 16);
+                });
+            } else if (visualizerChartType === 'line') {
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                const stepX = chartW / (visualizerValues.length - 1 || 1);
+
+                visualizerValues.forEach((val, i) => {
+                    const x = padding + i * stepX;
+                    const y = h - padding - (val / maxVal) * chartH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                visualizerValues.forEach((val, i) => {
+                    const x = padding + i * stepX;
+                    const y = h - padding - (val / maxVal) * chartH;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = 'bold 10px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(val.toString(), x, y - 10);
+
+                    ctx.fillStyle = '#A0A0A0';
+                    ctx.font = '10px -apple-system, sans-serif';
+                    ctx.fillText(visualizerLabels[i] || '', x, h - padding + 16);
+                });
+            } else if (visualizerChartType === 'doughnut') {
+                const total = visualizerValues.reduce((a, b) => a + b, 0);
+                const centerX = w / 2;
+                const centerY = h / 2 - 10;
+                const radius = 90;
+                const innerRadius = 55;
+                let currentAngle = -Math.PI / 2;
+
+                const colors = ['#FFFFFF', '#38BDF8', '#10B981', '#F59E0B', '#EC4899', '#A855F7'];
+
+                visualizerValues.forEach((val, i) => {
+                    const sliceAngle = (val / total) * Math.PI * 2;
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                    ctx.arc(centerX, centerY, innerRadius, currentAngle + sliceAngle, currentAngle, true);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    currentAngle += sliceAngle;
+                });
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(total.toString(), centerX, centerY + 5);
+            }
+        }
+
+        function downloadVisualizerCanvas() {
+            const canvas = document.getElementById('visualizerCanvas');
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = 'dex_chart_' + Date.now() + '.png';
+            a.click();
+            showToast('💾 Chart downloaded as PNG');
         }
 
         // ── AI PROVIDERS & PROFILE ──

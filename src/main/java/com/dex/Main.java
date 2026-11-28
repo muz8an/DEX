@@ -4,6 +4,7 @@ import com.dex.config.DEXConfig;
 import com.dex.memory.MemoryManager;
 import com.dex.server.DEXWebServer;
 import com.dex.ui.DEXDesktopApp;
+import com.dex.util.TerminalRemotePrinter;
 
 import java.awt.GraphicsEnvironment;
 import java.util.Arrays;
@@ -60,15 +61,16 @@ public class Main {
 
         // 7. Determine Execution Mode
         if (serverOnly) {
-            System.out.println("[DEX] Running in --server-only mode. Access dashboard at: http://127.0.0.1:" + DEXConfig.getWebPort());
+            System.out.println("[DEX] Running in --server-only mode. Type Ctrl+C to stop. Local URL: http://127.0.0.1:" + DEXConfig.getWebPort());
             try {
                 Thread.currentThread().join();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-        } else if (cliOnly || GraphicsEnvironment.isHeadless()) {
-            System.out.println("[DEX] Running in interactive CLI console mode.");
+        } else if (cliOnly || argList.contains("--qr") || GraphicsEnvironment.isHeadless()) {
+            System.out.println("[DEX] Running in interactive CLI console mode (Pure Java).");
             aiClient.runConsole();
+            System.exit(0);
         } else {
             // Default: Launch Native Windows Desktop Application
             System.out.println("[DEX] Launching Native Windows Desktop Application...");
@@ -83,7 +85,7 @@ public class Main {
 
         System.out.println();
         System.out.println("=======================================================================");
-        System.out.println("               DEX — PERSONAL AI ASSISTANT FOR WINDOWS");
+        System.out.println("               DEX - PERSONAL AI ASSISTANT FOR WINDOWS");
         System.out.println("=======================================================================");
         System.out.println(" Host OS       : " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ")");
         com.dex.ai.AIProvider activeP = com.dex.ai.ProviderManager.getActiveProvider();
@@ -96,12 +98,10 @@ public class Main {
         System.out.println(" Memory File   : data/memory.json (" + loadedMessages + " previous messages loaded)");
         System.out.println(" Workspace     : " + DEXConfig.getWorkspaceRoot());
         System.out.println(" Web Dashboard : " + webStatus);
-        for (String detectedIp : DEXConfig.getDetectedHostIps()) {
-            System.out.println("   \u2192 Connect from Phone: http://" + detectedIp.replaceAll("\\s*\\(.*\\)", "") + ":" + DEXConfig.getWebPort() + " " + (detectedIp.contains("(") ? detectedIp.substring(detectedIp.indexOf("(")) : ""));
-        }
-        System.out.println(" Active Tools  : " + ToolManager.listTools());
+        System.out.println(" Active Tools  : " + ToolManager.getAllTools().size() + " registered (" + String.join(", ", ToolManager.listTools()) + ")");
         System.out.println("=======================================================================");
-        System.out.println("Desktop application launching. Web dashboard available simultaneously.");
+        TerminalRemotePrinter.printRemoteQrCard();
+        System.out.println(" Commands: 'qr', 'devices', 'pin', 'status', 'tools', 'help', 'exit'");
         System.out.println("=======================================================================");
         System.out.println();
     }

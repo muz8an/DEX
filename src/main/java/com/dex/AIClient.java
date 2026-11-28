@@ -485,12 +485,12 @@ public class AIClient {
     public void runConsole() {
         if (UserProfileManager.isFirstTimeUser()) {
             System.out.println("=======================================================================");
-            System.out.println("                             WELCOME TO X");
+            System.out.println("                            WELCOME TO DEX");
             System.out.println("=======================================================================");
             System.out.println("What is your name? (Press Enter to skip): ");
         }
 
-        System.out.println("\nReady for commands or questions. Type 'exit' to quit.\n");
+        System.out.println("Ready for commands or questions. Type 'help' for terminal controls, 'qr' for mobile QR, or 'exit' to quit.\n");
 
         try (Scanner scanner = new Scanner(System.in)) {
             if (UserProfileManager.isFirstTimeUser()) {
@@ -517,44 +517,86 @@ public class AIClient {
                     continue;
                 }
 
-                if (input.equalsIgnoreCase("exit") || input.equalsIgnoreCase("quit")) {
+                String cmdLower = input.toLowerCase(Locale.ROOT);
+                if (cmdLower.equals("exit") || cmdLower.equals("quit")) {
                     break;
                 }
 
-                if (input.toLowerCase(Locale.ROOT).startsWith("set-key ")) {
+                if (cmdLower.equals("help") || cmdLower.equals("?")) {
+                    com.dex.util.TerminalRemotePrinter.printHelp();
+                    continue;
+                }
+
+                if (cmdLower.equals("qr") || cmdLower.equals("remote") || cmdLower.equals("show qr")) {
+                    com.dex.util.TerminalRemotePrinter.printRemoteQrCard();
+                    continue;
+                }
+
+                if (cmdLower.equals("devices") || cmdLower.equals("connected") || cmdLower.equals("remotes")) {
+                    com.dex.util.TerminalRemotePrinter.printConnectedDevices();
+                    continue;
+                }
+
+                if (cmdLower.equals("pin") || cmdLower.equals("new pin")) {
+                    String newPin = com.dex.security.DeviceManager.generatePairingPin();
+                    System.out.println("\n[DEX] New Pairing PIN: " + newPin + " (valid for " + com.dex.security.DeviceManager.getPinRemainingSeconds() + "s)\n");
+                    continue;
+                }
+
+                if (cmdLower.equals("status") || cmdLower.equals("diag")) {
+                    com.dex.util.TerminalRemotePrinter.printSystemStatus();
+                    continue;
+                }
+
+                if (cmdLower.equals("tools")) {
+                    System.out.println("\n[DEX Registered Tools]");
+                    for (ToolManager.ToolDefinition info : ToolManager.getAllTools()) {
+                        System.out.println("  - " + info.getName() + " : " + info.getDescription());
+                    }
+                    System.out.println();
+                    continue;
+                }
+
+                if (cmdLower.equals("clear")) {
+                    memoryManager.clearMemory();
+                    System.out.println("\nDEX: Active conversation memory cleared.\n");
+                    continue;
+                }
+
+                if (cmdLower.startsWith("set-key ")) {
                     String newKey = input.substring(8).trim();
                     AIProvider active = ProviderManager.getActiveProvider();
                     if (active != null) {
                         ProviderManager.configureProvider(active.getType(), null, null, newKey);
-                        System.out.println("X: API key updated securely for " + active.getType().getDisplayName() + ".\n");
+                        System.out.println("\nDEX: API key updated securely for " + active.getType().getDisplayName() + ".\n");
                     }
                     continue;
                 }
 
-                if (input.toLowerCase(Locale.ROOT).startsWith("use provider ")) {
+                if (cmdLower.startsWith("use provider ")) {
                     String pName = input.substring(13).trim();
                     AIProviderType t = AIProviderType.fromString(pName);
                     ProviderManager.setActiveProviderType(t);
-                    System.out.println("X: Active AI provider switched to " + t.getDisplayName() + ".\n");
+                    System.out.println("\nDEX: Active AI provider switched to " + t.getDisplayName() + ".\n");
                     continue;
                 }
 
-                if (input.equalsIgnoreCase("reset memory")) {
+                if (cmdLower.equals("reset memory")) {
                     System.out.print("Are you sure you want to completely erase persistent memory.json? (yes/no): ");
                     if (scanner.hasNextLine()) {
                         String confirm = scanner.nextLine().trim();
                         if (confirm.equalsIgnoreCase("yes") || confirm.equalsIgnoreCase("y")) {
                             memoryManager.resetMemory(true);
-                            System.out.println("X: Memory file reset.\n");
+                            System.out.println("\nDEX: Memory file reset.\n");
                         } else {
-                            System.out.println("X: Memory reset cancelled.\n");
+                            System.out.println("\nDEX: Memory reset cancelled.\n");
                         }
                     }
                     continue;
                 }
 
                 String reply = processMessage(input);
-                System.out.println("\nX: " + reply + "\n");
+                System.out.println("\nDEX: " + reply + "\n");
             }
         } catch (Exception e) {
             System.err.println("Console session ended: " + e.getMessage());

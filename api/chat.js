@@ -22,16 +22,25 @@ const APP_MAP = {
   'chatgpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
   'gpt': { label: 'ChatGPT', url: 'https://chatgpt.com', web: 'https://chatgpt.com' },
   'notion': { label: 'Notion', url: 'https://www.notion.so', web: 'https://www.notion.so' },
-  'spotify': { label: 'Spotify', url: 'https://open.spotify.com', protocol: 'spotify:', web: 'https://open.spotify.com' },
-  'whatsapp': { label: 'WhatsApp', url: 'https://web.whatsapp.com', protocol: 'whatsapp:', web: 'https://web.whatsapp.com' },
-  'calculator': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator' },
-  'calc': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator' },
-  'notepad': { label: 'Notepad', url: 'https://notepad.js.org', protocol: 'notepad:', web: 'https://notepad.js.org' },
-  'settings': { label: 'Windows Settings', url: 'ms-settings:', protocol: 'ms-settings:', web: null },
-  'camera': { label: 'Camera', url: 'microsoft.windows.camera:', protocol: 'microsoft.windows.camera:', web: null },
-  'clock': { label: 'Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is' },
-  'alarm': { label: 'Alarms & Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is' },
-  'paint': { label: 'Paint', url: 'ms-paint:', protocol: 'ms-paint:', web: 'https://jspaint.app' },
+  'spotify': { label: 'Spotify', url: 'https://open.spotify.com', protocol: 'spotify:', web: 'https://open.spotify.com', isNativeApp: true },
+  'whatsapp': { label: 'WhatsApp', url: 'https://web.whatsapp.com', protocol: 'whatsapp:', web: 'https://web.whatsapp.com', isNativeApp: true },
+  'calculator': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator', isNativeApp: true, type: 'open_app' },
+  'calc': { label: 'Calculator', url: 'https://www.google.com/search?q=calculator', protocol: 'calculator:', web: 'https://www.google.com/search?q=calculator', isNativeApp: true, type: 'open_app' },
+  'notepad': { label: 'Notepad', url: 'https://notepad.js.org', protocol: 'notepad:', web: 'https://notepad.js.org', isNativeApp: true, type: 'open_app' },
+  'chrome': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+  'google chrome': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+  'browser': { label: 'Google Chrome', url: 'https://www.google.com', web: 'https://www.google.com', isNativeApp: true, type: 'open_app' },
+  'edge': { label: 'Microsoft Edge', url: 'https://www.bing.com', web: 'https://www.bing.com', isNativeApp: true, type: 'open_app' },
+  'explorer': { label: 'File Explorer', url: null, web: null, isNativeApp: true, type: 'open_app' },
+  'file explorer': { label: 'File Explorer', url: null, web: null, isNativeApp: true, type: 'open_app' },
+  'cmd': { label: 'Command Prompt', url: null, web: null, isNativeApp: true, type: 'open_app' },
+  'terminal': { label: 'Windows Terminal', url: null, web: null, isNativeApp: true, type: 'open_app' },
+  'powershell': { label: 'PowerShell', url: null, web: null, isNativeApp: true, type: 'open_app' },
+  'settings': { label: 'Windows Settings', url: 'ms-settings:', protocol: 'ms-settings:', web: null, isNativeApp: true, type: 'open_app' },
+  'camera': { label: 'Camera', url: 'microsoft.windows.camera:', protocol: 'microsoft.windows.camera:', web: null, isNativeApp: true, type: 'open_app' },
+  'clock': { label: 'Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is', isNativeApp: true, type: 'open_app' },
+  'alarm': { label: 'Alarms & Clock', url: 'ms-clock:', protocol: 'ms-clock:', web: 'https://time.is', isNativeApp: true, type: 'open_app' },
+  'paint': { label: 'Paint', url: 'ms-paint:', protocol: 'ms-paint:', web: 'https://jspaint.app', isNativeApp: true, type: 'open_app' },
   'maps': { label: 'Google Maps', url: 'https://www.google.com/maps', web: 'https://www.google.com/maps' },
   'google maps': { label: 'Google Maps', url: 'https://www.google.com/maps', web: 'https://www.google.com/maps' },
   'mail': { label: 'Gmail', url: 'https://mail.google.com', protocol: 'mailto:', web: 'https://mail.google.com' },
@@ -45,19 +54,27 @@ const APP_MAP = {
   'netflix': { label: 'Netflix', url: 'https://www.netflix.com', web: 'https://www.netflix.com' },
   'twitch': { label: 'Twitch', url: 'https://www.twitch.tv', web: 'https://www.twitch.tv' },
   'amazon': { label: 'Amazon', url: 'https://www.amazon.com', web: 'https://www.amazon.com' },
-  'vscode': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
-  'vs code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
-  'code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev' },
-  'discord': { label: 'Discord', url: 'https://discord.com/app', protocol: 'discord:', web: 'https://discord.com/app' },
-  'telegram': { label: 'Telegram', url: 'https://web.telegram.org', protocol: 'tg:', web: 'https://web.telegram.org' },
-  'steam': { label: 'Steam', url: 'https://store.steampowered.com', protocol: 'steam:', web: 'https://store.steampowered.com' },
+  'vscode': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+  'vs code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+  'code': { label: 'VS Code', url: 'https://vscode.dev', protocol: 'vscode:', web: 'https://vscode.dev', isNativeApp: true, type: 'open_app' },
+  'discord': { label: 'Discord', url: 'https://discord.com/app', protocol: 'discord:', web: 'https://discord.com/app', isNativeApp: true },
+  'telegram': { label: 'Telegram', url: 'https://web.telegram.org', protocol: 'tg:', web: 'https://web.telegram.org', isNativeApp: true },
+  'steam': { label: 'Steam', url: 'https://store.steampowered.com', protocol: 'steam:', web: 'https://store.steampowered.com', isNativeApp: true, type: 'open_app' },
   'music': { label: 'YouTube Music', url: 'https://music.youtube.com', web: 'https://music.youtube.com' },
   'wikipedia': { label: 'Wikipedia', url: 'https://www.wikipedia.org', web: 'https://www.wikipedia.org' }
 };
 
+function stripLaptopModifier(text) {
+  return String(text || '')
+    .replace(/\s+(?:please|now|for me)\s*[.?!]*$/i, '')
+    .replace(/\s+(?:in|on|at|onto|to)\s+(?:the\s+|my\s+)?(?:laptop|pc|desktop|computer|windows|machine|host)(?:\s+screen)?\s*[.?!]*$/i, '')
+    .replace(/\s+(?:please|now|for me)\s*[.?!]*$/i, '')
+    .trim();
+}
+
 function resolveAction(rawText) {
   if (!rawText) return null;
-  const text = rawText.trim();
+  const text = stripLaptopModifier(rawText);
   const lower = text.toLowerCase();
 
   // If this is a tool inspection command like "Run tool: open_app", don't parse as action
@@ -140,12 +157,13 @@ function resolveAction(rawText) {
   if (APP_MAP[targetLower]) {
     const item = APP_MAP[targetLower];
     return {
-      type: 'open',
+      type: item.type || 'open',
       target,
       label: item.label,
       url: item.url,
       protocol: item.protocol || null,
       web: item.web || item.url,
+      isNativeApp: Boolean(item.isNativeApp),
       isWeb: Boolean(item.web)
     };
   }
@@ -154,12 +172,13 @@ function resolveAction(rawText) {
   for (const [key, item] of Object.entries(APP_MAP)) {
     if (targetLower.includes(key)) {
       return {
-        type: 'open',
+        type: item.type || 'open',
         target,
         label: item.label,
         url: item.url,
         protocol: item.protocol || null,
         web: item.web || item.url,
+        isNativeApp: Boolean(item.isNativeApp),
         isWeb: Boolean(item.web)
       };
     }
@@ -173,6 +192,7 @@ function resolveAction(rawText) {
     url: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
     protocol: null,
     web: `https://www.google.com/search?q=${encodeURIComponent(target)}`,
+    isFallbackSearch: true,
     isWeb: true
   };
 }
@@ -259,10 +279,24 @@ module.exports = async (req, res) => {
 
   // Pre-resolve any open / search / play action
   const action = resolveAction(message);
-  if (action) {
+  if (action && body.enqueue === true && req.headers?.host) {
     try {
-      const { enqueueCommand } = require('./remote-queue.js');
-      enqueueCommand(message, action, body.source || (body.isMobile ? 'mobile' : 'chat'));
+      const proto = req.headers['x-forwarded-proto'] || 'https';
+      await fetch(`${proto}://${req.headers.host}/api/remote-queue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          command: message,
+          action,
+          source: body.source || (body.isMobile ? 'mobile' : 'chat'),
+          deviceId: body.deviceId,
+          deviceName: body.deviceName,
+          osBrowser: body.osBrowser,
+          screen: body.screen,
+          orientation: body.orientation,
+          fullscreen: body.fullscreen
+        })
+      });
     } catch (e) {}
   }
 

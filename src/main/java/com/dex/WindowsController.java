@@ -1,6 +1,9 @@
 package com.dex;
 
 import java.awt.Desktop;
+import java.awt.GraphicsEnvironment;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -570,7 +573,7 @@ public class WindowsController {
             return LaunchResult.failure("open_app", "unknown", "Please specify an application or destination to open.");
         }
 
-        String raw = appName.trim();
+        String raw = stripLaptopPhraseSuffix(appName);
         String normalized = raw.toLowerCase(Locale.ROOT)
                 .replaceAll("^(can you |could you |please )?(open|launch|start|run|go to|browse to|visit|show)\\s+", "")
                 .replaceAll("\\s+(for me|please|now)$", "")
@@ -882,6 +885,94 @@ public class WindowsController {
     }
 
     /**
+     * Strips trailing target host phrases such as "in laptop", "on my pc", or "on desktop".
+     */
+    public static String stripLaptopPhraseSuffix(String text) {
+        if (text == null) {
+            return "";
+        }
+        String cleaned = text.trim()
+                .replaceAll("(?i)\\s+(?:please|now|for\\s+me)\\s*[.?!]*$", "")
+                .replaceAll("(?i)\\s+(?:in|on|at|onto|to)\\s+(?:the\\s+|my\\s+)?(?:laptop|pc|desktop|computer|windows|machine|host)(?:\\s+screen)?\\s*[.?!]*$", "")
+                .replaceAll("(?i)\\s+(?:please|now|for\\s+me)\\s*[.?!]*$", "")
+                .trim();
+        return cleaned;
+    }
+
+    /**
+     * Executes pure-Java Windows remote deck actions (D-pad keys, volume, media controls, minimize all).
+     */
+    public static LaunchResult executeRemoteControlAction(String rawCommand) {
+        if (rawCommand == null || rawCommand.isBlank()) {
+            return LaunchResult.failure("remote_control", "empty", "Empty remote command");
+        }
+        String cmd = rawCommand.trim().toLowerCase(Locale.ROOT);
+
+        if (cmd.equals("minimize_all") || cmd.equals("minimize all") || cmd.equals("show desktop")) {
+            return startProcess(
+                    "remote_control",
+                    "Minimize All Windows",
+                    Arrays.asList("powershell.exe", "-NoProfile", "-Command", "(New-Object -ComObject Shell.Application).MinimizeAll()"),
+                    "Minimized all windows on laptop"
+            );
+        }
+
+        if (cmd.equals("vol_up") || cmd.equals("volume up")) {
+            return sendVirtualMediaKey("Volume Up", 175);
+        }
+        if (cmd.equals("vol_down") || cmd.equals("volume down")) {
+            return sendVirtualMediaKey("Volume Down", 174);
+        }
+        if (cmd.equals("mute") || cmd.equals("volume mute")) {
+            return sendVirtualMediaKey("Mute Toggle", 173);
+        }
+        if (cmd.equals("media_play_pause") || cmd.equals("play pause") || cmd.equals("play/pause")) {
+            return sendVirtualMediaKey("Media Play/Pause", 179);
+        }
+        if (cmd.equals("media_next") || cmd.equals("next track")) {
+            return sendVirtualMediaKey("Next Track", 176);
+        }
+        if (cmd.equals("media_prev") || cmd.equals("prev track") || cmd.equals("previous track")) {
+            return sendVirtualMediaKey("Previous Track", 177);
+        }
+
+        if (cmd.startsWith("remote_key ")) {
+            String key = cmd.substring("remote_key ".length()).trim();
+            int vk = switch (key) {
+                case "up" -> KeyEvent.VK_UP;
+                case "down" -> KeyEvent.VK_DOWN;
+                case "left" -> KeyEvent.VK_LEFT;
+                case "right" -> KeyEvent.VK_RIGHT;
+                case "enter", "ok" -> KeyEvent.VK_ENTER;
+                case "space" -> KeyEvent.VK_SPACE;
+                case "esc", "escape", "back" -> KeyEvent.VK_ESCAPE;
+                default -> -1;
+            };
+            if (vk != -1) {
+                if (GraphicsEnvironment.isHeadless()) {
+                    return LaunchResult.failure("remote_control", "Key: " + key, "Headless graphics environment cannot send Robot keystrokes");
+                }
+                try {
+                    Robot robot = new Robot();
+                    robot.keyPress(vk);
+                    robot.delay(35);
+                    robot.keyRelease(vk);
+                    return LaunchResult.success("remote_control", "Key: " + key, "Sent keystroke " + key.toUpperCase(Locale.ROOT) + " to laptop", null);
+                } catch (Exception e) {
+                    return LaunchResult.failure("remote_control", "Key: " + key, e.getMessage());
+                }
+            }
+        }
+
+        return LaunchResult.failure("remote_control", rawCommand, "Unrecognized remote control action");
+    }
+
+    private static LaunchResult sendVirtualMediaKey(String label, int charCode) {
+        String ps = "(New-Object -ComObject WScript.Shell).SendKeys([char]" + charCode + ")";
+        return startProcess("remote_control", label, Arrays.asList("powershell.exe", "-NoProfile", "-Command", ps), "Executed " + label);
+    }
+
+    /**
      * Core process starter executing commands via the configured ProcessLauncher.
      */
     private static LaunchResult startProcess(String action, String target, List<String> command, String successDetails) {
@@ -1079,7 +1170,8 @@ public class WindowsController {
             return null;
         }
 
-        String q = query.toLowerCase(Locale.ROOT)
+        String q = stripLaptopPhraseSuffix(query)
+                .toLowerCase(Locale.ROOT)
                 .replaceAll("^[\\.\\?!,;]+", "")
                 .replaceAll("[\\.\\?!,;]+$", "")
                 .trim();

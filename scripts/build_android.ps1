@@ -60,7 +60,7 @@ Write-Host "[Stage 2/5] Configured SDK directory: $sdkDir" -ForegroundColor Gree
 # 3. Ensure Android Icons
 Write-Host "`n[Stage 3/5] Validating Launcher Icons..." -ForegroundColor Yellow
 if (-not (Test-Path "$mobileDir\app\src\main\res\mipmap-xxhdpi\ic_launcher.png")) {
-    & powershell -ExecutionPolicy Bypass -File "$workspaceRoot\scripts\generate_android_icons.ps1"
+    & powershell -ExecutionPolicy Bypass -File "$workspaceRoot\scripts\generate_icons.ps1" -Android
 }
 Write-Host "[Stage 3/5] Launcher icons validated." -ForegroundColor Green
 

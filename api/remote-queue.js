@@ -1,3 +1,5 @@
+const { setCors, getBody } = require('./_utils');
+
 // In-memory remote command queue + live connected device telemetry for mobile-to-laptop bridging
 let queue = [];
 let history = [];
@@ -95,26 +97,8 @@ function enqueueCommand(command, action, source = 'chat', deviceMeta = null) {
   return item;
 }
 
-async function getBody(req) {
-  if (req.body) {
-    if (typeof req.body === 'string') {
-      try { return JSON.parse(req.body); } catch (e) { return {}; }
-    }
-    return req.body;
-  }
-  return new Promise((resolve) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => {
-      try { resolve(JSON.parse(data)); } catch (e) { resolve({}); }
-    });
-  });
-}
-
 const handler = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  setCors(res, 'GET, POST, DELETE, OPTIONS');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();

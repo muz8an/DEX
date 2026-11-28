@@ -996,9 +996,9 @@ public class DEXWebServer {
             } catch (Exception ignored) {
             }
 
-            // 2. Try direct source path on filesystem
+            // 2. Try single-source public/index.html fallback on filesystem
             try {
-                Path p = Path.of("src", "main", "resources", "index.html");
+                Path p = Path.of("public", "index.html");
                 if (Files.exists(p)) {
                     return Files.readString(p, StandardCharsets.UTF_8);
                 }

@@ -22,7 +22,7 @@ This guide covers how to pair an Android device, how authentication tokens are m
 ## 2. Pairing Workflow (Step-by-Step)
 
 ### Step 1: Open the Mobile Companion Tab on PC
-1. Launch DEX on your Windows desktop (via `DEX.exe`, `DEX-Setup.exe`, `DEX.bat`, or `DEX.vbs`).
+1. Launch DEX on your Windows desktop (via `assets/DEX.exe`, `assets/DEX-Setup.exe`, or `DEX.bat`).
 2. Navigate to the **Mobile Companion** tab (the 8th tab in the main desktop window).
 3. You will see:
    - Your PC's detected **Local IP Addresses** (e.g., `192.168.1.45`, `100.85.20.12`).

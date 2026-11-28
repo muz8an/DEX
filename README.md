@@ -6,7 +6,7 @@
 
 [![Build Windows](https://img.shields.io/badge/Windows%20Build-Passing-brightgreen?logo=windows)](assets/DEX-Setup.exe)
 [![Build Android](https://img.shields.io/badge/Android%20Build-Passing-brightgreen?logo=android)](assets/DEX-Mobile.apk)
-[![Desktop Tests](https://img.shields.io/badge/Desktop%20Unit%20Tests-113%20Passed-blue)](#-verified-test-suite--artifact-verification)
+[![Desktop Tests](https://img.shields.io/badge/Desktop%20Unit%20Tests-121%20Passed-blue)](#-verified-test-suite--artifact-verification)
 [![Android Tests](https://img.shields.io/badge/Android%20Tests-44%20Tasks%20Passed-blue)](#-verified-test-suite--artifact-verification)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20%7C%20Android%208.0%2B-orange)]()
@@ -153,6 +153,25 @@ flowchart TB
 
 ---
 
+## 📁 Project Structure
+
+```text
+DEX/
+├── api/                 # Consolidated Vercel APIs (chat.js, remote-queue.js, system.js, _utils.js)
+├── assets/              # Packaged deliverables (DEX.exe, DEX-Setup.exe, DEX-Mobile.apk, icons/)
+├── data/                # Local runtime storage templates (memory.example.json)
+├── docs/                # Guides, architecture specs & project reports (docs/reports/)
+├── mobile/              # Android Companion app (Gradle + Android SDK 34)
+├── public/              # Single-source Web Dashboard & Mobile Remote UI (index.html)
+├── scripts/             # Build, packaging & icon pipelines (build_all/windows/android, generate_icons)
+├── src/                 # Java 17 Desktop, CLI/QR Terminal, Embedded HTTP Server & 17 JUnit test suites
+├── DEX.bat              # Quick launcher (--desktop default; forwards --cli, --qr, etc.)
+├── pom.xml              # Maven build config (bundles public/index.html into JAR)
+└── vercel.json          # Clean URLs & consolidated /api/* rewrites
+```
+
+---
+
 ## 📋 System Requirements & Prerequisites
 
 | Component | Requirements |
@@ -238,7 +257,7 @@ powershell -ExecutionPolicy Bypass -File scripts\build_android.ps1
 
 ### 4. Running Unit Tests Directly
 ```powershell
-# Desktop Suite (113 unit tests)
+# Desktop Suite (121 unit tests across 17 test classes)
 mvn test
 
 # Android Suite (Unit tests)
@@ -253,7 +272,7 @@ cd mobile
 All features, providers, security mechanisms, and build scripts are confirmed by actual unit test runs and package validations:
 
 ### Desktop Unit Test Suite (`mvn test`)
-- **Total Tests:** **113 tests passed (0 failures, 0 errors, 0 skipped)**
+- **Total Tests:** **121 tests passed (0 failures, 0 errors, 0 skipped)**
 - **Test Coverage Breakdown:**
   - `AIClientTest` (9 tests): Multi-provider routing, tool loop interception, image generation rejection, identity X verification, memory injection.
   - `WindowsControllerTest` (21 tests): Application resolution, VS Code file target launching, notepad launching, safe URL navigation with `&` escaping, music query playback.

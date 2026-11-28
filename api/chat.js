@@ -1,18 +1,4 @@
-async function getBody(req) {
-  if (req.body) {
-    if (typeof req.body === 'string') {
-      try { return JSON.parse(req.body); } catch (e) { return {}; }
-    }
-    return req.body;
-  }
-  return new Promise((resolve) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => {
-      try { resolve(JSON.parse(data)); } catch (e) { resolve({}); }
-    });
-  });
-}
+const { setCors, getBody } = require('./_utils');
 
 const APP_MAP = {
   'youtube': { label: 'YouTube', url: 'https://www.youtube.com', web: 'https://www.youtube.com' },
@@ -256,9 +242,7 @@ async function callGemini(apiKey, prompt, history = [], requestedModel = 'gemini
 }
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  setCors(res, 'POST, OPTIONS');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();

@@ -20,13 +20,13 @@ from PIL import Image as PILImage
 import io
 
 # ── Paths ────────────────────────────────────────────────────────────────────
-BASE = r"c:\Users\MUHAMMED MUZAIN\Desktop\DEX"
+BASE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SCREENSHOTS = os.path.join(BASE, "data", "screenshots")
-LOGO_WHITE  = os.path.join(BASE, "public", "dex_logo_white.png")
-LOGO_BLACK  = os.path.join(BASE, "public", "dex_logo_black.png")
-AVATAR      = os.path.join(BASE, "public", "dex_avatar_circle.png")
+LOGO_WHITE  = os.path.join(BASE, "src", "main", "resources", "dex_logo_white.png")
+LOGO_BLACK  = os.path.join(BASE, "assets", "icons", "dex.png")
+AVATAR      = os.path.join(BASE, "src", "main", "resources", "dex_avatar_circle.png")
 ICON        = os.path.join(BASE, "assets", "icons", "dex.png")
-OUTPUT      = os.path.join(BASE, "DEX_VTU_Report.pdf")
+OUTPUT      = os.path.join(BASE, "docs", "reports", "DEX_VTU_Report.pdf")
 
 # pick best logo available
 LOGO = LOGO_BLACK if os.path.exists(LOGO_BLACK) else (ICON if os.path.exists(ICON) else None)

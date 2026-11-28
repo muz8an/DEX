@@ -30,10 +30,9 @@ All packaging scripts reside in the `scripts/` directory:
 | Script | Purpose | Output Artifacts |
 | :--- | :--- | :--- |
 | **`scripts/build_all.ps1`** | Master multi-platform pipeline: builds both Windows and Android, verifies non-zero sizes, and writes `checksums.txt`. | `assets/DEX.exe`, `assets/DEX-Setup.exe`, `assets/DEX-Mobile.apk`, `assets/checksums.txt` |
-| **`scripts/build_windows.ps1`** | Compiles Java desktop, runs 79 unit tests, packages standalone app-image (`DEX.exe`) and WiX installer (`DEX-Setup.exe`). | `assets/DEX.exe`, `assets/DEX-Setup.exe` |
+| **`scripts/build_windows.ps1`** | Compiles Java desktop, runs 121 unit tests, packages standalone app-image (`DEX.exe`) and WiX installer (`DEX-Setup.exe`). | `assets/DEX.exe`, `assets/DEX-Setup.exe` |
 | **`scripts/build_android.ps1`** | Configures SDK, compiles Android app, runs Android unit tests, and packages `DEX-Mobile.apk`. | `assets/DEX-Mobile.apk` |
-| **`scripts/generate_icons.ps1`** | Generates Windows multi-resolution `.ico` and `.png` icons. | `assets/icons/dex.ico`, `src/main/resources/dex_icon.png` |
-| **`scripts/generate_android_icons.ps1`** | Generates Android mipmap launcher icons (`mdpi` through `xxxhdpi`). | `mobile/app/src/main/res/mipmap-*/` |
+| **`scripts/generate_icons.ps1`** | Generates Windows multi-resolution `.ico`/`.png` icons and Android mipmap launcher icons (`-Android`). | `assets/icons/dex.ico`, `src/main/resources/dex_icon.png`, `mobile/app/src/main/res/mipmap-*/` |
 
 ---
 
@@ -64,7 +63,7 @@ powershell -ExecutionPolicy Bypass -File scripts\build_android.ps1
 ## 4. Packaging Pipeline Details
 
 ### 4.1 Windows Packaging Pipeline (`build_windows.ps1`)
-1. **Compilation & Unit Testing:** Executes `mvn clean test` (ensuring all 79 tests pass) and builds the fat shaded JAR via `mvn package -DskipTests`.
+1. **Compilation & Unit Testing:** Executes `mvn clean test` (ensuring all unit tests pass) and builds the fat shaded JAR via `mvn package -DskipTests`.
 2. **App-Image Generation:** Calls `jpackage --type app-image` bundling a self-contained Java runtime, launcher icon, and entry point `com.dex.DEXApp`.
 3. **Standalone Executable:** Staged to `assets/DEX.exe` with its co-located runtime in `dist/desktop/DEX`.
 4. **Windows Installer Generation:** Calls `jpackage --type exe` utilizing WiX Toolset to create a true Windows installer with Start Menu shortcuts, Desktop shortcut, and registered uninstaller in Windows Settings. Staged to `assets/DEX-Setup.exe`.

@@ -202,7 +202,7 @@ DEX/
 - Automatically resolves the local JRE and packaged JAR without requiring installation.
 
 ### Option 3: Android Companion App
-1. Transfer [`assets/DEX-Mobile.apk`](assets/DEX-Mobile.apk) (6.2 MB) to your phone (via USB, cloud storage, or local transfer).
+1. Transfer [`assets/DEX-Mobile.apk`](assets/DEX-Mobile.apk) (6.03 MB) to your phone (via USB, cloud storage, or local transfer).
 2. Open your device's file manager and tap `DEX-Mobile.apk`.
 3. If prompted, enable **Allow from this source** in Android Settings.
 4. Tap **Install**, then tap **Open**.
@@ -292,8 +292,8 @@ All features, providers, security mechanisms, and build scripts are confirmed by
   - `ProgramGeneratorTest` (4 tests): Multi-language program generation (Python, C, Java, HTML), VS Code integration.
 
 ### Android Test Suite (`gradlew test`)
-- **Tasks Executed:** **44 tasks completed successfully with 0 errors**.
-- **Coverage:** Configuration parsing, companion preferences, TTS string cleansing, and connection handling.
+- **Unit Tests:** **6 tests passed (0 failures, 0 errors, 0 skipped)** across **44 Gradle build/test tasks**.
+- **Coverage:** URL & Cloud Relay normalization, QR link/PIN extraction, device telemetry JSON serialization, TTS text sanitization, and markdown cleaning.
 
 ### Distribution Artifacts Verification
 
@@ -301,8 +301,8 @@ All features, providers, security mechanisms, and build scripts are confirmed by
 | :--- | :--- | :--- | :--- |
 | **DEX Installer** | [`assets/DEX-Setup.exe`](assets/DEX-Setup.exe) | 52.64 MB | `3815A1EA5C67A560FA6554C1E3FD9785D1613592683E66AF3C6CF9EED5D24D58` |
 | **Standalone Launcher** | [`assets/DEX.exe`](assets/DEX.exe) | 0.16 MB | `49736E02532D67B76AF5821A3F143E482BD71D48D7FB206B6D95B0971E6C7583` |
-| **Android Companion** | [`assets/DEX-Mobile.apk`](assets/DEX-Mobile.apk) | 6.18 MB | `63176B38CB1B800CBB342194E1ACCB2448389739C08D23AE695128CA48EFB014` |
-| **Checksum Manifest** | [`assets/checksums.txt`](assets/checksums.txt) | 443 bytes | Validated SHA256 integrity manifest |
+| **Android Companion** | [`assets/DEX-Mobile.apk`](assets/DEX-Mobile.apk) | 6.03 MB | `C3A00D330352082AAC6EECBF15E501BB1E8372E9194220060B2DCAC1B5200729` |
+| **Checksum Manifest** | [`assets/checksums.txt`](assets/checksums.txt) | 446 bytes | Validated SHA256 integrity manifest |
 
 ---
 

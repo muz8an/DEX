@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pageSettings"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scrollbars="none"
+    android:fillViewport="true"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="24dp">
+
+        <!-- Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:src="@drawable/ic_assistant_logo"
+                    android:contentDescription="Logo" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="DEX Settings &amp; Remote"
+                    android:textColor="@color/text_title_maroon"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvStatusBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/bg_tag_inactive"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="OFFLINE"
+                android:textColor="@color/status_offline"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <!-- CARD 1: User Profile -->
+        <LinearLayout style="@style/DexCard">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="User Profile" android:textColor="@color/primary_maroon" android:textSize="15sp" android:textStyle="bold" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Sync your name across mobile and desktop" android:textColor="@color/text_secondary" android:textSize="12sp" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/etSettingsUserName"
+                    style="@style/DexInputPill"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:hint="Your Name"
+                    android:inputType="textPersonName|textCapWords" />
+
+                <Button
+                    android:id="@+id/btnSaveUserName"
+                    style="@style/DexButtonPrimary"
+                    android:layout_width="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:paddingHorizontal="16dp"
+                    android:text="Save" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- CARD 2: DEX Connection & Pairing -->
+        <LinearLayout style="@style/DexCard" android:layout_marginTop="16dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="DEX PC &amp; Cloud Bridge" android:textColor="@color/primary_maroon" android:textSize="15sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvEndpoint" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="http://192.168.1.35:31416 (Unpaired)" android:textColor="@color/text_secondary" android:textSize="12sp" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/etHostIp"
+                    style="@style/DexInputPill"
+                    android:layout_width="0dp"
+                    android:layout_weight="2"
+                    android:hint="LAN IP or https://dex-phi-bay.vercel.app"
+                    android:inputType="textUri" />
+
+                <EditText
+                    android:id="@+id/etPort"
+                    style="@style/DexInputPill"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:hint="Port"
+                    android:text="31416"
+                    android:inputType="number" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/etPairingPin"
+                style="@style/DexInputPill"
+                android:layout_width="match_parent"
+                android:layout_marginTop="8dp"
+                android:hint="6-Digit PIN or pasted QR link"
+                android:inputType="textUri" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="horizontal">
+                <Button
+                    android:id="@+id/btnPasteQrLink"
+                    style="@style/DexQuickLaunchBtn"
+                    android:layout_marginEnd="4dp"
+                    android:text="Paste QR / Link"
+                    android:textColor="@color/primary_maroon" />
+
+                <Button
+                    android:id="@+id/btnCloudRelayConnect"
+                    style="@style/DexQuickLaunchBtn"
+                    android:layout_marginStart="4dp"
+                    android:text="Use Cloud Relay"
+                    android:textColor="@color/primary_maroon" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnPair"
+                style="@style/DexButtonPrimary"
+                android:layout_width="match_parent"
+                android:layout_marginTop="8dp"
+                android:text="Pair / Connect" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal">
+                <Button
+                    android:id="@+id/btnCheckConnection"
+                    style="@style/DexQuickLaunchBtn"
+                    android:layout_marginEnd="4dp"
+                    android:text="Test Ping"
+                    android:textColor="@color/primary_maroon" />
+
+                <Button
+                    android:id="@+id/btnUnpair"
+                    style="@style/DexQuickLaunchBtn"
+                    android:layout_marginStart="4dp"
+                    android:text="Unpair Device"
+                    android:textColor="@color/status_offline" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPairingStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Enter LAN IP + PIN, paste QR link from Desktop/CLI, or tap Use Cloud Relay."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- CARD 3: Remote Windows Control & Media -->
+        <LinearLayout style="@style/DexCard" android:layout_marginTop="16dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Windows Remote &amp; Quick Launch" android:textColor="@color/primary_maroon" android:textSize="15sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvWindowsActionStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Control apps, media, and volume directly on your laptop" android:textColor="@color/text_secondary" android:textSize="12sp" />
+
+            <!-- Media & Screen Control Strip -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnRemotePlayPause" style="@style/DexRemoteMiniBtn" android:layout_marginEnd="4dp" android:text="Play/Pause" />
+                <Button android:id="@+id/btnRemoteVolDown" style="@style/DexRemoteMiniBtn" android:layout_marginEnd="4dp" android:text="Vol -" />
+                <Button android:id="@+id/btnRemoteVolUp" style="@style/DexRemoteMiniBtn" android:layout_marginEnd="4dp" android:text="Vol +" />
+                <Button android:id="@+id/btnRemoteMute" style="@style/DexRemoteMiniBtn" android:layout_marginEnd="4dp" android:text="Mute" />
+                <Button android:id="@+id/btnRemoteMinAll" style="@style/DexRemoteMiniBtn" android:text="Min All" />
+            </LinearLayout>
+
+            <!-- Quick App Grid -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnLaunchChrome" style="@style/DexQuickLaunchBtn" android:layout_marginEnd="4dp" android:text="Chrome" />
+                <Button android:id="@+id/btnLaunchYouTube" style="@style/DexQuickLaunchBtn" android:layout_marginStart="4dp" android:text="YouTube" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnLaunchGitHub" style="@style/DexQuickLaunchBtn" android:layout_marginEnd="4dp" android:text="GitHub" />
+                <Button android:id="@+id/btnLaunchVsCode" style="@style/DexQuickLaunchBtn" android:layout_marginStart="4dp" android:text="VS Code" android:textStyle="bold" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnLaunchNotepad" style="@style/DexQuickLaunchBtn" android:layout_marginEnd="4dp" android:text="Notepad" />
+                <Button android:id="@+id/btnLaunchCalc" style="@style/DexQuickLaunchBtn" android:layout_marginStart="4dp" android:text="Calculator" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnLaunchExplorer" style="@style/DexQuickLaunchBtn" android:layout_marginEnd="4dp" android:text="File Explorer" />
+                <Button android:id="@+id/btnLaunchSettings" style="@style/DexQuickLaunchBtn" android:layout_marginStart="4dp" android:text="Settings" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- CARD 4: Screen Vision -->
+        <LinearLayout style="@style/DexCard" android:layout_marginTop="16dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Desktop AI Vision" android:textColor="@color/primary_maroon" android:textSize="15sp" android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etVisionPrompt"
+                style="@style/DexInputPill"
+                android:layout_width="match_parent"
+                android:layout_marginTop="10dp"
+                android:hint="Prompt (e.g. What is on screen?)"
+                android:inputType="textCapSentences" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="horizontal">
+                <Button
+                    android:id="@+id/btnTakeScreenshot"
+                    style="@style/DexQuickLaunchBtn"
+                    android:layout_marginEnd="4dp"
+                    android:text="Capture Screen" />
+
+                <Button
+                    android:id="@+id/btnAnalyzeScreen"
+                    style="@style/DexButtonPrimary"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:text="Analyze Screen"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvVisionResult"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Vision results will appear here."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
